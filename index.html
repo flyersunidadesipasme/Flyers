@@ -4,227 +4,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Jornada IPASME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --azul-oscuro: #1e3a8a;
-            --azul-medio: #3b82f6;
-            --verde-claro: #d1fae5;
-            --verde-fuerte: #10b981;
+            --azul-oscuro: #004a99;
+            --azul-claro: #e3f2fd;
+            --verde-claro: #c8e6c9;
             --blanco: #ffffff;
-            --gris-suave: #f3f4f6;
+            --error: #d32f2f;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--gris-suave);
+            font-family: 'Georama', sans-serif;
+            background-color: var(--azul-claro);
             color: #333;
-            line-height: 1.6;
+            display: flex;
+            justify-content: center;
             padding: 20px;
         }
 
         .container {
+            background-color: var(--blanco);
+            width: 100%;
             max-width: 800px;
-            margin: 0 auto;
-            background: var(--blanco);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-top: 8px solid var(--azul-oscuro);
         }
 
-        h1 { color: var(--azul-oscuro); text-align: center; margin-bottom: 5px; }
-        .aviso { 
-            background-color: #fee2e2; 
-            color: #b91c1c; 
-            padding: 10px; 
-            border-radius: 5px; 
-            text-align: center; 
-            font-weight: bold;
-            margin-bottom: 20px;
-            border: 1px solid #f87171;
-        }
+        h1 { color: var(--azul-oscuro); text-align: center; border-bottom: 2px solid var(--verde-claro); padding-bottom: 10px; }
+        
+        .section { margin-bottom: 25px; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .section-title { font-weight: 700; margin-bottom: 15px; color: var(--azul-oscuro); }
+        .required { color: var(--error); }
 
-        section { margin-bottom: 25px; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
-        h3 { color: var(--azul-medio); margin-top: 0; border-bottom: 2px solid var(--verde-claro); padding-bottom: 5px; }
-
-        .grid-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        /* Estilo para botones de opción (Checkboxes ocultos) */
-        .option-btn {
-            position: relative;
-        }
-
-        .option-btn input[type="checkbox"], .option-btn input[type="radio"] {
-            display: none;
-        }
-
-        .option-btn label {
-            display: block;
-            background: var(--blanco);
-            border: 2px solid var(--azul-medio);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 0.9em;
-            height: 100%;
+        /* Botones de selección múltiple/única */
+        .options-grid {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
             justify-content: center;
         }
 
-        .option-btn input:checked + label {
-            background: var(--verde-fuerte);
-            color: white;
-            border-color: var(--verde-fuerte);
+        .option-btn {
+            padding: 10px 15px;
+            border: 2px solid var(--azul-oscuro);
+            background: var(--blanco);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Georama';
+            font-weight: 500;
         }
 
-        input[type="text"], input[type="date"], input[type="time"], textarea, input[type="email"] {
+        .option-btn.selected {
+            background-color: var(--azul-oscuro);
+            color: white;
+        }
+
+        .option-btn:hover { background-color: var(--verde-claro); color: black; }
+
+        /* Input Styles */
+        input[type="text"], textarea {
             width: 100%;
             padding: 12px;
-            margin-top: 8px;
+            margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+            font-family: 'Georama';
         }
 
-        .hidden { display: none; }
+        .time-container { display: flex; align-items: center; gap: 10px; }
+        .am-pm-btn {
+            padding: 10px;
+            border: 1px solid var(--azul-oscuro);
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .am-pm-btn.selected { background: var(--verde-claro); font-weight: bold; }
 
-        .preview-container {
+        /* Fotos */
+        .photo-upload {
             display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
-            margin-top: 10px;
+            border: 2px dashed var(--azul-oscuro);
+            padding: 10px;
+            margin: 5px;
+            flex: 1;
+            min-width: 150px;
         }
-        .preview-container img {
+        .preview {
             width: 100px;
             height: 100px;
             object-fit: cover;
+            display: none;
             border-radius: 5px;
-            border: 2px solid var(--azul-medio);
         }
 
-        button[type="submit"] {
+        .warning-box {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .submit-btn {
             background-color: var(--azul-oscuro);
             color: white;
             padding: 15px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
+            font-size: 1.2rem;
             cursor: pointer;
             width: 100%;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: 0.3s;
+            font-weight: 700;
         }
 
-        button[type="submit"]:hover { background-color: var(--azul-medio); }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Solicitud de Jornada Institucional</h1>
-    <p class="aviso">⚠️ ATENCIÓN: La solicitud NO procederá a menos que tenga un mínimo de 48 horas de anticipación.</p>
+    <h1>Solicitud de Jornada IPASME</h1>
 
-    <form id="jornadaForm" action="https://formsubmit.co/flyersunidadesipasme@gmail.com" method="POST" enctype="multipart/form-data">
-        
+    <div class="warning-box">
+        ⚠️ IMPORTANTE: La solicitud debe realizarse con al menos 48 horas de anticipación.
+    </div>
+
+    <form action="https://formsubmit.co/flyersunidadesipasme@gmail.com" method="POST" enctype="multipart/form-data" id="mainForm">
         <input type="hidden" name="_subject" id="emailSubject" value="Nueva Solicitud de Jornada">
         <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="_next" value="https://tu-sitio-web.com/gracias.html"> <section>
-            <h3>6. Unidad Solicitante</h3>
-            <input type="text" name="Unidad" id="unidadInput" placeholder="Nombre de la unidad" required oninput="updateSubject()">
-        </section>
-
-        <section>
-            <h3>1. Tipo de Jornada</h3>
-            <div class="grid-options">
-                <div class="option-btn">
-                    <input type="radio" name="Tipo_Jornada" value="Ipasme va a la Escuela" id="j1" required onclick="toggleFields(this.value)">
-                    <label for="j1">Ipasme va a la Escuela</label>
-                </div>
-                <div class="option-btn">
-                    <input type="radio" name="Tipo_Jornada" value="Jornada de Atención Médica Integral" id="j2" onclick="toggleFields(this.value)">
-                    <label for="j2">Jornada de Atención Médica Integral</label>
-                </div>
-                <div class="option-btn">
-                    <input type="radio" name="Tipo_Jornada" value="Jornada Conjunta" id="j3" onclick="toggleFields(this.value)">
-                    <label for="j3">Jornada Conjunta</label>
-                </div>
-                <div class="option-btn">
-                    <input type="radio" name="Tipo_Jornada" value="Captación Quirúrgica" id="j4" onclick="toggleFields(this.value)">
-                    <label for="j4">Captación Quirúrgica</label>
-                </div>
-                <div class="option-btn">
-                    <input type="radio" name="Tipo_Jornada" value="Otros" id="j5" onclick="toggleFields(this.value)">
-                    <label for="j5">Otros</label>
-                </div>
+        
+        <div class="section">
+            <div class="section-title">1. Tipo de Jornada <span class="required">*</span></div>
+            <div class="options-grid" id="tipoJornada">
+                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Ipasme va a la Escuela</button>
+                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Jornada de Atención Médica Integral</button>
+                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Jornada Conjunta</button>
+                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Captación Quirúrgica</button>
+                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Otros</button>
             </div>
-        </section>
+            <input type="hidden" name="Tipo de Jornada" id="input_jornada" required>
+        </div>
 
-        <section id="sec-2">
-            <h3 id="titulo-sec-2">2. Especialidades</h3>
-            <div id="lista-especialidades" class="grid-options">
+        <div id="otros_container" class="section hidden">
+            <div class="section-title">Describa su solicitud</div>
+            <textarea name="Descripcion Otros" rows="5" placeholder="Escriba detalladamente su requerimiento..."></textarea>
+        </div>
+
+        <div class="section" id="section_especialidades">
+            <div class="section-title" id="title_2">2. Especialidades <span class="required">*</span></div>
+            <div class="options-grid" id="grid_especialidades">
                 </div>
-            <div id="lista-patologias" class="grid-options hidden">
+            <input type="hidden" name="Seleccion_Opcion_2" id="input_opcion_2">
+        </div>
+
+        <div class="section" id="section_servicios">
+            <div class="section-title">3. Servicios Adicionales</div>
+            <div class="options-grid" id="grid_servicios">
                 </div>
-        </section>
+            <input type="hidden" name="Servicios Adicionales" id="input_servicios">
+        </div>
 
-        <section id="sec-3">
-            <h3>3. Servicios Adicionales</h3>
-            <div id="lista-servicios" class="grid-options">
-                </div>
-        </section>
-
-        <section id="sec-otros" class="hidden">
-            <h3>Describa su solicitud</h3>
-            <textarea name="Descripcion_Otros" rows="5" placeholder="Escriba aquí los detalles de su solicitud..."></textarea>
-        </section>
-
-        <section>
-            <h3>4. Fecha y Hora</h3>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:1">
+        <div class="section">
+            <div class="section-title">4. Fecha y Hora <span class="required">*</span></div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1;">
                     <label>Fecha:</label>
-                    <input type="date" name="Fecha_Evento" id="fechaEvento" required onchange="validar48Horas()">
+                    <input type="date" name="Fecha" id="fecha_solicitud" required style="width: 100%; padding: 10px;">
                 </div>
-                <div style="flex:1">
+                <div style="flex: 1;">
                     <label>Hora:</label>
-                    <input type="time" name="Hora_Evento" required>
+                    <div class="time-container">
+                        <input type="text" id="hora_input" placeholder="00:00" style="width: 80px;">
+                        <button type="button" class="am-pm-btn" onclick="selectAMPM(this, 'AM')">a. m.</button>
+                        <button type="button" class="am-pm-btn" onclick="selectAMPM(this, 'PM')">p. m.</button>
+                    </div>
+                    <input type="hidden" name="Hora Final" id="input_hora_completa">
                 </div>
             </div>
-            <p id="error-fecha" style="color: red; font-size: 0.8em; margin-top: 5px; display: none;">* La fecha debe tener al menos 48 horas de anticipación.</p>
-        </section>
+        </div>
 
-        <section>
-            <h3>5. Dirección</h3>
-            <input type="text" name="Direccion" placeholder="Dirección completa" required>
-        </section>
+        <div class="section">
+            <div class="section-title">5. Dirección <span class="required">*</span></div>
+            <input type="text" name="Direccion" required>
+        </div>
 
-        <section>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex:1">
-                    <h3>7. Teléfono</h3>
-                    <input type="text" name="Telefono" placeholder="Ej: 04121234567" required>
+        <div class="section">
+            <div class="section-title">6. Unidad <span class="required">*</span></div>
+            <input type="text" name="Unidad" id="input_unidad" required oninput="updateSubject()">
+        </div>
+
+        <div class="section" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <div class="section-title">7. Teléfono</div>
+                <input type="text" name="Telefono">
+            </div>
+            <div style="flex: 1;">
+                <div class="section-title">8. Correo Arte</div>
+                <input type="text" name="Correo Arte">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Adjuntar Fotos (Máx 3MB c/u)</div>
+            <div style="display: flex; flex-wrap: wrap;">
+                <div class="photo-upload">
+                    <label>Foto 1</label>
+                    <input type="file" name="Foto 1" accept="image/*" onchange="previewImg(this, 'p1')">
+                    <img id="p1" class="preview">
                 </div>
-                <div style="flex:1">
-                    <h3>8. Correo (para el arte)</h3>
-                    <input type="email" name="Email_Arte" placeholder="ejemplo@correo.com" required>
+                <div class="photo-upload">
+                    <label>Foto 2</label>
+                    <input type="file" name="Foto 2" accept="image/*" onchange="previewImg(this, 'p2')">
+                    <img id="p2" class="preview">
+                </div>
+                <div class="photo-upload">
+                    <label>Foto 3</label>
+                    <input type="file" name="Foto 3" accept="image/*" onchange="previewImg(this, 'p3')">
+                    <img id="p3" class="preview">
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section>
-            <h3>Carga de Imágenes (Máx 2, 3MB c/u)</h3>
-            <input type="file" name="adjuntos" id="fotos" accept="image/*" multiple onchange="handleFiles(this.files)">
-            <div class="preview-container" id="preview"></div>
-        </section>
-
-        <button type="submit" id="btnEnviar">ENVIAR SOLICITUD</button>
+        <button type="submit" class="submit-btn">ENVIAR SOLICITUD</button>
     </form>
 </div>
 
@@ -235,122 +248,133 @@
 
     const servicios = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despistaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
 
-    // Cargar opciones en el DOM
-    function cargarOpciones(lista, containerId, name, type="checkbox") {
-        const container = document.getElementById(containerId);
-        lista.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'option-btn';
-            div.innerHTML = `
-                <input type="${type}" name="${name}" value="${item}" id="${name + index}">
-                <label for="${name + index}">${item}</label>
-            `;
-            container.appendChild(div);
+    let selectedAMPM = "";
+
+    // Inicializar grids
+    function buildGrid(items, gridId, inputId) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = "";
+        items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = "option-btn";
+            btn.innerText = item;
+            btn.onclick = () => toggleMultiple(btn, inputId);
+            grid.appendChild(btn);
         });
     }
 
-    cargarOpciones(especialidades, 'lista-especialidades', 'Especialidades[]');
-    cargarOpciones(patologias, 'lista-patologias', 'Patologias[]');
-    cargarOpciones(servicios, 'lista-servicios', 'Servicios[]');
+    buildGrid(especialidades, 'grid_especialidades', 'input_opcion_2');
+    buildGrid(servicios, 'grid_servicios', 'input_servicios');
 
-    function toggleFields(valor) {
-        const sec2 = document.getElementById('sec-2');
-        const sec3 = document.getElementById('sec-3');
-        const secOtros = document.getElementById('sec-otros');
-        const tituloSec2 = document.getElementById('titulo-sec-2');
-        const listaEsp = document.getElementById('lista-especialidades');
-        const listaPat = document.getElementById('lista-patologias');
-
+    function selectSingle(btn, type) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        
+        const val = btn.innerText;
+        document.getElementById('input_jornada').value = val;
         updateSubject();
 
-        // Reset
-        sec2.classList.remove('hidden');
-        sec3.classList.remove('hidden');
-        secOtros.classList.add('hidden');
-        listaEsp.classList.add('hidden');
-        listaPat.classList.add('hidden');
+        // Lógica de visibilidad
+        const sec2 = document.getElementById('section_especialidades');
+        const sec3 = document.getElementById('section_servicios');
+        const otros = document.getElementById('otros_container');
 
-        if (valor === "Captación Quirúrgica") {
-            tituloSec2.innerText = "2. Patologías";
-            listaPat.classList.remove('hidden');
+        if (val === "Captación Quirúrgica") {
+            sec2.classList.remove('hidden');
             sec3.classList.add('hidden');
-        } else if (valor === "Otros") {
+            otros.classList.add('hidden');
+            document.getElementById('title_2').innerText = "2. Patologías *";
+            buildGrid(patologias, 'grid_especialidades', 'input_opcion_2');
+        } else if (val === "Otros") {
             sec2.classList.add('hidden');
             sec3.classList.add('hidden');
-            secOtros.classList.remove('hidden');
+            otros.classList.remove('hidden');
         } else {
-            tituloSec2.innerText = "2. Especialidades";
-            listaEsp.classList.remove('hidden');
+            sec2.classList.remove('hidden');
+            sec3.classList.remove('hidden');
+            otros.classList.add('hidden');
+            document.getElementById('title_2').innerText = "2. Especialidades *";
+            buildGrid(especialidades, 'grid_especialidades', 'input_opcion_2');
         }
     }
 
-    function updateSubject() {
-        const unidad = document.getElementById('unidadInput').value;
-        const jornada = document.querySelector('input[name="Tipo_Jornada"]:checked')?.value || "";
-        document.getElementById('emailSubject').value = `Solicitud: ${unidad} - ${jornada}`;
-    }
-
-    function validar48Horas() {
-        const fechaInput = document.getElementById('fechaEvento').value;
-        const btn = document.getElementById('btnEnviar');
-        const error = document.getElementById('error-fecha');
+    function toggleMultiple(btn, inputId) {
+        btn.classList.toggle('selected');
+        const parent = btn.parentElement;
+        const selected = Array.from(parent.querySelectorAll('.option-btn.selected')).map(b => b.innerText);
         
-        if (!fechaInput) return;
-
-        const hoy = new Date();
-        const fechaElegida = new Date(fechaInput + "T00:00:00");
-        const diffHoras = (fechaElegida - hoy) / (1000 * 60 * 60);
-
-        if (diffHoras < 48) {
-            error.style.display = "block";
-            btn.disabled = true;
-            btn.style.opacity = "0.5";
-        } else {
-            error.style.display = "none";
-            btn.disabled = false;
-            btn.style.opacity = "1";
+        // Regla especial de Captación Quirúrgica General y Oftalmológica
+        let processedList = [...selected];
+        if (selected.includes("Captación quirúrgica general") && selected.includes("Captación quirúrgica oftalmológica")) {
+            processedList = processedList.filter(i => !i.includes("Captación quirúrgica"));
+            processedList.push("Captación quirúrgica general y oftalmológica");
         }
+
+        document.getElementById(inputId).value = processedList.join('\n• ');
     }
 
-    function handleFiles(files) {
-        const preview = document.getElementById('preview');
-        preview.innerHTML = "";
-        
-        if (files.length > 2) {
-            alert("Máximo 2 archivos");
-            document.getElementById('fotos').value = "";
+    function selectAMPM(btn, val) {
+        document.querySelectorAll('.am-pm-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedAMPM = val;
+        updateTime();
+    }
+
+    function updateTime() {
+        const hora = document.getElementById('hora_input').value;
+        document.getElementById('input_hora_completa').value = `${hora} ${selectedAMPM}`;
+    }
+
+    function previewImg(input, previewId) {
+        const file = input.files[0];
+        if (file && file.size > 3 * 1024 * 1024) {
+            alert("El archivo supera los 3MB");
+            input.value = "";
             return;
         }
-
-        for (const file of files) {
-            if (file.size > 3 * 1024 * 1024) {
-                alert(`El archivo ${file.name} excede los 3MB`);
-                document.getElementById('fotos').value = "";
-                preview.innerHTML = "";
-                return;
-            }
+        if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = document.createElement('img');
+                const img = document.getElementById(previewId);
                 img.src = e.target.result;
-                preview.appendChild(img);
-            }
+                img.style.display = "block";
+            };
             reader.readAsDataURL(file);
         }
     }
 
-    // Lógica especial para envío de servicios combinados
-    document.getElementById('jornadaForm').onsubmit = function() {
-        const capsGen = document.querySelector('input[value="Captación quirúrgica general"]');
-        const capsOft = document.querySelector('input[value="Captación quirúrgica oftalmológica"]');
-        
-        if (capsGen?.checked && capsOft?.checked) {
-            // Creamos un campo oculto temporal para el envío formateado
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'Servicio_Especial';
-            hiddenInput.value = 'Captación quirúrgica general y oftalmológica';
-            this.appendChild(hiddenInput);
+    function updateSubject() {
+        const unidad = document.getElementById('input_unidad').value;
+        const jornada = document.getElementById('input_jornada').value;
+        document.getElementById('emailSubject').value = `Solicitud: ${unidad} - ${jornada}`;
+    }
+
+    document.getElementById('mainForm').onsubmit = function(e) {
+        // Validar 48 horas
+        const fechaInput = document.getElementById('fecha_solicitud').value;
+        const fechaSoli = new Date(fechaInput);
+        const hoy = new Date();
+        const diff = (fechaSoli - hoy) / (1000 * 60 * 60);
+
+        if (diff < 48) {
+            alert("Error: La solicitud debe ser con al menos 48 horas de anticipación.");
+            e.preventDefault();
+            return false;
+        }
+
+        // Validar Especialidad/Patología si no es "Otros"
+        const jornada = document.getElementById('input_jornada').value;
+        if (jornada !== "Otros" && !document.getElementById('input_opcion_2').value) {
+            alert("Debe seleccionar al menos una especialidad o patología.");
+            e.preventDefault();
+            return false;
+        }
+
+        updateTime();
+        if (!confirm("⚠️ Verifique que la dirección esté correcta. Si la dirección es incorrecta, la solicitud será dejada de última en la lista. ¿Desea continuar?")) {
+            e.preventDefault();
         }
     };
 </script>
