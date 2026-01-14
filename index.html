@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Solicitudes IPASME</title>
+    <style>
+        :root {
+            --azul-oscuro: #1a5f7a;
+            --azul-claro: #86b6bb;
+            --verde-claro: #d1f5d3;
+            --blanco: #ffffff;
+            --gris-suave: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--gris-suave);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--blanco);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            color: var(--azul-oscuro);
+            text-align: center;
+            border-bottom: 2px solid var(--azul-claro);
+            padding-bottom: 10px;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #ffeeba;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--azul-oscuro);
+        }
+
+        /* Estilo para botones de selección múltiple */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .option-btn {
+            display: none;
+        }
+
+        .option-label {
+            display: block;
+            padding: 10px;
+            background: var(--blanco);
+            border: 2px solid var(--azul-claro);
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .option-btn:checked + .option-label {
+            background: var(--azul-claro);
+            color: white;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            background-color: var(--azul-oscuro);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: #13455a;
+        }
+
+        /* Tabla de Administración */
+        .admin-section {
+            margin-top: 50px;
+            background: var(--verde-claro);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.85em;
+        }
+
+        th {
+            background-color: var(--azul-oscuro);
+            color: white;
+        }
+
+        .status-select {
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Solicitud de Jornadas IPASME</h1>
+
+    <div class="alert-warning">
+        ⚠️ IMPORTANTE: La solicitud debe realizarse con un mínimo de 48 horas de anticipación. De lo contrario, el sistema no permitirá el envío.
+    </div>
+
+    <form id="jornadaForm" action="https://formsubmit.co/flyersunidadesipasme@gmail.com" method="POST" onsubmit="return validarEnvio(event)">
+        
+        <input type="hidden" name="_next" value="javascript:alert('Solicitud enviada con éxito')">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" id="mail_subject" name="_subject" value="Nueva Solicitud">
+
+        <div class="form-group">
+            <label>1. Tipo de Jornada</label>
+            <select name="Tipo de Jornada" id="tipoJornada" required onchange="actualizarInterfaz()">
+                <option value="">Seleccione una opción...</option>
+                <option value="Ipasme va a la Escuela">Ipasme va a la Escuela</option>
+                <option value="Jornada de Atención Médica Integral">Jornada de Atención Médica Integral</option>
+                <option value="Jornada Conjunta">Jornada Conjunta</option>
+                <option value="Captación Quirúrgica">Captación Quirúrgica</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="container-especialidades">
+            <label id="label-seccion-2">2. Especialidades (Seleccione una o varias)</label>
+            <div id="grid-especialidades" class="options-grid">
+                </div>
+            <input type="hidden" name="Selección Detallada" id="hidden_detalle">
+        </div>
+
+        <div class="form-group" id="container-servicios">
+            <label>3. Servicios adicionales (Seleccione una o varias)</label>
+            <div id="grid-servicios" class="options-grid">
+                </div>
+            <input type="hidden" name="Servicios Adicionales" id="hidden_servicios">
+        </div>
+
+        <div class="form-group">
+            <label>4. Fecha y Hora de la Jornada</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="date" name="Fecha_Jornada" id="fechaJornada" required>
+                <input type="time" id="horaVisual" required onchange="formatearHora(this.value)">
+                <input type="hidden" name="Hora_Jornada" id="horaFinal">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>5. Dirección Exacta</label>
+            <input type="text" name="Dirección" placeholder="Escriba la ubicación..." required>
+        </div>
+
+        <div class="form-group">
+            <label>6. Unidad Solicitante</label>
+            <input type="text" name="Unidad" id="unidadNombre" placeholder="Nombre de la Unidad IPASME" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Enviar Solicitud</button>
+    </form>
+
+    <div class="admin-section">
+        <h2>Panel de Administración (Tiempo Real)</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha/Hora Reg.</th>
+                        <th>Unidad</th>
+                        <th>Jornada</th>
+                        <th>Detalle</th>
+                        <th>Fecha Evento</th>
+                        <th>Estatus</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaAdmin">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const especialidades = ["Alergología", "Cardiología", "Cirugía General", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y Obstetricia", "Medicina Familiar y Comunitaria", "Medicina General", "Medicina Intensiva", "Medicina Interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología Médica", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
+    
+    const patologias = ["Hernia Inguinal", "Hernia Umbilical", "Hernia Abdominal", "Hernia Epigástrica", "Hernia Escrotal", "Fimosis", "Varicocele", "Hidrocele", "Litiasis Vesicular", "Colectomía", "Lipomas", "Quiste Tirogloso", "Quiste sebáceo", "Esterilización", "Miomatosis Uterina", "Tumores Ováricos", "Prolapso", "Histerectomía", "Catarata", "Pterigión", "Glaucoma", "Retinoblastoma"];
+    
+    const servicios = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despintaje HTA", "Afiliación", "Sesión educativa", "Farmacia"];
+
+    function renderOptions(containerId, list, prefix) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        list.forEach(item => {
+            const id = `${prefix}_${item.replace(/\s+/g, '_')}`;
+            container.innerHTML += `
+                <div>
+                    <input type="checkbox" class="option-btn" id="${id}" value="${item}" onchange="compilarSelecciones()">
+                    <label class="option-label" for="${id}">${item}</label>
+                </div>
+            `;
+        });
+    }
+
+    function actualizarInterfaz() {
+        const tipo = document.getElementById('tipoJornada').value;
+        const containerServicios = document.getElementById('container-servicios');
+        const labelSeccion2 = document.getElementById('label-seccion-2');
+
+        if (tipo === "Captación Quirúrgica") {
+            containerServicios.classList.add('hidden');
+            labelSeccion2.innerText = "2. Patologías (Seleccione una o varias)";
+            renderOptions('grid-especialidades', patologias, 'pat');
+        } else {
+            containerServicios.classList.remove('hidden');
+            labelSeccion2.innerText = "2. Especialidades (Seleccione una o varias)";
+            renderOptions('grid-especialidades', especialidades, 'esp');
+            renderOptions('grid-servicios', servicios, 'ser');
+        }
+    }
+
+    function compilarSelecciones() {
+        // Formatear para el email con bullets
+        const checkboxesDetalle = document.querySelectorAll('#grid-especialidades input:checked');
+        const listaDetalle = Array.from(checkboxesDetalle).map(cb => `• ${cb.value}`).join('\n');
+        document.getElementById('hidden_detalle').value = listaDetalle;
+
+        const checkboxesServ = document.querySelectorAll('#grid-servicios input:checked');
+        const listaServ = Array.from(checkboxesServ).map(cb => `• ${cb.value}`).join('\n');
+        document.getElementById('hidden_servicios').value = listaServ;
+    }
+
+    function formatearHora(hora) {
+        if(!hora) return;
+        let [hh, mm] = hora.split(':');
+        let meridian = hh >= 12 ? 'p. m.' : 'a. m.';
+        hh = hh % 12 || 12;
+        document.getElementById('horaFinal').value = `${hh}:${mm} ${meridian}`;
+    }
+
+    function validarEnvio(e) {
+        const fechaElegida = new Date(document.getElementById('fechaJornada').value + 'T00:00:00');
+        const hoy = new Date();
+        const diferenciaHoras = (fechaElegida - hoy) / (1000 * 60 * 60);
+
+        if (diferenciaHoras < 48) {
+            alert("❌ Error: Las solicitudes deben realizarse con al menos 48 horas de anticipación.");
+            return false;
+        }
+
+        // Actualizar Subject del correo dinámicamente
+        const unidad = document.getElementById('unidadNombre').value;
+        const tipo = document.getElementById('tipoJornada').value;
+        document.getElementById('mail_subject').value = `SOLICITUD: ${unidad} - ${tipo}`;
+
+        // Guardar en "Base de Datos" local para el admin
+        guardarLocalmente();
+        return true;
+    }
+
+    // --- LÓGICA DE ADMINISTRACIÓN ---
+
+    function guardarLocalmente() {
+        const nuevaSolicitud = {
+            id: Date.now(),
+            registro: new Date().toLocaleString(),
+            unidad: document.getElementById('unidadNombre').value,
+            jornada: document.getElementById('tipoJornada').value,
+            detalle: document.getElementById('hidden_detalle').value,
+            servicios: document.getElementById('hidden_servicios').value,
+            fechaEvento: document.getElementById('fechaJornada').value + ' ' + document.getElementById('horaFinal').value,
+            estatus: 'Pendiente'
+        };
+
+        let solicitudes = JSON.parse(localStorage.getItem('solicitudesIpasme')) || [];
+        solicitudes.push(nuevaSolicitud);
+        localStorage.setItem('solicitudesIpasme', JSON.stringify(solicitudes));
+        renderAdmin();
+    }
+
+    function renderAdmin() {
+        const solicitudes = JSON.parse(localStorage.getItem('solicitudesIpasme')) || [];
+        const tabla = document.getElementById('tablaAdmin');
+        tabla.innerHTML = '';
+
+        solicitudes.sort((a, b) => b.id - a.id).forEach(sol => {
+            tabla.innerHTML += `
+                <tr>
+                    <td>${sol.registro}</td>
+                    <td><b>${sol.unidad}</b></td>
+                    <td>${sol.jornada}</td>
+                    <td><small>${sol.detalle.replace(/\n/g, '<br>')} <br> ${sol.servicios.replace(/\n/g, '<br>')}</small></td>
+                    <td>${sol.fechaEvento}</td>
+                    <td>
+                        <select class="status-select" onchange="cambiarEstatus(${sol.id}, this.value)" style="background:${getColor(sol.estatus)}">
+                            <option value="Pendiente" ${sol.estatus === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="Ejecutando" ${sol.estatus === 'Ejecutando' ? 'selected' : ''}>Ejecutando</option>
+                            <option value="Realizado" ${sol.estatus === 'Realizado' ? 'selected' : ''}>Realizado</option>
+                            <option value="Aprobado" ${sol.estatus === 'Aprobado' ? 'selected' : ''}>Aprobado</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function getColor(status) {
+        switch(status){
+            case 'Aprobado': return '#d1f5d3';
+            case 'Ejecutando': return '#fff3cd';
+            case 'Realizado': return '#86b6bb';
+            default: return '#fff';
+        }
+    }
+
+    function cambiarEstatus(id, nuevoEstatus) {
+        let solicitudes = JSON.parse(localStorage.getItem('solicitudesIpasme'));
+        solicitudes = solicitudes.map(s => s.id === id ? {...s, estatus: nuevoEstatus} : s);
+        localStorage.setItem('solicitudesIpasme', JSON.stringify(solicitudes));
+        renderAdmin();
+    }
+
+    // Inicializar
+    actualizarInterfaz();
+    renderAdmin();
+</script>
+
+</body>
+</html>
