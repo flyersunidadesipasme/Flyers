@@ -11,55 +11,37 @@
         .nav-tabs { display: flex; background: var(--azul); padding: 10px; position: sticky; top: 0; z-index: 1000; justify-content: center; gap: 15px; }
         .tab-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9em; }
         .tab-btn.active { background: var(--blanco); color: var(--azul); }
-        
         .container { max-width: 950px; margin: 15px auto; background: var(--blanco); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
         .section-title { font-weight: 700; color: var(--azul); margin-bottom: 12px; display: block; border-left: 5px solid var(--azul); padding-left: 10px; text-transform: uppercase; font-size: 0.85em; }
-        
-        .warning-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 12px; margin-bottom: 15px; font-size: 0.85em; color: #856404; border-radius: 5px; line-height: 1.4; }
-        .error-msg { background: #fff5f5; border-color: #feb2b2; color: #c53030; font-size: 0.75em; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 5px solid #f56565; }
-
+        .warning-text { color: var(--rojo); font-weight: 700; font-size: 0.85em; margin-top: 8px; display: block; background: #fff2f2; padding: 8px; border-radius: 5px; border-left: 3px solid var(--rojo); }
         .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.8em; transition: 0.3s; flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; min-height: 45px; }
-        .option-btn.selected { background: var(--verde); color: white; border-color: #1e7e34; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        .ampm-group { display: flex; gap: 5px; width: 140px; }
-        .ampm-btn { min-width: 60px; height: 40px; }
-
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 5px; box-sizing: border-box; font-family: inherit; font-size: 0.9em; }
-        
-        .preview-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-        .img-preview { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd; background: #eee; }
-
-        .btn-enviar { background: var(--azul); color: white; padding: 15px; width: 100%; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.8em; flex: 1; min-width: 140px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .option-btn.selected { background: var(--verde); color: white; border-color: #1e7e34; }
+        .img-preview { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd; background: #eee; margin-top: 10px; }
+        .btn-enviar { background: var(--azul); color: white; padding: 15px; width: 100%; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: 0.3s; }
         .btn-enviar:disabled { background: #ccc; cursor: not-allowed; }
-        
         .hidden { display: none !important; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 0.75em; }
-        .badge { padding: 4px 8px; border-radius: 10px; color: white; font-weight: bold; }
-        .PENDIENTE { background: var(--rojo); }
-        .EJECUTANDO { background: var(--naranja); }
-        .APROBADO { background: var(--verde); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 0.75em; text-align: left; }
+        .badge { padding: 4px 8px; border-radius: 10px; color: white; font-weight: bold; font-size: 0.9em; }
+        .PENDIENTE { background: var(--rojo); } .EJECUTANDO { background: var(--naranja); } .APROBADO { background: var(--verde); }
+        .row-new { background-color: #fff8e1; animation: highlight 2s ease-in-out; }
+        @keyframes highlight { from { background-color: #ffe082; } to { background-color: #fff8e1; } }
     </style>
 </head>
 <body>
 
 <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab('formSec', this)">📝 NUEVA SOLICITUD</button>
-    <button class="tab-btn" onclick="showTab('listadoSec', this); cargarSolicitudes();">⏳ COLA DE TRABAJO</button>
+    <button class="tab-btn active" id="btn-form" onclick="showTab('formSec', this)">📝 NUEVA SOLICITUD</button>
+    <button class="tab-btn" id="btn-list" onclick="showTab('listadoSec', this); cargarSolicitudes();">⏳ SOLICITUDES</button>
 </nav>
 
 <div id="formSec" class="container">
-    <div class="warning-box">
-        ⚠️ <b>REGLA DE ANTICIPACIÓN:</b> El sistema detectará automáticamente si el flyer tiene menos de <b>48 horas</b> de anticipo; de ser así, la solicitud no procederá.
-    </div>
-
     <form id="mainForm">
         <div class="section">
             <label class="section-title">🏢 1. Unidad Solicitante</label>
-            <input type="text" name="Unidad" placeholder="Ejemplo: U.M.I. Caracas o U.M.I. La Guaira" required>
+            <input type="text" name="Unidad" placeholder="Ej: U.M.I. Caracas" required style="width:100%; padding:10px; box-sizing: border-box;">
         </div>
 
         <div class="section">
@@ -75,78 +57,71 @@
         </div>
 
         <div id="sec_esp" class="section">
-            <label class="section-title" id="tit_dinamico">🩺 3. Especialidades</label>
-            <div class="options-grid" id="g_esp"></div>
+            <label class="section-title" id="tit_dinamico">🩺 3. Especialidades / Patologías</label>
+            <div class="btn-group" id="g_esp" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 5px;"></div>
             <input type="hidden" name="Especialidades" id="h_esp">
         </div>
 
         <div id="sec_ser" class="section">
             <label class="section-title">✨ 4. Servicios Adicionales</label>
-            <div class="options-grid" id="g_ser"></div>
+            <div class="btn-group" id="g_ser" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 5px;"></div>
             <input type="hidden" name="Servicios" id="h_ser">
         </div>
 
         <div class="section">
             <label class="section-title">📅 5. Fecha y Hora del Evento</label>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <input type="date" name="Fecha" id="f_evento" required>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="text" id="t_hora" placeholder="08:00" style="width: 75px;">
-                    <div class="ampm-group">
-                        <div class="option-btn ampm-btn" id="am" onclick="selAMPM('a. m.')">a. m.</div>
-                        <div class="option-btn ampm-btn" id="pm" onclick="selAMPM('p. m.')">p. m.</div>
-                    </div>
+            <span class="warning-text">⚠️ ATENCIÓN: La solicitud debe realizarse con un mínimo de 48 horas de anticipación, de lo contrario NO será procesada.</span>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <input type="date" id="input_fecha" name="Fecha" required style="padding:10px;">
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <input type="text" id="t_hora" placeholder="08:00" style="width:60px; padding:10px;">
+                    <button type="button" class="option-btn ampm-btn" id="am" onclick="selAMPM('a. m.')">AM</button>
+                    <button type="button" class="option-btn ampm-btn" id="pm" onclick="selAMPM('p. m.')">PM</button>
                 </div>
             </div>
             <input type="hidden" name="Hora" id="h_hora">
         </div>
 
         <div class="section">
-            <label class="section-title">📍 6. Dirección Exacta</label>
-            <div class="error-msg">
-                📢 <b>ADVERTENCIA:</b> La dirección debe estar correctamente escrita y verificada. De lo contrario, la solicitud pasará de última a la fila o se retrasará significativamente.
-            </div>
-            <textarea name="Direccion" placeholder="Indique calle, punto de referencia y parroquia..." required style="height: 70px;"></textarea>
+            <label class="section-title">📍 6. Ubicación y Contacto</label>
+            <span class="warning-text">⚠️ La dirección debe ser EXACTA. De estar errónea, la solicitud pasará automáticamente a BAJA PRIORIDAD.</span>
+            <textarea name="Direccion" placeholder="Dirección completa y punto de referencia..." required style="width:100%; height:60px; padding:10px; margin-top:10px; box-sizing: border-box;"></textarea>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <input type="text" name="Telefono" placeholder="📞 Teléfono de contacto" required>
-                <input type="email" name="Correo" placeholder="📧 Correo Institucional" required>
+                <input type="text" name="Telefono" placeholder="Teléfono" required style="padding:10px;">
+                <input type="email" name="Correo" placeholder="Correo Institucional" required style="padding:10px;">
             </div>
         </div>
 
         <div class="section">
-            <label class="section-title">📸 7. Soportes (Visor de Imágenes)</label>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:10px;">
-                <input type="file" id="foto1" accept="image/*" onchange="preview(this, 'p1')">
-                <input type="file" id="foto2" accept="image/*" onchange="preview(this, 'p2')">
-                <input type="file" id="foto3" accept="image/*" onchange="preview(this, 'p3')">
-            </div>
-            <div class="preview-container">
-                <img id="p1" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
-                <img id="p2" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
-                <img id="p3" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
+            <label class="section-title">📝 7. Observaciones</label>
+            <textarea name="Observaciones" placeholder="Detalles para el diseño..." style="width:100%; height:80px; padding:10px; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div class="section">
+            <label class="section-title">📸 8. Soportes Fotográficos</label>
+            <input type="file" id="foto1" accept="image/*" onchange="preview(this, 'p1')">
+            <input type="file" id="foto2" accept="image/*" onchange="preview(this, 'p2')">
+            <input type="file" id="foto3" accept="image/*" onchange="preview(this, 'p3')">
+            <div style="display: flex; gap: 10px;">
+                <img id="p1" class="img-preview" src="">
+                <img id="p2" class="img-preview" src="">
+                <img id="p3" class="img-preview" src="">
             </div>
         </div>
 
-        <button type="button" class="btn-enviar" id="btnSubmit" onclick="enviar()">🚀 PROCESAR SOLICITUD</button>
+        <button type="button" class="btn-enviar" id="btnSubmit" onclick="enviar()">🚀 ENVIAR SOLICITUD</button>
     </form>
 </div>
 
 <div id="listadoSec" class="container hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3 style="color:var(--azul); margin:0;">📊 Estatus y Cola de Trabajo</h3>
-        <button onclick="accesoAdmin()" style="cursor:pointer; padding:6px 12px; border-radius:5px; border:1px solid #ccc; font-size: 0.8em;">🔑 Modo Admin</button>
+        <h3>📊 Solicitudes Recientes</h3>
+        <button onclick="accesoAdmin()" style="cursor:pointer; padding:5px 10px;">🔑 Admin</button>
     </div>
     <div style="overflow-x:auto;">
         <table>
             <thead>
-                <tr>
-                    <th>Reg. (Fecha/Hora)</th>
-                    <th>Unidad</th>
-                    <th>Jornada</th>
-                    <th>Fecha Evento</th>
-                    <th>Estatus</th>
-                    <th class="admin-col hidden">Gestión</th>
-                </tr>
+                <tr><th>Registro</th><th>Unidad</th><th>Jornada</th><th>Estatus</th><th id="colAdmin" class="hidden">Acción</th></tr>
             </thead>
             <tbody id="cuerpoTabla"></tbody>
         </table>
@@ -154,14 +129,13 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGDwFhQzaPG_11fKSpiJSe92FxlT7ihGfDYS3fs9BJ2oPk2t4I_9Rlt3X0CzRMggr4/exec';
-    
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzh_Ra8WCYL7JuauVfwvE8HjvG0GIlcQdOmMLaeSnTUI9O3xFKFhCZZOzxeR3fZCpfC/exec';
+
     const listEsp = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
     const listPat = ["Hernia inguinal", "Hernia umbilical", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Fimosis", "Vasectomía", "Varicocele", "Hidrocele", "Litiasis vesicular", "Colectomía", "Lipomas", "Quiste tirogloso", "Quiste sebáceo", "Esterilización", "Miomatosis uterina", "Tumores ováricos", "Prolapso", "Histerectomía", "Catarata", "Pterigión", "Glaucoma", "Retinoblastoma"];
-    const listSer = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despistaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
+    const listSer = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despestaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
 
-    let ampmValue = "";
-    let isAdmin = false;
+    let ampmValue = ""; let esAdmin = false;
 
     function showTab(id, b) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
@@ -172,7 +146,8 @@
 
     function selAMPM(val) {
         document.querySelectorAll('.ampm-btn').forEach(b => b.classList.remove('selected'));
-        document.getElementById(val === 'a. m.' ? 'am' : 'pm').classList.add('selected');
+        if(val === 'a. m.') document.getElementById('am').classList.add('selected');
+        else document.getElementById('pm').classList.add('selected');
         ampmValue = val;
     }
 
@@ -189,15 +164,21 @@
         el.classList.add('selected');
         const v = el.innerText;
         document.getElementById('h_jornada').value = v;
+        const contEsp = document.getElementById('g_esp');
+        const secSer = document.getElementById('sec_ser');
 
-        if(v === "Captación Quirúrgica") {
-            document.getElementById('tit_dinamico').innerHTML = "🩺 3. Patologías";
+        if(v === "Otros") {
+            document.getElementById('tit_dinamico').innerText = "🩺 3. Especifique su solicitud";
+            contEsp.innerHTML = `<textarea id="txt_otros" oninput="document.getElementById('h_esp').value = this.value" placeholder="Describa brevemente lo que requiere..." style="width:100%; height:80px; padding:10px; border:1px solid #ccc; width:100%; box-sizing:border-box;"></textarea>`;
+            secSer.classList.add('hidden');
+        } else if(v === "Captación Quirúrgica") {
+            document.getElementById('tit_dinamico').innerText = "🩺 3. Patologías";
             render('g_esp', listPat, 'h_esp');
-            document.getElementById('sec_ser').classList.add('hidden');
+            secSer.classList.add('hidden');
         } else {
-            document.getElementById('tit_dinamico').innerHTML = "🩺 3. Especialidades";
+            document.getElementById('tit_dinamico').innerText = "🩺 3. Especialidades";
             render('g_esp', listEsp, 'h_esp');
-            document.getElementById('sec_ser').classList.remove('hidden');
+            secSer.classList.remove('hidden');
             render('g_ser', listSer, 'h_ser');
         }
     }
@@ -219,87 +200,102 @@
     }
 
     async function enviar() {
-        const fechaE = document.getElementById('f_evento').value;
-        if (fechaE) {
-            const fSeleccionada = new Date(fechaE);
-            const hoy = new Date();
-            const diff = (fSeleccionada - hoy) / (1000 * 60 * 60);
-            if (diff < 48) {
-                alert("❌ La solicitud no puede proceder: Debe tener un mínimo de 48 horas de anticipación.");
-                return;
-            }
-        }
-
-        const f = document.getElementById('mainForm');
-        if(!f.checkValidity() || !ampmValue) return alert("Por favor complete todos los campos y seleccione el horario (a. m. / p. m.).");
-        
-        document.getElementById('h_hora').value = document.getElementById('t_hora').value + " " + ampmValue;
         const btn = document.getElementById('btnSubmit');
-        btn.disabled = true; btn.innerText = "⏳ ENVIANDO...";
+        if(!ampmValue || !document.getElementById('input_fecha').value) return alert("Por favor complete Fecha y Hora (AM/PM)");
+        
+        btn.disabled = true; btn.innerText = "⏳ PROCESANDO...";
 
-        const params = new URLSearchParams(new FormData(f));
-        const fotos = [document.getElementById('foto1'), document.getElementById('foto2'), document.getElementById('foto3')].filter(x => x.files.length > 0);
+        const rawDate = document.getElementById('input_fecha').value.split("-");
+        const formattedDate = `${rawDate[2]}/${rawDate[1]}/${rawDate[0]}`;
+        document.getElementById('h_hora').value = document.getElementById('t_hora').value + " " + ampmValue;
+        
+        const params = new URLSearchParams(new FormData(document.getElementById('mainForm')));
+        params.set("Fecha", formattedDate);
+        
+        const fotos = [document.getElementById('foto1'), document.getElementById('foto2'), document.getElementById('foto3')];
+        let procesadas = 0; let conArchivo = fotos.filter(f => f.files[0]).length;
 
-        if(fotos.length > 0) {
-            let proc = 0;
-            fotos.forEach((input, i) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    params.append("fileData" + (i+1), e.target.result.split(',')[1]);
-                    params.append("fileName" + (i+1), input.files[0].name);
-                    params.append("mimeType" + (i+1), input.files[0].type);
-                    if(++proc === fotos.length) ejecutarFetch(params);
-                };
-                reader.readAsDataURL(input.files[0]);
+        if(conArchivo === 0) ejecutarFetch(params);
+        else {
+            fotos.forEach((f, i) => {
+                if(f.files[0]) {
+                    const r = new FileReader();
+                    r.onload = (e) => {
+                        params.append("fileData"+(i+1), e.target.result.split(',')[1]);
+                        params.append("fileName"+(i+1), f.files[0].name);
+                        params.append("mimeType"+(i+1), f.files[0].type);
+                        if(++procesadas === conArchivo) ejecutarFetch(params);
+                    };
+                    r.readAsDataURL(f.files[0]);
+                }
             });
-        } else { ejecutarFetch(params); }
+        }
     }
 
     async function ejecutarFetch(p) {
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p });
-            alert("✅ Solicitud enviada exitosamente.");
-            location.reload();
-        } catch(e) { alert("Error de conexión."); btn.disabled = false; }
+        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p });
+        
+        setTimeout(() => {
+            alert("✅ ¡Solicitud enviada con éxito!");
+            
+            // Limpiar Formulario
+            document.getElementById('mainForm').reset();
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.img-preview').forEach(img => img.src = "");
+            ampmValue = "";
+            document.getElementById('btnSubmit').disabled = false;
+            document.getElementById('btnSubmit').innerText = "🚀 ENVIAR SOLICITUD";
+
+            // Saltar a la pestaña de Solicitudes y cargar resaltando la nueva
+            showTab('listadoSec', document.getElementById('btn-list'));
+            cargarSolicitudes(true);
+        }, 2500);
     }
 
-    async function cargarSolicitudes() {
-        const tbody = document.getElementById('cuerpoTabla');
-        tbody.innerHTML = "<tr><td colspan='6'>Cargando registros...</td></tr>";
+    async function cargarSolicitudes(esNueva = false) {
+        const tabla = document.getElementById('cuerpoTabla');
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
-            tbody.innerHTML = data.reverse().map(f => {
-                return `<tr>
-                    <td><b>${f.FechaReg || "---"}</b></td>
-                    <td>${f.Unidad || "---"}</td>
-                    <td>${f.Jornada || "---"}</td>
-                    <td>${f.FechaEvento || "---"}</td>
-                    <td><span class="badge ${f.Estatus}">${f.Estatus}</span></td>
-                    <td class="admin-col ${isAdmin ? '' : 'hidden'}">
-                        <select onchange="cambiarEstatus('${f.id}', this.value)">
-                            <option value="">Cambiar...</option>
-                            <option value="PENDIENTE">PENDIENTE</option>
-                            <option value="EJECUTANDO">EJECUTANDO</option>
-                            <option value="APROBADO">APROBADO</option>
-                        </select>
-                    </td>
-                </tr>`
+            
+            if (data.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay registros.</td></tr>';
+                return;
+            }
+
+            tabla.innerHTML = data.reverse().map((f, index) => {
+                const esFilaNueva = (esNueva && index === 0);
+                return `
+                    <tr class="${esFilaNueva ? 'row-new' : ''}">
+                        <td>${f.FechaReg}</td>
+                        <td>${esFilaNueva ? '🆕 ' : ''}<b>${f.Unidad}</b></td>
+                        <td>${f.Jornada}</td>
+                        <td><span class="badge ${f.Estatus}">${f.Estatus}</span></td>
+                        <td class="${esAdmin ? '' : 'hidden'}">
+                            <select onchange="cambiarEstatus('${f.id}', this.value)" style="font-size:11px;">
+                                <option value="">...</option>
+                                <option value="PENDIENTE">PENDIENTE</option>
+                                <option value="EJECUTANDO">EJECUTANDO</option>
+                                <option value="APROBADO">APROBADO</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
             }).join("");
-        } catch(e) { tbody.innerHTML = "<tr><td colspan='6'>Error al conectar con la base de datos.</td></tr>"; }
+        } catch(e) {
+            tabla.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error de conexión.</td></tr>';
+        }
     }
 
     function accesoAdmin() {
-        if(prompt("Usuario:") === "MD-comunicaciones" && prompt("Clave:") === "Ipasme.2026.comu") {
-            isAdmin = true;
-            document.querySelectorAll('.admin-col').forEach(c => c.classList.remove('hidden'));
-            alert("Acceso administrativo concedido.");
+        if(prompt("Clave:") === "Ipasme.2026.comu") {
+            esAdmin = true;
+            document.getElementById('colAdmin').classList.remove('hidden');
             cargarSolicitudes();
         }
     }
 
     async function cambiarEstatus(id, nuevo) {
-        if(!nuevo) return;
         const p = new URLSearchParams({ action: "updateStatus", id: id, newStatus: nuevo });
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p });
         alert("Estatus actualizado.");
