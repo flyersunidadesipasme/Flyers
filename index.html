@@ -3,381 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Jornada IPASME</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Solicitud de Artes IPASME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --azul-oscuro: #004a99;
-            --azul-claro: #e3f2fd;
-            --verde-claro: #c8e6c9;
-            --blanco: #ffffff;
-            --error: #d32f2f;
-        }
-
-        body {
-            font-family: 'Georama', sans-serif;
-            background-color: var(--azul-claro);
-            color: #333;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: var(--blanco);
-            width: 100%;
-            max-width: 800px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        h1 { color: var(--azul-oscuro); text-align: center; border-bottom: 2px solid var(--verde-claro); padding-bottom: 10px; }
+        :root { --azul: #1a4b8c; --verde: #28a745; --naranja: #fd7e14; --rojo: #dc3545; --fondo: #f4f7f9; --blanco: #ffffff; }
+        body { font-family: 'Georama', sans-serif; background: var(--fondo); margin: 0; padding-bottom: 50px; }
+        .nav-tabs { display: flex; background: var(--azul); padding: 10px; position: sticky; top: 0; z-index: 1000; justify-content: center; gap: 15px; }
+        .tab-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9em; }
+        .tab-btn.active { background: var(--blanco); color: var(--azul); }
         
-        .section { margin-bottom: 25px; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-        .section-title { font-weight: 700; margin-bottom: 15px; color: var(--azul-oscuro); }
-        .required { color: var(--error); }
+        .container { max-width: 950px; margin: 15px auto; background: var(--blanco); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
+        .section-title { font-weight: 700; color: var(--azul); margin-bottom: 12px; display: block; border-left: 5px solid var(--azul); padding-left: 10px; text-transform: uppercase; font-size: 0.85em; }
+        
+        .warning-box { background: #fff3cd; border-left: 5px solid #ffc107; padding: 12px; margin-bottom: 15px; font-size: 0.85em; color: #856404; border-radius: 5px; line-height: 1.4; }
+        .error-msg { background: #fff5f5; border-color: #feb2b2; color: #c53030; font-size: 0.75em; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 5px solid #f56565; }
 
-        /* Botones de selección múltiple/única */
-        .options-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.8em; transition: 0.3s; flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; min-height: 45px; }
+        .option-btn.selected { background: var(--verde); color: white; border-color: #1e7e34; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .ampm-group { display: flex; gap: 5px; width: 140px; }
+        .ampm-btn { min-width: 60px; height: 40px; }
 
-        .option-btn {
-            padding: 10px 15px;
-            border: 2px solid var(--azul-oscuro);
-            background: var(--blanco);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Georama';
-            font-weight: 500;
-        }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-top: 5px; box-sizing: border-box; font-family: inherit; font-size: 0.9em; }
+        
+        .preview-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .img-preview { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd; background: #eee; }
 
-        .option-btn.selected {
-            background-color: var(--azul-oscuro);
-            color: white;
-        }
-
-        .option-btn:hover { background-color: var(--verde-claro); color: black; }
-
-        /* Input Styles */
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-family: 'Georama';
-        }
-
-        .time-container { display: flex; align-items: center; gap: 10px; }
-        .am-pm-btn {
-            padding: 10px;
-            border: 1px solid var(--azul-oscuro);
-            background: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .am-pm-btn.selected { background: var(--verde-claro); font-weight: bold; }
-
-        /* Fotos */
-        .photo-upload {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            border: 2px dashed var(--azul-oscuro);
-            padding: 10px;
-            margin: 5px;
-            flex: 1;
-            min-width: 150px;
-        }
-        .preview {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            display: none;
-            border-radius: 5px;
-        }
-
-        .warning-box {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .submit-btn {
-            background-color: var(--azul-oscuro);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            width: 100%;
-            font-weight: 700;
-        }
-
-        .hidden { display: none; }
+        .btn-enviar { background: var(--azul); color: white; padding: 15px; width: 100%; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-enviar:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .hidden { display: none !important; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; border-bottom: 1px solid #eee; text-align: left; font-size: 0.75em; }
+        .badge { padding: 4px 8px; border-radius: 10px; color: white; font-weight: bold; }
+        .PENDIENTE { background: var(--rojo); }
+        .EJECUTANDO { background: var(--naranja); }
+        .APROBADO { background: var(--verde); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Solicitud de Jornada IPASME</h1>
+<nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('formSec', this)">📝 NUEVA SOLICITUD</button>
+    <button class="tab-btn" onclick="showTab('listadoSec', this); cargarSolicitudes();">⏳ COLA DE TRABAJO</button>
+</nav>
 
+<div id="formSec" class="container">
     <div class="warning-box">
-        ⚠️ IMPORTANTE: La solicitud debe realizarse con al menos 48 horas de anticipación.
+        ⚠️ <b>REGLA DE ANTICIPACIÓN:</b> El sistema detectará automáticamente si el flyer tiene menos de <b>48 horas</b> de anticipo; de ser así, la solicitud no procederá.
     </div>
 
-    <form action="https://formsubmit.co/flyersunidadesipasme@gmail.com" method="POST" enctype="multipart/form-data" id="mainForm">
-        <input type="hidden" name="_subject" id="emailSubject" value="Nueva Solicitud de Jornada">
-        <input type="hidden" name="_template" value="table">
-        
+    <form id="mainForm">
         <div class="section">
-            <div class="section-title">1. Tipo de Jornada <span class="required">*</span></div>
-            <div class="options-grid" id="tipoJornada">
-                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Ipasme va a la Escuela</button>
-                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Jornada de Atención Médica Integral</button>
-                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Jornada Conjunta</button>
-                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Captación Quirúrgica</button>
-                <button type="button" class="option-btn" onclick="selectSingle(this, 'jornada_tipo')">Otros</button>
+            <label class="section-title">🏢 1. Unidad Solicitante</label>
+            <input type="text" name="Unidad" placeholder="Ejemplo: U.M.I. Caracas o U.M.I. La Guaira" required>
+        </div>
+
+        <div class="section">
+            <label class="section-title">🏥 2. Tipo de Jornada</label>
+            <div class="btn-group" id="j_grid">
+                <div class="option-btn" onclick="selJornada(this)">Ipasme va a la Escuela</div>
+                <div class="option-btn" onclick="selJornada(this)">Jornada de Atención Médica Integral</div>
+                <div class="option-btn" onclick="selJornada(this)">Jornada Conjunta</div>
+                <div class="option-btn" onclick="selJornada(this)">Captación Quirúrgica</div>
+                <div class="option-btn" onclick="selJornada(this)">Otros</div>
             </div>
-            <input type="hidden" name="Tipo de Jornada" id="input_jornada" required>
+            <input type="hidden" name="Jornada" id="h_jornada" required>
         </div>
 
-        <div id="otros_container" class="section hidden">
-            <div class="section-title">Describa su solicitud</div>
-            <textarea name="Descripcion Otros" rows="5" placeholder="Escriba detalladamente su requerimiento..."></textarea>
+        <div id="sec_esp" class="section">
+            <label class="section-title" id="tit_dinamico">🩺 3. Especialidades</label>
+            <div class="options-grid" id="g_esp"></div>
+            <input type="hidden" name="Especialidades" id="h_esp">
         </div>
 
-        <div class="section" id="section_especialidades">
-            <div class="section-title" id="title_2">2. Especialidades <span class="required">*</span></div>
-            <div class="options-grid" id="grid_especialidades">
-                </div>
-            <input type="hidden" name="Seleccion_Opcion_2" id="input_opcion_2">
-        </div>
-
-        <div class="section" id="section_servicios">
-            <div class="section-title">3. Servicios Adicionales</div>
-            <div class="options-grid" id="grid_servicios">
-                </div>
-            <input type="hidden" name="Servicios Adicionales" id="input_servicios">
+        <div id="sec_ser" class="section">
+            <label class="section-title">✨ 4. Servicios Adicionales</label>
+            <div class="options-grid" id="g_ser"></div>
+            <input type="hidden" name="Servicios" id="h_ser">
         </div>
 
         <div class="section">
-            <div class="section-title">4. Fecha y Hora <span class="required">*</span></div>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div style="flex: 1;">
-                    <label>Fecha:</label>
-                    <input type="date" name="Fecha" id="fecha_solicitud" required style="width: 100%; padding: 10px;">
-                </div>
-                <div style="flex: 1;">
-                    <label>Hora:</label>
-                    <div class="time-container">
-                        <input type="text" id="hora_input" placeholder="00:00" style="width: 80px;">
-                        <button type="button" class="am-pm-btn" onclick="selectAMPM(this, 'AM')">a. m.</button>
-                        <button type="button" class="am-pm-btn" onclick="selectAMPM(this, 'PM')">p. m.</button>
+            <label class="section-title">📅 5. Fecha y Hora del Evento</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <input type="date" name="Fecha" id="f_evento" required>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="t_hora" placeholder="08:00" style="width: 75px;">
+                    <div class="ampm-group">
+                        <div class="option-btn ampm-btn" id="am" onclick="selAMPM('a. m.')">a. m.</div>
+                        <div class="option-btn ampm-btn" id="pm" onclick="selAMPM('p. m.')">p. m.</div>
                     </div>
-                    <input type="hidden" name="Hora Final" id="input_hora_completa">
                 </div>
+            </div>
+            <input type="hidden" name="Hora" id="h_hora">
+        </div>
+
+        <div class="section">
+            <label class="section-title">📍 6. Dirección Exacta</label>
+            <div class="error-msg">
+                📢 <b>ADVERTENCIA:</b> La dirección debe estar correctamente escrita y verificada. De lo contrario, la solicitud pasará de última a la fila o se retrasará significativamente.
+            </div>
+            <textarea name="Direccion" placeholder="Indique calle, punto de referencia y parroquia..." required style="height: 70px;"></textarea>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <input type="text" name="Telefono" placeholder="📞 Teléfono de contacto" required>
+                <input type="email" name="Correo" placeholder="📧 Correo Institucional" required>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-title">5. Dirección <span class="required">*</span></div>
-            <input type="text" name="Direccion" required>
-        </div>
-
-        <div class="section">
-            <div class="section-title">6. Unidad <span class="required">*</span></div>
-            <input type="text" name="Unidad" id="input_unidad" required oninput="updateSubject()">
-        </div>
-
-        <div class="section" style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <div class="section-title">7. Teléfono</div>
-                <input type="text" name="Telefono">
+            <label class="section-title">📸 7. Soportes (Visor de Imágenes)</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:10px;">
+                <input type="file" id="foto1" accept="image/*" onchange="preview(this, 'p1')">
+                <input type="file" id="foto2" accept="image/*" onchange="preview(this, 'p2')">
+                <input type="file" id="foto3" accept="image/*" onchange="preview(this, 'p3')">
             </div>
-            <div style="flex: 1;">
-                <div class="section-title">8. Correo Arte</div>
-                <input type="text" name="Correo Arte">
+            <div class="preview-container">
+                <img id="p1" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
+                <img id="p2" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
+                <img id="p3" class="img-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ddd' d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E">
             </div>
         </div>
 
-        <div class="section">
-            <div class="section-title">Adjuntar Fotos (Máx 3MB c/u)</div>
-            <div style="display: flex; flex-wrap: wrap;">
-                <div class="photo-upload">
-                    <label>Foto 1</label>
-                    <input type="file" name="Foto 1" accept="image/*" onchange="previewImg(this, 'p1')">
-                    <img id="p1" class="preview">
-                </div>
-                <div class="photo-upload">
-                    <label>Foto 2</label>
-                    <input type="file" name="Foto 2" accept="image/*" onchange="previewImg(this, 'p2')">
-                    <img id="p2" class="preview">
-                </div>
-                <div class="photo-upload">
-                    <label>Foto 3</label>
-                    <input type="file" name="Foto 3" accept="image/*" onchange="previewImg(this, 'p3')">
-                    <img id="p3" class="preview">
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" class="submit-btn">ENVIAR SOLICITUD</button>
+        <button type="button" class="btn-enviar" id="btnSubmit" onclick="enviar()">🚀 PROCESAR SOLICITUD</button>
     </form>
 </div>
 
+<div id="listadoSec" class="container hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h3 style="color:var(--azul); margin:0;">📊 Estatus y Cola de Trabajo</h3>
+        <button onclick="accesoAdmin()" style="cursor:pointer; padding:6px 12px; border-radius:5px; border:1px solid #ccc; font-size: 0.8em;">🔑 Modo Admin</button>
+    </div>
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reg. (Fecha/Hora)</th>
+                    <th>Unidad</th>
+                    <th>Jornada</th>
+                    <th>Fecha Evento</th>
+                    <th>Estatus</th>
+                    <th class="admin-col hidden">Gestión</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-    const especialidades = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGDwFhQzaPG_11fKSpiJSe92FxlT7ihGfDYS3fs9BJ2oPk2t4I_9Rlt3X0CzRMggr4/exec';
     
-    const patologias = ["Hernia inguinal", "Hernia umbilical", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Fimosis", "Vasectomía", "Varicocele", "Hidrocele", "Litiasis vesicular", "Colectomía", "Lipomas", "Quiste tirogloso", "Quiste sebáceo", "Esterilización", "Miomatosis uterina", "Tumores ováricos", "Prolapso", "Histerectomía", "Catarata", "Pterigión", "Glaucoma", "Retinoblastoma"];
+    const listEsp = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
+    const listPat = ["Hernia inguinal", "Hernia umbilical", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Fimosis", "Vasectomía", "Varicocele", "Hidrocele", "Litiasis vesicular", "Colectomía", "Lipomas", "Quiste tirogloso", "Quiste sebáceo", "Esterilización", "Miomatosis uterina", "Tumores ováricos", "Prolapso", "Histerectomía", "Catarata", "Pterigión", "Glaucoma", "Retinoblastoma"];
+    const listSer = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despistaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
 
-    const servicios = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despistaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
+    let ampmValue = "";
+    let isAdmin = false;
 
-    let selectedAMPM = "";
+    function showTab(id, b) {
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        b.classList.add('active');
+    }
 
-    // Inicializar grids
-    function buildGrid(items, gridId, inputId) {
-        const grid = document.getElementById(gridId);
-        grid.innerHTML = "";
-        items.forEach(item => {
-            const btn = document.createElement('button');
-            btn.type = "button";
-            btn.className = "option-btn";
-            btn.innerText = item;
-            btn.onclick = () => toggleMultiple(btn, inputId);
-            grid.appendChild(btn);
+    function selAMPM(val) {
+        document.querySelectorAll('.ampm-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById(val === 'a. m.' ? 'am' : 'pm').classList.add('selected');
+        ampmValue = val;
+    }
+
+    function preview(input, id) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) { document.getElementById(id).src = e.target.result; }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function selJornada(el) {
+        document.querySelectorAll('#j_grid .option-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        const v = el.innerText;
+        document.getElementById('h_jornada').value = v;
+
+        if(v === "Captación Quirúrgica") {
+            document.getElementById('tit_dinamico').innerHTML = "🩺 3. Patologías";
+            render('g_esp', listPat, 'h_esp');
+            document.getElementById('sec_ser').classList.add('hidden');
+        } else {
+            document.getElementById('tit_dinamico').innerHTML = "🩺 3. Especialidades";
+            render('g_esp', listEsp, 'h_esp');
+            document.getElementById('sec_ser').classList.remove('hidden');
+            render('g_ser', listSer, 'h_ser');
+        }
+    }
+
+    function render(cid, lista, hid) {
+        const cont = document.getElementById(cid);
+        cont.innerHTML = "";
+        lista.forEach(i => {
+            const b = document.createElement('div');
+            b.className = 'option-btn';
+            b.innerText = i;
+            b.onclick = () => {
+                b.classList.toggle('selected');
+                let sel = Array.from(cont.querySelectorAll('.selected')).map(s => s.innerText);
+                document.getElementById(hid).value = sel.join(", ");
+            };
+            cont.appendChild(b);
         });
     }
 
-    buildGrid(especialidades, 'grid_especialidades', 'input_opcion_2');
-    buildGrid(servicios, 'grid_servicios', 'input_servicios');
+    async function enviar() {
+        const fechaE = document.getElementById('f_evento').value;
+        if (fechaE) {
+            const fSeleccionada = new Date(fechaE);
+            const hoy = new Date();
+            const diff = (fSeleccionada - hoy) / (1000 * 60 * 60);
+            if (diff < 48) {
+                alert("❌ La solicitud no puede proceder: Debe tener un mínimo de 48 horas de anticipación.");
+                return;
+            }
+        }
 
-    function selectSingle(btn, type) {
-        const parent = btn.parentElement;
-        parent.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
+        const f = document.getElementById('mainForm');
+        if(!f.checkValidity() || !ampmValue) return alert("Por favor complete todos los campos y seleccione el horario (a. m. / p. m.).");
         
-        const val = btn.innerText;
-        document.getElementById('input_jornada').value = val;
-        updateSubject();
+        document.getElementById('h_hora').value = document.getElementById('t_hora').value + " " + ampmValue;
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true; btn.innerText = "⏳ ENVIANDO...";
 
-        // Lógica de visibilidad
-        const sec2 = document.getElementById('section_especialidades');
-        const sec3 = document.getElementById('section_servicios');
-        const otros = document.getElementById('otros_container');
+        const params = new URLSearchParams(new FormData(f));
+        const fotos = [document.getElementById('foto1'), document.getElementById('foto2'), document.getElementById('foto3')].filter(x => x.files.length > 0);
 
-        if (val === "Captación Quirúrgica") {
-            sec2.classList.remove('hidden');
-            sec3.classList.add('hidden');
-            otros.classList.add('hidden');
-            document.getElementById('title_2').innerText = "2. Patologías *";
-            buildGrid(patologias, 'grid_especialidades', 'input_opcion_2');
-        } else if (val === "Otros") {
-            sec2.classList.add('hidden');
-            sec3.classList.add('hidden');
-            otros.classList.remove('hidden');
-        } else {
-            sec2.classList.remove('hidden');
-            sec3.classList.remove('hidden');
-            otros.classList.add('hidden');
-            document.getElementById('title_2').innerText = "2. Especialidades *";
-            buildGrid(especialidades, 'grid_especialidades', 'input_opcion_2');
+        if(fotos.length > 0) {
+            let proc = 0;
+            fotos.forEach((input, i) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    params.append("fileData" + (i+1), e.target.result.split(',')[1]);
+                    params.append("fileName" + (i+1), input.files[0].name);
+                    params.append("mimeType" + (i+1), input.files[0].type);
+                    if(++proc === fotos.length) ejecutarFetch(params);
+                };
+                reader.readAsDataURL(input.files[0]);
+            });
+        } else { ejecutarFetch(params); }
+    }
+
+    async function ejecutarFetch(p) {
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p });
+            alert("✅ Solicitud enviada exitosamente.");
+            location.reload();
+        } catch(e) { alert("Error de conexión."); btn.disabled = false; }
+    }
+
+    async function cargarSolicitudes() {
+        const tbody = document.getElementById('cuerpoTabla');
+        tbody.innerHTML = "<tr><td colspan='6'>Cargando registros...</td></tr>";
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+            tbody.innerHTML = data.reverse().map(f => {
+                return `<tr>
+                    <td><b>${f.FechaReg || "---"}</b></td>
+                    <td>${f.Unidad || "---"}</td>
+                    <td>${f.Jornada || "---"}</td>
+                    <td>${f.FechaEvento || "---"}</td>
+                    <td><span class="badge ${f.Estatus}">${f.Estatus}</span></td>
+                    <td class="admin-col ${isAdmin ? '' : 'hidden'}">
+                        <select onchange="cambiarEstatus('${f.id}', this.value)">
+                            <option value="">Cambiar...</option>
+                            <option value="PENDIENTE">PENDIENTE</option>
+                            <option value="EJECUTANDO">EJECUTANDO</option>
+                            <option value="APROBADO">APROBADO</option>
+                        </select>
+                    </td>
+                </tr>`
+            }).join("");
+        } catch(e) { tbody.innerHTML = "<tr><td colspan='6'>Error al conectar con la base de datos.</td></tr>"; }
+    }
+
+    function accesoAdmin() {
+        if(prompt("Usuario:") === "MD-comunicaciones" && prompt("Clave:") === "Ipasme.2026.comu") {
+            isAdmin = true;
+            document.querySelectorAll('.admin-col').forEach(c => c.classList.remove('hidden'));
+            alert("Acceso administrativo concedido.");
+            cargarSolicitudes();
         }
     }
 
-    function toggleMultiple(btn, inputId) {
-        btn.classList.toggle('selected');
-        const parent = btn.parentElement;
-        const selected = Array.from(parent.querySelectorAll('.option-btn.selected')).map(b => b.innerText);
-        
-        // Regla especial de Captación Quirúrgica General y Oftalmológica
-        let processedList = [...selected];
-        if (selected.includes("Captación quirúrgica general") && selected.includes("Captación quirúrgica oftalmológica")) {
-            processedList = processedList.filter(i => !i.includes("Captación quirúrgica"));
-            processedList.push("Captación quirúrgica general y oftalmológica");
-        }
-
-        document.getElementById(inputId).value = processedList.join('\n• ');
+    async function cambiarEstatus(id, nuevo) {
+        if(!nuevo) return;
+        const p = new URLSearchParams({ action: "updateStatus", id: id, newStatus: nuevo });
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p });
+        alert("Estatus actualizado.");
+        cargarSolicitudes();
     }
 
-    function selectAMPM(btn, val) {
-        document.querySelectorAll('.am-pm-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedAMPM = val;
-        updateTime();
-    }
-
-    function updateTime() {
-        const hora = document.getElementById('hora_input').value;
-        document.getElementById('input_hora_completa').value = `${hora} ${selectedAMPM}`;
-    }
-
-    function previewImg(input, previewId) {
-        const file = input.files[0];
-        if (file && file.size > 3 * 1024 * 1024) {
-            alert("El archivo supera los 3MB");
-            input.value = "";
-            return;
-        }
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.getElementById(previewId);
-                img.src = e.target.result;
-                img.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function updateSubject() {
-        const unidad = document.getElementById('input_unidad').value;
-        const jornada = document.getElementById('input_jornada').value;
-        document.getElementById('emailSubject').value = `Solicitud: ${unidad} - ${jornada}`;
-    }
-
-    document.getElementById('mainForm').onsubmit = function(e) {
-        // Validar 48 horas
-        const fechaInput = document.getElementById('fecha_solicitud').value;
-        const fechaSoli = new Date(fechaInput);
-        const hoy = new Date();
-        const diff = (fechaSoli - hoy) / (1000 * 60 * 60);
-
-        if (diff < 48) {
-            alert("Error: La solicitud debe ser con al menos 48 horas de anticipación.");
-            e.preventDefault();
-            return false;
-        }
-
-        // Validar Especialidad/Patología si no es "Otros"
-        const jornada = document.getElementById('input_jornada').value;
-        if (jornada !== "Otros" && !document.getElementById('input_opcion_2').value) {
-            alert("Debe seleccionar al menos una especialidad o patología.");
-            e.preventDefault();
-            return false;
-        }
-
-        updateTime();
-        if (!confirm("⚠️ Verifique que la dirección esté correcta. Si la dirección es incorrecta, la solicitud será dejada de última en la lista. ¿Desea continuar?")) {
-            e.preventDefault();
-        }
-    };
+    render('g_esp', listEsp, 'h_esp');
+    render('g_ser', listSer, 'h_ser');
 </script>
-
 </body>
 </html>
