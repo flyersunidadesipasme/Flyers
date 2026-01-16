@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Artes IPASME v1.5.1</title>
+    <title>Sistema de Artes IPASME v1.5.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --azul: #1a4b8c; --verde: #28a745; --naranja: #fd7e14; --rojo: #dc3545; --fondo: #f4f7f9; --blanco: #ffffff; }
@@ -14,7 +14,7 @@
         .tab-btn.active { background: var(--blanco); color: var(--azul); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .container { max-width: 1150px; margin: 10px auto; background: var(--blanco); padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); box-sizing: border-box; }
         .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 12px 8px; border-radius: 8px; cursor: pointer; font-size: 0.75em; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 40px; }
+        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 12px 8px; border-radius: 8px; cursor: pointer; font-size: 0.75em; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 40px; transition: 0.2s; }
         .option-btn.selected { background: var(--verde); color: white; border-color: #1e7e34; }
         .section { margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
         .section-title { font-weight: 800; color: var(--azul); margin-bottom: 10px; display: block; border-left: 5px solid var(--azul); padding-left: 10px; text-transform: uppercase; font-size: 0.85em; }
@@ -25,10 +25,14 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 10px; }
         th { background: #f1f3f5; padding: 15px; text-align: left; color: var(--azul); font-weight: 800; text-transform: uppercase; border-bottom: 3px solid #dee2e6; }
         td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .badge { padding: 6px 12px; border-radius: 20px; color: white; font-weight: 800; font-size: 0.75em; text-transform: uppercase; }
-        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 45px; height: 45px; border: 5px solid #f3f3f3; border-top: 5px solid var(--azul); border-radius: 50%; animation: spin 1s linear infinite; }
+        .badge { padding: 6px 12px; border-radius: 20px; color: white; font-weight: 800; font-size: 0.75em; text-transform: uppercase; transition: background 0.3s; }
+        .row-new { background-color: #f0f7ff !important; border-left: 5px solid var(--azul); }
+        .badge-new { background: var(--azul); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: 800; margin-left: 5px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 20px; }
+        .loader-circle { width: 60px; height: 60px; border: 8px solid #f3f3f3; border-top: 8px solid var(--azul); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .slow-msg { color: var(--naranja); font-size: 0.85em; margin-top: 10px; font-weight: 700; max-width: 300px; display: none; }
         .hidden { display: none !important; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 25px; }
         .stat-card { padding: 15px; border-radius: 12px; text-align: center; color: white; }
@@ -39,7 +43,11 @@
 </head>
 <body>
 
-<div id="loadingOverlay"><div class="spinner"></div><br><b style="color:var(--azul)">CONECTANDO CON LA BASE DE DATOS...</b></div>
+<div id="loadingOverlay">
+    <div class="loader-circle"></div>
+    <b id="mainLoadMsg" style="color:var(--azul); font-size: 1.1em;">PROCESANDO SOLICITUD...</b>
+    <div id="slowMsg" class="slow-msg">⏳ Tu solicitud se procesará un poco más lento debido a los archivos adjuntos. No cierres la ventana.</div>
+</div>
 
 <h1 class="header-title">SOLICITUD DE ARTES GRÁFICAS IPASME</h1>
 
@@ -54,7 +62,7 @@
         
         <div class="section">
             <label class="section-title">🏢 1. Unidad Solicitante *</label>
-            <input type="text" id="inp_unidad" placeholder="Ej: U.M.I. Caracas" required>
+            <input type="text" id="inp_unidad" value="U.M.I. " placeholder="Ej: U.M.I. Caracas" required>
         </div>
 
         <div class="section">
@@ -62,9 +70,10 @@
             <div class="btn-group" id="j_grid">
                 <div class="option-btn" onclick="selJornada(this)">Ipasme va a la Escuela</div>
                 <div class="option-btn" onclick="selJornada(this)">Jornada de Atención Médica Integral</div>
-                <div class="option-btn" onclick="selJornada(this)">Jornada de Inmunización</div>
+                <div class="option-btn" onclick="selJornada(this)">Plan Masivo de Vacunación</div>
                 <div class="option-btn" onclick="selJornada(this)">Jornada Conjunta</div>
                 <div class="option-btn" onclick="selJornada(this)">Captación Quirúrgica</div>
+                <div class="option-btn" onclick="selJornada(this)">Captación Quirúrgica Oftalmológica</div>
                 <div class="option-btn" onclick="selJornada(this)">Otros</div>
             </div>
             <input type="hidden" id="val_jornada">
@@ -103,7 +112,7 @@
 
         <div class="section">
             <label class="section-title">📝 7. Observaciones (DISEÑO)</label>
-            <textarea id="inp_observaciones" placeholder="Detalles específicos para el arte..." style="height:60px;"></textarea>
+            <textarea id="inp_observaciones" placeholder="Indique aquí detalles específicos para el diseño del arte..." style="height:60px;"></textarea>
         </div>
 
         <div class="section">
@@ -125,7 +134,10 @@
         <div class="stat-card bg-pend"><span class="stat-label">Pendiente</span><span id="st-pend" class="stat-val">0</span></div>
         <div class="stat-card bg-ejec"><span class="stat-label">Ejecutando</span><span id="st-ejec" class="stat-val">0</span></div>
         <div class="stat-card bg-aprob"><span class="stat-label">Aprobado</span><span id="st-aprob" class="stat-val">0</span></div>
-        <button onclick="toggleAdmin()" id="btnAdmin" style="background:#495057; border:none; color:white; border-radius:10px; cursor:pointer; font-weight:800; padding:10px;">⚙️ ADMIN</button>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <button onclick="toggleAdmin()" id="btnAdmin" style="background:#495057; border:none; color:white; border-radius:10px; cursor:pointer; font-weight:800; padding:10px; width: 100%;">⚙️ ADMIN</button>
+            <button onclick="logout()" id="btnLogOut" class="hidden" style="background:var(--rojo); border:none; color:white; border-radius:10px; cursor:pointer; font-weight:800; padding:10px; width: 100%;">🚪 LOG OUT</button>
+        </div>
     </div>
     <div style="overflow-x:auto;">
         <table>
@@ -134,7 +146,7 @@
                     <th>REGISTRO</th>
                     <th>EVENTO</th>
                     <th>UNIDAD</th>
-                    <th>JORNADA</th>
+                    <th>TIPO DE JORNADA</th>
                     <th style="text-align:center">FOTOS</th>
                     <th>ESTATUS</th>
                     <th class="admin-col hidden">GESTIÓN</th>
@@ -146,13 +158,15 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9kvn6CoDyCZKmdMit7BRk_KNas_wNr1ejUIXPthBaP_7oR6Mvp0al5_KeFYLq2btZ/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyolQ7s9dNxAeVarPDSKco2wJNFnVaFI7in85P2eRx1llm-5HaiBaTk4kgd6Dzs_hi4ww/exec';
+    
     let isAdmin = false;
 
-    const listEsp = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
-    const listPat = ["Hernia inguinal", "Hernia umbilical", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Fimosis", "Vasectomía", "Varicocele", "Hidrocele", "Litiasis vesicular", "Colectomía", "Lipomas", "Quiste tirogloso", "Quiste sebáceo", "Esterilización", "Miomatosis uterina", "Tumores ováricos", "Prolapso", "Histerectomía", "Catarata", "Pterigión", "Glaucoma", "Retinoblastoma"];
-    const listVac = ["BCG", "Hepatitis B", "Polio Oral", "Polio inyectable", "Pentavalente", "Fiebre Amarilla", "Triple Viral (SPR)", "Toxoide", "COVID-19"];
-    const listSer = ["Fisioterapia", "Inmunización", "Control de talla y peso", "Despestaje HTA", "Afiliación", "Sesión educativa", "Farmacia", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Servicios sociales", "Masoterapia", "Terapia ocupacional", "Desparasitación", "Bienestar social"];
+    const listEsp = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
+    const listPatGen = ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"];
+    const listPatOftal = ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"];
+    const listVac = ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"];
+    const listSer = ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"];
 
     function showTab(id, btn) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
@@ -179,9 +193,10 @@
         const sSer = document.getElementById('sec_servicios');
         const v = el.innerText;
 
-        if(v === "Jornada de Inmunización") { tit.innerText = "💉 3. Lista de Vacunas"; renderList(gOpc, listVac); sSer.classList.add('hidden'); }
-        else if(v === "Captación Quirúrgica") { tit.innerText = "🩺 3. Patologías Quirúrgicas"; renderList(gOpc, listPat); sSer.classList.add('hidden'); }
-        else if(v === "Otros") { tit.innerText = "📝 3. Especifique"; gOpc.innerHTML = '<textarea id="OtrosInput" style="height:50px; grid-column: 1 / -1;"></textarea>'; sSer.classList.add('hidden'); }
+        if(v === "Plan Masivo de Vacunación") { tit.innerText = "💉 3. Lista de Vacunas"; renderList(gOpc, listVac); sSer.classList.add('hidden'); }
+        else if(v === "Captación Quirúrgica") { tit.innerText = "🩺 3. Patologías Quirúrgicas"; renderList(gOpc, listPatGen); sSer.classList.add('hidden'); }
+        else if(v === "Captación Quirúrgica Oftalmológica") { tit.innerText = "👁️ 3. Patologías Oftalmológicas"; renderList(gOpc, listPatOftal); sSer.classList.add('hidden'); }
+        else if(v === "Otros") { tit.innerText = "📝 3. Especifique"; gOpc.innerHTML = '<textarea id="OtrosInput" style="height:50px; grid-column: 1 / -1;" placeholder="Especifique el tipo de evento..."></textarea>'; sSer.classList.add('hidden'); }
         else { tit.innerText = "🩺 3. Especialidades"; renderList(gOpc, listEsp); sSer.classList.remove('hidden'); renderList(document.getElementById('g_servicios'), listSer); }
     }
 
@@ -214,12 +229,16 @@
         const obs = document.getElementById('inp_observaciones').value.trim();
 
         if(!unidad || !jornada || !fecha || !hora || !direccion || !tlf || !mail) {
-            return alert("⚠️ Por favor complete todos los campos obligatorios (*)");
+            return alert("⚠️ Complete todos los campos marcados con (*)");
         }
 
+        const f1 = document.getElementById('f1').files[0];
+        const f2 = document.getElementById('f2').files[0];
+        const f3 = document.getElementById('f3').files[0];
+
         document.getElementById('loadingOverlay').style.display = 'flex';
-        
-        // --- MAPEO EXACTO PARA EL SCRIPT DE GOOGLE ---
+        if(f1 || f2 || f3) document.getElementById('slowMsg').style.display = 'block';
+
         const params = new URLSearchParams();
         params.append('Unidad', unidad);
         params.append('Jornada', jornada);
@@ -230,41 +249,48 @@
         params.append('Correo', mail);
         params.append('Observaciones', obs);
 
-        // Opciones seleccionadas (Especialidades/Vacunas)
-        const opcVal = jornada === "Otros" ? (document.getElementById('OtrosInput')?.value || "") : 
-                       Array.from(document.querySelectorAll('#g_opciones .selected')).map(s => s.innerText).join(", ");
+        const opcVal = (jornada === "Otros") 
+            ? (document.getElementById('OtrosInput')?.value || "") 
+            : Array.from(document.querySelectorAll('#g_opciones .selected')).map(s => s.innerText).join(", ");
         params.append('OpcionesSeleccionadas', opcVal);
 
-        // Servicios adicionales
-        const servVal = Array.from(document.querySelectorAll('#g_servicios .selected')).map(s => s.innerText).join(", ");
-        params.append('Servicios', servVal);
+        const serVal = Array.from(document.querySelectorAll('#g_servicios .selected')).map(s => s.innerText).join(", ");
+        params.append('Servicios', serVal || "Ninguno");
 
-        // Fotos
-        for(let i=1; i<=3; i++) {
-            const f = document.getElementById('f'+i).files[0];
-            if(f) params.append('foto'+i, await toBase64(f));
-        }
+        if(f1) params.append('foto1', await toBase64(f1));
+        if(f2) params.append('foto2', await toBase64(f2));
+        if(f3) params.append('foto3', await toBase64(f3));
 
-        try {
-            // Usamos fetch con POST
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString() 
-            });
-
-            alert("✅ ¡Solicitud registrada exitosamente!");
-            location.reload(); // Recargamos para limpiar todo
-        } catch(e) { 
-            alert("❌ Error al conectar con la base de datos."); 
+        fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString() 
+        })
+        .then(() => { 
+            alert("✅ Solicitud enviada exitosamente.");
+            // Reset Form
+            document.getElementById('mainForm').reset();
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.img-preview').forEach(img => img.style.display = 'none');
+            document.getElementById('g_opciones').innerHTML = "";
+            document.getElementById('g_servicios').innerHTML = "";
             document.getElementById('loadingOverlay').style.display = 'none';
-        }
+            
+            // Ir a Cola de Trabajos
+            showTab('listadoSec', document.getElementById('tab-list'));
+            cargarDatos();
+        })
+        .catch(() => { 
+            alert("❌ Error de red"); 
+            document.getElementById('loadingOverlay').style.display = 'none'; 
+        });
     }
 
     async function cargarDatos() {
         const tbody = document.getElementById('cuerpoTabla');
-        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Actualizando datos...</td></tr>";
+        if(tbody.innerHTML === "") tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Cargando...</td></tr>";
+        
         try {
             const res = await fetch(SCRIPT_URL + "?action=read&t=" + Date.now());
             const data = await res.json();
@@ -274,19 +300,22 @@
             document.getElementById('st-ejec').innerText = data.filter(x => x.Estatus === 'EJECUTANDO').length;
             document.getElementById('st-aprob').innerText = data.filter(x => x.Estatus === 'APROBADO').length;
 
-            tbody.innerHTML = data.reverse().map(f => {
+            tbody.innerHTML = data.reverse().map((f, index) => {
                 const color = f.Estatus === 'PENDIENTE' ? 'var(--rojo)' : (f.Estatus === 'APROBADO' ? 'var(--verde)' : 'var(--naranja)');
-                const iconoFoto = (f.Soportes && f.Soportes.toString().includes("SÍ")) ? `SÍ 📸` : `NO 🙈`;
-                return `<tr>
-                    <td style="color:#888; font-size:0.8em;">${f.id}</td>
+                
+                // RESALTADO DE LAS 10 ÚLTIMAS PETICIONES
+                const esNuevo = (index < 10);
+                
+                return `<tr id="row-${f.id}" ${esNuevo ? 'class="row-new"' : ''}>
+                    <td style="color:#888; font-size:0.85em;">${f.Timestamp} ${esNuevo ? '<span class="badge-new">NEW</span>' : ''}</td>
                     <td style="font-weight:800;">${f.FechaActividad}</td>
                     <td style="font-weight:800; color:var(--azul); text-transform:uppercase;">${f.Unidad}</td>
-                    <td><small>${f.Jornada}</small></td>
-                    <td style="text-align:center">${iconoFoto}</td>
-                    <td><span class="badge" style="background:${color}">${f.Estatus}</span></td>
+                    <td style="font-size:0.9em;">${f.Jornada || '---'}</td>
+                    <td style="text-align:center">${(f.Soportes && f.Soportes.includes("SÍ")) ? '📸 SÍ' : 'NO'}</td>
+                    <td><span id="badge-${f.id}" class="badge" style="background:${color}">${f.Estatus}</span></td>
                     <td class="admin-col ${isAdmin ? '' : 'hidden'}">
                         <select onchange="cambiarEstatus('${f.id}', this.value)">
-                            <option value="">...</option>
+                            <option value="">Cambiar...</option>
                             <option value="PENDIENTE">PENDIENTE</option>
                             <option value="EJECUTANDO">EJECUTANDO</option>
                             <option value="APROBADO">APROBADO</option>
@@ -294,7 +323,18 @@
                     </td>
                 </tr>`;
             }).join("");
-        } catch(e) { tbody.innerHTML = "<tr><td colspan='7'>Error al cargar la tabla.</td></tr>"; }
+        } catch(e) { tbody.innerHTML = "<tr><td colspan='7'>Error al cargar datos.</td></tr>"; }
+    }
+
+    function cambiarEstatus(id, val) {
+        if(!val) return;
+        const badge = document.getElementById(`badge-${id}`);
+        if(badge) {
+            badge.innerText = val;
+            badge.style.background = val === 'PENDIENTE' ? 'var(--rojo)' : (val === 'APROBADO' ? 'var(--verde)' : 'var(--naranja)');
+        }
+        fetch(SCRIPT_URL + "?action=update&id=" + id + "&status=" + val)
+            .catch(() => { alert("Error al guardar en base de datos."); cargarDatos(); });
     }
 
     function toggleAdmin() {
@@ -302,16 +342,18 @@
         if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") {
             isAdmin = true;
             document.querySelectorAll('.admin-col').forEach(c => c.classList.remove('hidden'));
+            document.getElementById('btnAdmin').classList.add('hidden');
+            document.getElementById('btnLogOut').classList.remove('hidden');
             cargarDatos();
         } else { alert("Acceso denegado"); }
     }
 
-    async function cambiarEstatus(id, val) {
-        if(!val) return;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-        await fetch(SCRIPT_URL + "?action=update&id=" + id + "&status=" + val);
+    function logout() {
+        isAdmin = false;
+        document.querySelectorAll('.admin-col').forEach(c => c.classList.add('hidden'));
+        document.getElementById('btnAdmin').classList.remove('hidden');
+        document.getElementById('btnLogOut').classList.add('hidden');
         cargarDatos();
-        document.getElementById('loadingOverlay').style.display = 'none';
     }
 </script>
 </body>
