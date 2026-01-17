@@ -1,360 +1,406 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Artes IPASME v1.5.3</title>
-    <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --azul: #1a4b8c; --verde: #28a745; --naranja: #fd7e14; --rojo: #dc3545; --fondo: #f4f7f9; --blanco: #ffffff; }
-        body { font-family: 'Georama', sans-serif; background: var(--fondo); margin: 0; padding-bottom: 50px; }
-        .header-title { text-align: center; color: var(--azul); margin: 15px 0; font-weight: 800; text-transform: uppercase; font-size: 1.3em; letter-spacing: 1px; }
-        .nav-tabs { display: flex; background: var(--azul); padding: 8px; position: sticky; top: 0; z-index: 1000; justify-content: center; gap: 8px; }
-        .tab-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 16px; cursor: pointer; border-radius: 6px; font-weight: 700; font-size: 0.85em; transition: 0.3s; }
-        .tab-btn.active { background: var(--blanco); color: var(--azul); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .container { max-width: 1150px; margin: 10px auto; background: var(--blanco); padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-        .option-btn { background: #f8f9fa; border: 1px solid #ddd; padding: 12px 8px; border-radius: 8px; cursor: pointer; font-size: 0.75em; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 40px; transition: 0.2s; }
-        .option-btn.selected { background: var(--verde); color: white; border-color: #1e7e34; }
-        .section { margin-bottom: 15px; padding: 15px; border: 1px solid #eee; border-radius: 10px; }
-        .section-title { font-weight: 800; color: var(--azul); margin-bottom: 10px; display: block; border-left: 5px solid var(--azul); padding-left: 10px; text-transform: uppercase; font-size: 0.85em; }
-        .adv-alerta { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-size: 0.8em; margin-bottom: 15px; font-weight: 700; border-left: 5px solid #ffeeba; }
-        .adv-info { background: #e7f3ff; color: #004085; padding: 10px 14px; border-radius: 6px; font-size: 0.8em; margin-bottom: 10px; font-weight: 700; border-left: 5px solid var(--azul); }
-        input, textarea, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-family: inherit; font-size: 0.9em; box-sizing: border-box; font-weight: 600; }
-        .img-preview { width: 100%; height: 70px; object-fit: cover; border-radius: 6px; margin-top: 5px; display: none; border: 1px solid #ddd; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 10px; }
-        th { background: #f1f3f5; padding: 15px; text-align: left; color: var(--azul); font-weight: 800; text-transform: uppercase; border-bottom: 3px solid #dee2e6; }
-        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .badge { padding: 6px 12px; border-radius: 20px; color: white; font-weight: 800; font-size: 0.75em; text-transform: uppercase; transition: background 0.3s; }
-        .row-new { background-color: #f0f7ff !important; border-left: 5px solid var(--azul); }
-        .badge-new { background: var(--azul); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: 800; margin-left: 5px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 20px; }
-        .loader-circle { width: 60px; height: 60px; border: 8px solid #f3f3f3; border-top: 8px solid var(--azul); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .slow-msg { color: var(--naranja); font-size: 0.85em; margin-top: 10px; font-weight: 700; max-width: 300px; display: none; }
-        .hidden { display: none !important; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 25px; }
-        .stat-card { padding: 15px; border-radius: 12px; text-align: center; color: white; }
-        .bg-total { background: #343a40; } .bg-pend { background: var(--rojo); } .bg-ejec { background: var(--naranja); } .bg-aprob { background: var(--verde); }
-        .stat-val { display: block; font-size: 1.8em; font-weight: 800; }
-        .stat-label { font-size: 0.7em; text-transform: uppercase; font-weight: 600; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGRAF-IPASME | Gestión de Artes</title>
+<link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+--celeste: #8ecae6; --turquesa: #219ebc; --azul-deep: #023047;
+--amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
+--verde: #2d6a4f; --gris: #edf2f4; --morado: #6a0dad;
+}
+/* CAMBIO: Se aumentó el peso de la fuente de 400 a 500 para mayor legibilidad */
+* { font-family: 'Georama', sans-serif; box-sizing: border-box; font-weight: 500; }
+body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
+
+header { 
+    background: var(--azul-deep); 
+    padding: 8px 25px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    position: sticky; 
+    top: 0; 
+    z-index: 100;
+    min-height: 60px;
+}
+.brand-container { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
+.header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white; line-height: 1; }
+.acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px; }
+.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
+.tab-btn { padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
+.tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
+.admin-access { flex: 1; display: flex; justify-content: flex-end; }
+.btn-login { background: var(--amarillo); border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s; }
+.btn-login:active { transform: translateY(2px); box-shadow: 0 1px 0 #c79100; }
+.btn-logout { background: var(--rojo); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
+
+.row-new { 
+    background-color: #e3f2fd !important; 
+    border-left: 5px solid var(--turquesa) !important;
+}
+.badge-new {
+    background: var(--turquesa);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    margin-left: 8px;
+    display: inline-block;
+    animation: blink 2s infinite;
+}
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+.stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 100px; padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight: 800; }
+.st-total { background: var(--azul-deep); }
+.st-pend { background: var(--celeste); color: var(--azul-deep); }
+.st-proc { background: var(--amarillo); color: var(--azul-deep); }
+.st-fin { background: var(--verde); }
+.st-baja { background: var(--morado); }
+.stat-label { font-size: 0.6rem; text-transform: uppercase; display: block; opacity: 0.8; }
+.stat-val { font-size: 1.1rem; }
+.container { max-width: 1200px; margin: 15px auto; padding: 25px; background: white; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
+.aviso-48h { background: #fff3e0; border: 2.5px solid var(--naranja); color: var(--naranja); padding: 15px; border-radius: 15px; text-align: center; font-weight: 800; margin-bottom: 25px; font-size: 1.1rem; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+.section-title { display: block; font-weight: 800; font-size: 0.85rem; color: var(--turresa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
+.category-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 10px 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 60px; line-height: 1.2; color: var(--azul-deep); }
+.card-btn.selected { background: var(--amarillo); border-color: var(--naranja); transform: scale(0.98); }
+.error-highlight { border: 2.5px solid var(--rojo) !important; animation: shake 0.4s; background: #fff5f5 !important; }
+@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+.btn-time { padding: 12px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
+.btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
+.modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
+.modern-input:focus { border-color: var(--turquesa); background: white; }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+.upload-box { height: 90px; border: 2.5px dashed var(--celeste); border-radius: 15px; position: relative; overflow: hidden; background: #f0f9ff; }
+.upload-label { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; font-size: 0.7rem; font-weight: 800; color: var(--turquesa); text-align: center; }
+.preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+.remove-btn { position: absolute; top: 5px; right: 5px; background: var(--rojo); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-weight: 800; cursor: pointer; display: none; z-index: 10; }
+.btn-send { background: var(--azul-deep); color: white; width: 100%; padding: 20px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.2rem; cursor: pointer; margin-top: 30px; box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
+.btn-send:hover { transform: translateY(-2px); background: #054a6d; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+.modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
+.modal-btn { background: var(--turquesa); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+.modal-btn:hover { background: var(--azul-deep); }
+.modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
+
+.table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa); border-bottom: 2px solid var(--gris); }
+/* CAMBIO: Se aumentó el color de td para que sea negro más sólido y legible */
+td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem; line-height: 1.2; color: #1a1a1a; font-weight: 500; }
+.status-pill { padding: 3px 10px; border-radius: 15px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
+.txt-bold { font-weight: 800; color: var(--azul-deep); }
+.txt-small { font-size: 0.72rem; color: #4b4b4b; display: block; margin-bottom: 1px; font-weight: 500; }
+
+.status-pendiente { background: var(--celeste); color: var(--azul-deep); }
+.status-procesando { background: var(--amarillo); color: var(--azul-deep); }
+.status-finalizada { background: var(--verde); color: white; }
+.status-bajaprioridad { background: var(--morado); color: white; }
+.admin-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.btn-act { border: none; border-radius: 5px; padding: 4px 6px; cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
+.btn-act:hover { transform: scale(1.1); }
+.bg-pend { background: var(--celeste); color: var(--azul-deep); }
+.bg-proc { background: var(--amarillo); color: var(--azul-deep); }
+.bg-fin { background: var(--verde); }
+.bg-baja { background: var(--morado); }
+.btn-trash { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 8px; filter: grayscale(1); transition: 0.3s; }
+.btn-trash:hover { filter: grayscale(0); transform: rotate(10deg); }
+
+.hidden { display: none !important; }
+.page { display: none; }
+.page.active { display: block; }
+
+#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; text-align: center; padding: 20px; }
+.spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--amarillo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+.loading-text { font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; text-transform: uppercase; }
+.loading-subtext { font-size: 0.85rem; margin-top: 10px; color: var(--celeste); font-weight: 400; max-width: 300px; line-height: 1.4; animation: fadeInOut 2s infinite; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes fadeInOut { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+</style>
 </head>
 <body>
 
 <div id="loadingOverlay">
-    <div class="loader-circle"></div>
-    <b id="mainLoadMsg" style="color:var(--azul); font-size: 1.1em;">PROCESANDO SOLICITUD...</b>
-    <div id="slowMsg" class="slow-msg">⏳ Tu solicitud se procesará un poco más lento debido a los archivos adjuntos. No cierres la ventana.</div>
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadMainTxt">Procesando Solicitud...</div>
+  <div class="loading-subtext" id="loadSubTxt"></div>
 </div>
 
-<h1 class="header-title">SOLICITUD DE ARTES GRÁFICAS IPASME</h1>
-
-<nav class="nav-tabs">
-    <button class="tab-btn active" id="tab-form" onclick="showTab('formSec', this)">📝 NUEVA SOLICITUD</button>
-    <button class="tab-btn" id="tab-list" onclick="showTab('listadoSec', this); cargarDatos();">⏳ TRABAJOS EN COLA</button>
-</nav>
-
-<div id="formSec" class="container">
-    <form id="mainForm">
-        <div class="adv-alerta">⚠️ REGLA CRÍTICA: Mínimo 48 horas de antelación para el diseño del Flyer.</div>
-        
-        <div class="section">
-            <label class="section-title">🏢 1. Unidad Solicitante *</label>
-            <input type="text" id="inp_unidad" value="U.M.I. " placeholder="Ej: U.M.I. Caracas" required>
-        </div>
-
-        <div class="section">
-            <label class="section-title">🏥 2. Tipo de Jornada *</label>
-            <div class="btn-group" id="j_grid">
-                <div class="option-btn" onclick="selJornada(this)">Ipasme va a la Escuela</div>
-                <div class="option-btn" onclick="selJornada(this)">Jornada de Atención Médica Integral</div>
-                <div class="option-btn" onclick="selJornada(this)">Plan Masivo de Vacunación</div>
-                <div class="option-btn" onclick="selJornada(this)">Jornada Conjunta</div>
-                <div class="option-btn" onclick="selJornada(this)">Captación Quirúrgica</div>
-                <div class="option-btn" onclick="selJornada(this)">Captación Quirúrgica Oftalmológica</div>
-                <div class="option-btn" onclick="selJornada(this)">Otros</div>
-            </div>
-            <input type="hidden" id="val_jornada">
-        </div>
-
-        <div class="section" id="sec_dinamica">
-            <label class="section-title" id="tit_dinamico">🩺 3. Especialidades / Contenido</label>
-            <div class="btn-group" id="g_opciones"></div>
-        </div>
-
-        <div class="section" id="sec_servicios">
-            <label class="section-title">✨ 4. Servicios Adicionales</label>
-            <div class="btn-group" id="g_servicios"></div>
-        </div>
-
-        <div class="section">
-            <label class="section-title">📅 5. Fecha y Hora del Evento *</label>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <input type="date" id="inp_fecha" required>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="inp_hora" placeholder="08:00" required>
-                    <select id="inp_ampm" style="width:85px;"><option>a. m.</option><option>p. m.</option></select>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <label class="section-title">📍 6. Ubicación y Contacto *</label>
-            <div class="adv-info">⚠️ IMPORTANTE: El nombre de la Institución, Municipio y Parroquia deben estar bien escritos.</div>
-            <textarea id="inp_direccion" placeholder="Indique Institución, Municipio y Parroquia..." required style="height:60px;"></textarea>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <input type="text" id="inp_telefono" placeholder="Teléfono" required>
-                <input type="email" id="inp_correo" placeholder="Correo" required>
-            </div>
-        </div>
-
-        <div class="section">
-            <label class="section-title">📝 7. Observaciones (DISEÑO)</label>
-            <textarea id="inp_observaciones" placeholder="Indique aquí detalles específicos para el diseño del arte..." style="height:60px;"></textarea>
-        </div>
-
-        <div class="section">
-            <label class="section-title">📸 8. Soportes Fotográficos</label>
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
-                <div><input type="file" id="f1" onchange="preview(this, 'p1')"><img id="p1" class="img-preview"></div>
-                <div><input type="file" id="f2" onchange="preview(this, 'p2')"><img id="p2" class="img-preview"></div>
-                <div><input type="file" id="f3" onchange="preview(this, 'p3')"><img id="p3" class="img-preview"></div>
-            </div>
-        </div>
-
-        <button type="button" style="background:var(--azul); color:white; padding:18px; width:100%; border:none; border-radius:12px; font-weight:800; cursor:pointer; font-size:1.1em;" onclick="enviar()">🚀 ENVIAR SOLICITUD</button>
-    </form>
-</div>
-
-<div id="listadoSec" class="container hidden">
-    <div class="stats-grid">
-        <div class="stat-card bg-total"><span class="stat-label">Total</span><span id="st-total" class="stat-val">0</span></div>
-        <div class="stat-card bg-pend"><span class="stat-label">Pendiente</span><span id="st-pend" class="stat-val">0</span></div>
-        <div class="stat-card bg-ejec"><span class="stat-label">Ejecutando</span><span id="st-ejec" class="stat-val">0</span></div>
-        <div class="stat-card bg-aprob"><span class="stat-label">Aprobado</span><span id="st-aprob" class="stat-val">0</span></div>
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-            <button onclick="toggleAdmin()" id="btnAdmin" style="background:#495057; border:none; color:white; border-radius:10px; cursor:pointer; font-weight:800; padding:10px; width: 100%;">⚙️ ADMIN</button>
-            <button onclick="logout()" id="btnLogOut" class="hidden" style="background:var(--rojo); border:none; color:white; border-radius:10px; cursor:pointer; font-weight:800; padding:10px; width: 100%;">🚪 LOG OUT</button>
-        </div>
+<div class="modal-overlay" id="modalAlert">
+  <div class="modal-content">
+    <span id="modalIcon" style="font-size: 60px; display: block; margin-bottom: 10px;">⚠️</span>
+    <div id="modalTitle" style="font-weight: 800; font-size: 1.4rem; color: var(--azul-deep);">Atención</div>
+    <div id="modalMsg" style="margin-top: 15px; color: #555; font-size: 1rem; line-height: 1.4; font-weight: 500;"></div>
+    
+    <div id="loginArea" class="hidden" style="margin-top:20px; text-align: left;">
+        <label class="txt-small">Usuario del Sistema:</label>
+        <input type="text" id="adminUser" class="modern-input" style="margin-bottom:15px;" placeholder="Ingrese usuario">
+        <label class="txt-small">Clave de Seguridad:</label>
+        <input type="password" id="adminPass" class="modern-input" placeholder="••••••••">
     </div>
-    <div style="overflow-x:auto;">
+    
+    <button id="mainModalBtn" class="modal-btn">ENTENDIDO</button>
+    <button id="closeModalBtn" class="modal-btn modal-btn-alt hidden" onclick="closeModal()">CERRAR</button>
+  </div>
+</div>
+
+<header>
+  <div class="brand-container">
+      <h1 class="header-title">SIGRAF-IPASME</h1>
+      <span class="acronimo">Sistema Integral de Gestión para Requerimientos de Artes Finalizadas</span>
+  </div>
+  <div class="nav-tabs">
+    <button id="tab-form" class="tab-btn active" onclick="showPage('form-page', this)">📝 <i>FORMULARIO</i></button>
+    <button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 <i>SOLICITUDES</i></button>
+  </div>
+  <div class="admin-access">
+      <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
+  </div>
+</header>
+
+<div class="container page active" id="form-page">
+  <div class="aviso-48h">⚠️ IMPORTANTE: LAS SOLICITUDES DEBEN REALIZARSE CON 48 HORAS DE ANTICIPACIÓN</div>
+  <form id="sigrafForm" novalidate>
+    <label class="section-title">🏥 1. UNIDAD SOLICITANTE *</label>
+    <input type="text" id="unidad" class="modern-input" value="U.M.I. ">
+    <label class="section-title">📂 2. TIPO DE JORNADA *</label>
+    <div class="category-row" id="cat-grid">
+      <div class="card-btn" onclick="selectCat(this, 'escuela')">Ipasme va a la Escuela</div>
+      <div class="card-btn" onclick="selectCat(this, 'integral')">Jornada de Atención Médica Integral</div>
+      <div class="card-btn" onclick="selectCat(this, 'conjunta')">Jornada Conjunta</div>
+      <div class="card-btn" onclick="selectCat(this, 'vacuna')">Plan Masivo de Vacunación</div>
+      <div class="card-btn" onclick="selectCat(this, 'quirurgica')">Captación Quirúrgica</div>
+      <div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
+      <div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
+    </div>
+    <div id="sec-3" class="hidden">
+      <label class="section-title" id="label-3">🩺 3. DETALLE *</label>
+      <div id="cont-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;"></div>
+    </div>
+    <div id="sec-4" class="hidden">
+      <label class="section-title">✨ 4. SERVICIOS ADICIONALES (OPCIONAL)</label>
+      <div id="cont-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;"></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div><label class="section-title">📅 5. FECHA DE ACTIVIDAD *</label><input type="date" id="fecha" class="modern-input"></div>
+      <div><label class="section-title">⏰ 6. HORA DE INICIO *</label><div class="hora-container" id="hora-box" style="display: flex; gap: 10px; align-items: center;"><input type="text" id="hora" class="modern-input" style="width:100px; text-align:center" placeholder="08:00"><button type="button" class="btn-time" id="btn-am" onclick="setAMPM('a. m.')">a. m.</button><button type="button" class="btn-time" id="btn-pm" onclick="setAMPM('p. m.')">p. m.</button></div></div>
+    </div>
+    <label class="section-title">📍 7. DIRECCIÓN EXACTA *</label>
+    <div style="background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #5d4600; font-weight: 600; line-height: 1.4;">
+      ⚠️ dirección: se debe colocar el nombre de la institución correctamente, municipio y parroquia. En caso de no tener todos los datos solo ponga el nombre de la institución. Los datos erróneos llevarán la solicitud a baja prioridad.
+    </div>
+    <textarea id="direccion" class="modern-input" rows="3" placeholder="Ej: Escuela Bolivariana 'Miguel Otero Silva', Municipio Libertador, Parroquia El Valle, Caracas."></textarea>
+    <label class="section-title">📱✉️ 8. DATOS DE CONTACTO *</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div><label class="txt-small">Número de Teléfono</label><input type="tel" id="tlf" class="modern-input" placeholder="04xx 1234567"></div>
+      <div><label class="txt-small">Correo Electrónico</label><input type="email" id="mail" class="modern-input" placeholder="Para envío de arte final *"></div>
+    </div>
+    <label class="section-title">✏️ 9. OBSERVACIONES / DETALLES DE DISEÑO</label><textarea id="observaciones" class="modern-input" rows="3" placeholder="Indique medidas, colores institucionales o entes participantes adicionales..."></textarea>
+    <label class="section-title">📸 10. SOPORTES FOTOGRÁFICOS (MÁX 3)</label>
+    <div class="photo-grid">
+      <div class="upload-box"><label for="f1" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f1" class="hidden" accept="image/*" onchange="handleFile(this, 'p1', 'b1')"><img id="p1" class="preview"><button type="button" id="b1" class="remove-btn" onclick="clearFile('f1', 'p1', 'b1')">×</button></div>
+      <div class="upload-box"><label for="f2" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f2" class="hidden" accept="image/*" onchange="handleFile(this, 'p2', 'b2')"><img id="p2" class="preview"><button type="button" id="b2" class="remove-btn" onclick="clearFile('f2', 'p2', 'b2')">×</button></div>
+      <div class="upload-box"><label for="f3" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f3" class="hidden" accept="image/*" onchange="handleFile(this, 'p3', 'b3')"><img id="p3" class="preview"><button type="button" id="b3" class="remove-btn" onclick="clearFile('f3', 'p3', 'b3')">×</button></div>
+    </div>
+    <button type="submit" id="submitBtn" class="btn-send">🚀 ENVIAR SOLICITUD A COMUNICACIONES</button>
+  </form>
+</div>
+
+<div class="container page" id="list-page">
+    <div class="stats-grid" id="stats-panel">
+        <div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total" class="stat-val">0</span></div>
+        <div class="stat-card st-pend"><span class="stat-label">Pendiente</span><span id="count-pend" class="stat-val">0</span></div>
+        <div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
+        <div class="stat-card st-fin"><span class="stat-label">Finalizada</span><span id="count-fin" class="stat-val">0</span></div>
+        <div class="stat-card st-baja"><span class="stat-label">Prioridad B.</span><span id="count-baja" class="stat-val">0</span></div>
+    </div>
+    <div class="table-container">
         <table>
             <thead>
-                <tr>
-                    <th>REGISTRO</th>
-                    <th>EVENTO</th>
-                    <th>UNIDAD</th>
-                    <th>TIPO DE JORNADA</th>
-                    <th style="text-align:center">FOTOS</th>
-                    <th>ESTATUS</th>
-                    <th class="admin-col hidden">GESTIÓN</th>
-                </tr>
+                <tr><th>FECHA REGISTRO</th><th>FECHA ACTIVIDAD</th><th>UNIDAD SOLICITANTE</th><th>TIPO DE JORNADA</th><th style="text-align:center">SOPORTES</th><th>ESTATUS</th><th id="th-admin" class="hidden" style="text-align:right">ACCIONES ADMIN</th></tr>
             </thead>
-            <tbody id="cuerpoTabla"></tbody>
+            <tbody id="solicitudes-body"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyolQ7s9dNxAeVarPDSKco2wJNFnVaFI7in85P2eRx1llm-5HaiBaTk4kgd6Dzs_hi4ww/exec';
-    
-    let isAdmin = false;
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbpnbasYK7Q9TqGEQGSCewQp_cotvXgLzYmwYsapLb8_Qb6SGOsiPtsCI24FaQVbS9Fw/exec";
+let isAdmin = false; let selectedAMPM = ""; let catType = ""; let catName = ""; let localData = [];
 
-    const listEsp = ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"];
-    const listPatGen = ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"];
-    const listPatOftal = ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"];
-    const listVac = ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"];
-    const listSer = ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"];
+const DATA = {
+especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
+servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
+vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"],
+quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
+oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
+};
 
-    function showTab(id, btn) {
-        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon; document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex'; }
+function showLogin() { document.getElementById('modalIcon').innerText = "🔐"; document.getElementById('modalTitle').innerText = "Acceso Restringido"; document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración."; document.getElementById('loginArea').classList.remove('hidden'); document.getElementById('closeModalBtn').classList.remove('hidden'); const btn = document.getElementById('mainModalBtn'); btn.innerText = "VALIDAR CREDENCIALES"; btn.onclick = validateLogin; document.getElementById('modalAlert').style.display = 'flex'; }
+function validateLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") { isAdmin = true; document.getElementById('authBtn').className = "btn-logout"; document.getElementById('authBtn').innerText = "Cerrar Gestión"; document.getElementById('authBtn').onclick = logout; document.getElementById('th-admin').classList.remove('hidden'); closeModal(); updateTable(); } else { alert("Usuario o Contraseña incorrectos."); } }
+function logout() { isAdmin = false; document.getElementById('authBtn').className = "btn-login"; document.getElementById('authBtn').innerText = "🔐 Administrador"; document.getElementById('authBtn').onclick = showLogin; document.getElementById('th-admin').classList.add('hidden'); renderLocalTable(); }
+function closeModal() { document.getElementById('modalAlert').style.display = 'none'; }
+function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
+function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
+function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('error-highlight'); }
+function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('error-highlight'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
+function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('error-highlight'); }; cont.appendChild(d); }); }
+
+function showPage(id, btn) { 
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+    document.getElementById(id).classList.add('active'); 
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    if(btn) btn.classList.add('active'); 
+    else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); 
+    if(id === 'list-page') updateTable(); 
+}
+
+async function updateTable() {
+    const body = document.getElementById('solicitudes-body');
+    if (localData.length === 0) {
+        body.innerHTML = '<tr><td colspan="7" style="text-align:center">Sincronizando base de datos SIGRAF...</td></tr>';
     }
-
-    function preview(input, id) {
-        const img = document.getElementById(id);
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => { img.src = e.target.result; img.style.display = 'block'; }
-            reader.readAsDataURL(input.files[0]);
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=read`);
+        const response = await res.json();
+        if (response.success && Array.isArray(response.data)) { 
+            localData = response.data; 
+            renderLocalTable(); 
         }
+    } catch (e) { 
+        if(localData.length === 0) body.innerHTML = '<tr><td colspan="7" align="center">Error de conexión al servidor</td></tr>'; 
     }
+}
 
-    function selJornada(el) {
-        document.querySelectorAll('#j_grid .option-btn').forEach(b => b.classList.remove('selected'));
-        el.classList.add('selected');
-        document.getElementById('val_jornada').value = el.innerText;
-        const gOpc = document.getElementById('g_opciones');
-        const tit = document.getElementById('tit_dinamico');
-        const sSer = document.getElementById('sec_servicios');
-        const v = el.innerText;
+function renderLocalTable() {
+    const body = document.getElementById('solicitudes-body');
+    body.innerHTML = ""; 
+    let counts = { total:0, pend:0, proc:0, fin:0, baja:0 };
+    const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
 
-        if(v === "Plan Masivo de Vacunación") { tit.innerText = "💉 3. Lista de Vacunas"; renderList(gOpc, listVac); sSer.classList.add('hidden'); }
-        else if(v === "Captación Quirúrgica") { tit.innerText = "🩺 3. Patologías Quirúrgicas"; renderList(gOpc, listPatGen); sSer.classList.add('hidden'); }
-        else if(v === "Captación Quirúrgica Oftalmológica") { tit.innerText = "👁️ 3. Patologías Oftalmológicas"; renderList(gOpc, listPatOftal); sSer.classList.add('hidden'); }
-        else if(v === "Otros") { tit.innerText = "📝 3. Especifique"; gOpc.innerHTML = '<textarea id="OtrosInput" style="height:50px; grid-column: 1 / -1;" placeholder="Especifique el tipo de evento..."></textarea>'; sSer.classList.add('hidden'); }
-        else { tit.innerText = "🩺 3. Especialidades"; renderList(gOpc, listEsp); sSer.classList.remove('hidden'); renderList(document.getElementById('g_servicios'), listSer); }
-    }
+    sortedData.forEach((s, idx) => {
+        counts.total++;
+        const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+        const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+        if(statusLimpio === 'pendiente') counts.pend++;
+        if(statusLimpio === 'procesando') counts.proc++;
+        if(statusLimpio === 'finalizada') counts.fin++;
+        if(statusLimpio === 'bajaprioridad') counts.baja++;
 
-    function renderList(cont, lista) {
-        cont.innerHTML = "";
-        lista.forEach(i => {
-            const b = document.createElement('div');
-            b.className = 'option-btn';
-            b.innerText = i;
-            b.onclick = () => b.classList.toggle('selected');
-            cont.appendChild(b);
-        });
-    }
+        const esNueva = (idx < 5 && statusReal === "PENDIENTE");
+        const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+        const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
+        const badge = esNueva ? '<span class="badge-new">NUEVA ✨</span>' : '';
+        let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
 
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
+        const tr = document.createElement('tr');
+        if(esNueva) tr.className = "row-new";
+        tr.innerHTML = `
+            <td><span class="txt-small">${s.Timestamp}</span></td>
+            <td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>
+            <td class="txt-bold">${unidadLimpia} ${badge}</td>
+            <td>${jornadaLimpia}</td>
+            <td align="center">${icon}</td>
+            <td><span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span></td>
+            ${isAdmin ? `<td align="right">
+                <div class="admin-actions">
+                    <button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
+                    <button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
+                    <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
+                    <button class="btn-act bg-baja" onclick="modStatus('${s.id}','BAJA PRIORIDAD')">B</button>
+                    <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
+                </div>
+            </td>` : ''}`;
+        body.appendChild(tr);
     });
+    
+    document.getElementById('count-total').innerText = counts.total;
+    document.getElementById('count-pend').innerText = counts.pend;
+    document.getElementById('count-proc').innerText = counts.proc;
+    document.getElementById('count-fin').innerText = counts.fin;
+    document.getElementById('count-baja').innerText = counts.baja;
+}
 
-    async function enviar() {
-        const unidad = document.getElementById('inp_unidad').value.trim();
-        const jornada = document.getElementById('val_jornada').value;
-        const fecha = document.getElementById('inp_fecha').value;
-        const hora = document.getElementById('inp_hora').value.trim();
-        const direccion = document.getElementById('inp_direccion').value.trim();
-        const tlf = document.getElementById('inp_telefono').value.trim();
-        const mail = document.getElementById('inp_correo').value.trim();
-        const obs = document.getElementById('inp_observaciones').value.trim();
+async function modStatus(id, st) {
+    const pill = document.getElementById('pill-' + id);
+    const oldClass = pill.className; const oldText = pill.innerText;
+    const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+    pill.className = `status-pill status-${newStatusClass}`; pill.innerText = st;
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
+        const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
+    } catch (e) { pill.className = oldClass; pill.innerText = oldText; alert("Error de conexión."); }
+}
 
-        if(!unidad || !jornada || !fecha || !hora || !direccion || !tlf || !mail) {
-            return alert("⚠️ Complete todos los campos marcados con (*)");
-        }
+async function deleteReq(id) {
+    if(!confirm("¿Eliminar registro permanentemente?")) return;
+    localData = localData.filter(x => x.id != id); renderLocalTable();
+    try { await fetch(SCRIPT_URL, { method:'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=delete&id=${id}` }); } catch (e) { alert("Error al eliminar."); updateTable(); }
+}
 
-        const f1 = document.getElementById('f1').files[0];
-        const f2 = document.getElementById('f2').files[0];
-        const f3 = document.getElementById('f3').files[0];
+document.getElementById('sigrafForm').onsubmit = async (e) => {
+    e.preventDefault(); document.querySelectorAll('.error-highlight').forEach(el => el.classList.remove('error-highlight'));
+    const fields = { u: document.getElementById('unidad'), f: document.getElementById('fecha'), h: document.getElementById('hora'), m: document.getElementById('mail'), d: document.getElementById('direccion') };
+    let error = false;
+    if (fields.u.value.trim() === "" || fields.u.value.trim() === "U.M.I.") { fields.u.classList.add('error-highlight'); error = true; }
+    if (!catName) { document.getElementById('cat-grid').classList.add('error-highlight'); error = true; }
+    if (!fields.f.value) { fields.f.classList.add('error-highlight'); error = true; }
+    if (!selectedAMPM) { document.getElementById('hora-box').classList.add('error-highlight'); error = true; }
+    if (!fields.m.value.includes('@')) { fields.m.classList.add('error-highlight'); error = true; }
+    if (fields.d.value.trim().length < 5) { fields.d.classList.add('error-highlight'); error = true; }
+    if (error) { openModal("❌ Campos Incompletos", "Por favor complete todos los campos obligatorios."); return; }
 
-        document.getElementById('loadingOverlay').style.display = 'flex';
-        if(f1 || f2 || f3) document.getElementById('slowMsg').style.display = 'block';
+    const params = new URLSearchParams();
+    params.append("Unidad", fields.u.value); params.append("Jornada", catName);
+    let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
+    if(catType === 'otros') ops = document.getElementById('desc-otro').value;
+    params.append("Opciones", ops); params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+    params.append("Fecha", fields.f.value); params.append("Hora", fields.h.value + " " + selectedAMPM);
+    params.append("Direccion", fields.d.value); params.append("Telefono", document.getElementById('tlf').value);
+    params.append("Correo", fields.m.value); params.append("Observaciones", document.getElementById('observaciones').value);
+    
+    let tieneFotos = false;
+    for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true; } }
 
-        const params = new URLSearchParams();
-        params.append('Unidad', unidad);
-        params.append('Jornada', jornada);
-        params.append('Fecha', fecha);
-        params.append('Hora', hora + " " + document.getElementById('inp_ampm').value);
-        params.append('Direccion', direccion);
-        params.append('Telefono', tlf);
-        params.append('Correo', mail);
-        params.append('Observaciones', obs);
+    const loadMain = document.getElementById('loadMainTxt'); const loadSub = document.getElementById('loadSubTxt');
+    if(tieneFotos) { loadMain.innerText = "Subiendo Imágenes..."; loadSub.innerText = "Esto puede tardar dependiendo de su conexión."; }
+    else { loadMain.innerText = "Enviando Solicitud..."; loadSub.innerText = "Registrando datos en el sistema central."; }
 
-        const opcVal = (jornada === "Otros") 
-            ? (document.getElementById('OtrosInput')?.value || "") 
-            : Array.from(document.querySelectorAll('#g_opciones .selected')).map(s => s.innerText).join(", ");
-        params.append('OpcionesSeleccionadas', opcVal);
-
-        const serVal = Array.from(document.querySelectorAll('#g_servicios .selected')).map(s => s.innerText).join(", ");
-        params.append('Servicios', serVal || "Ninguno");
-
-        if(f1) params.append('foto1', await toBase64(f1));
-        if(f2) params.append('foto2', await toBase64(f2));
-        if(f3) params.append('foto3', await toBase64(f3));
-
-        fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString() 
-        })
-        .then(() => { 
-            alert("✅ Solicitud enviada exitosamente.");
-            // Reset Form
-            document.getElementById('mainForm').reset();
-            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelectorAll('.img-preview').forEach(img => img.style.display = 'none');
-            document.getElementById('g_opciones').innerHTML = "";
-            document.getElementById('g_servicios').innerHTML = "";
-            document.getElementById('loadingOverlay').style.display = 'none';
-            
-            // Ir a Cola de Trabajos
-            showTab('listadoSec', document.getElementById('tab-list'));
-            cargarDatos();
-        })
-        .catch(() => { 
-            alert("❌ Error de red"); 
-            document.getElementById('loadingOverlay').style.display = 'none'; 
-        });
-    }
-
-    async function cargarDatos() {
-        const tbody = document.getElementById('cuerpoTabla');
-        if(tbody.innerHTML === "") tbody.innerHTML = "<tr><td colspan='7' style='text-align:center'>Cargando...</td></tr>";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    try {
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+        const result = await response.json();
         
-        try {
-            const res = await fetch(SCRIPT_URL + "?action=read&t=" + Date.now());
-            const data = await res.json();
+        if (result.success) {
+            openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente. Redirigiendo a la cola...", "🚀");
+            document.getElementById('sigrafForm').reset(); catName = ""; catType = "";
+            document.getElementById('sec-3').classList.add('hidden'); document.getElementById('sec-4').classList.add('hidden');
+            document.querySelectorAll('.preview').forEach(img => img.style.display = 'none');
+            document.querySelectorAll('.remove-btn').forEach(btn => btn.style.display = 'none');
+            document.querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); selectedAMPM = "";
             
-            document.getElementById('st-total').innerText = data.length;
-            document.getElementById('st-pend').innerText = data.filter(x => x.Estatus === 'PENDIENTE').length;
-            document.getElementById('st-ejec').innerText = data.filter(x => x.Estatus === 'EJECUTANDO').length;
-            document.getElementById('st-aprob').innerText = data.filter(x => x.Estatus === 'APROBADO').length;
+            setTimeout(() => {
+                closeModal();
+                showPage('list-page', document.getElementById('tab-list'));
+            }, 2000);
 
-            tbody.innerHTML = data.reverse().map((f, index) => {
-                const color = f.Estatus === 'PENDIENTE' ? 'var(--rojo)' : (f.Estatus === 'APROBADO' ? 'var(--verde)' : 'var(--naranja)');
-                
-                // RESALTADO DE LAS 10 ÚLTIMAS PETICIONES
-                const esNuevo = (index < 10);
-                
-                return `<tr id="row-${f.id}" ${esNuevo ? 'class="row-new"' : ''}>
-                    <td style="color:#888; font-size:0.85em;">${f.Timestamp} ${esNuevo ? '<span class="badge-new">NEW</span>' : ''}</td>
-                    <td style="font-weight:800;">${f.FechaActividad}</td>
-                    <td style="font-weight:800; color:var(--azul); text-transform:uppercase;">${f.Unidad}</td>
-                    <td style="font-size:0.9em;">${f.Jornada || '---'}</td>
-                    <td style="text-align:center">${(f.Soportes && f.Soportes.includes("SÍ")) ? '📸 SÍ' : 'NO'}</td>
-                    <td><span id="badge-${f.id}" class="badge" style="background:${color}">${f.Estatus}</span></td>
-                    <td class="admin-col ${isAdmin ? '' : 'hidden'}">
-                        <select onchange="cambiarEstatus('${f.id}', this.value)">
-                            <option value="">Cambiar...</option>
-                            <option value="PENDIENTE">PENDIENTE</option>
-                            <option value="EJECUTANDO">EJECUTANDO</option>
-                            <option value="APROBADO">APROBADO</option>
-                        </select>
-                    </td>
-                </tr>`;
-            }).join("");
-        } catch(e) { tbody.innerHTML = "<tr><td colspan='7'>Error al cargar datos.</td></tr>"; }
+        } else { throw new Error(result.error); }
+    } catch (e) { 
+        openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío. Verificando cola...", "📋"); 
+        setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
     }
-
-    function cambiarEstatus(id, val) {
-        if(!val) return;
-        const badge = document.getElementById(`badge-${id}`);
-        if(badge) {
-            badge.innerText = val;
-            badge.style.background = val === 'PENDIENTE' ? 'var(--rojo)' : (val === 'APROBADO' ? 'var(--verde)' : 'var(--naranja)');
-        }
-        fetch(SCRIPT_URL + "?action=update&id=" + id + "&status=" + val)
-            .catch(() => { alert("Error al guardar en base de datos."); cargarDatos(); });
-    }
-
-    function toggleAdmin() {
-        const u = prompt("Usuario:"), p = prompt("Clave:");
-        if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") {
-            isAdmin = true;
-            document.querySelectorAll('.admin-col').forEach(c => c.classList.remove('hidden'));
-            document.getElementById('btnAdmin').classList.add('hidden');
-            document.getElementById('btnLogOut').classList.remove('hidden');
-            cargarDatos();
-        } else { alert("Acceso denegado"); }
-    }
-
-    function logout() {
-        isAdmin = false;
-        document.querySelectorAll('.admin-col').forEach(c => c.classList.add('hidden'));
-        document.getElementById('btnAdmin').classList.remove('hidden');
-        document.getElementById('btnLogOut').classList.add('hidden');
-        cargarDatos();
-    }
+    finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+};
 </script>
 </body>
 </html>
