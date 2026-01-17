@@ -29,7 +29,9 @@ header {
 .header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white; line-height: 1; }
 .acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px; }
 .nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
-.tab-btn { padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
+
+/* AJUSTE DE ALTURA EN BOTONES DE NAVEGACIÓN */
+.tab-btn { padding: 6px 16px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
 .admin-access { flex: 1; display: flex; justify-content: flex-end; }
 .btn-login { background: var(--amarillo); border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s; }
@@ -54,19 +56,20 @@ header {
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 .section-title { display: block; font-weight: 800; font-size: 0.85rem; color: var(--turresa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
 .category-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
-.card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 10px 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 60px; line-height: 1.2; color: var(--azul-deep); }
+
+/* AJUSTE DE ALTURA EN BOTONES DE CATEGORÍA Y OPCIONES */
+.card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 6px 4px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 45px; line-height: 1.1; color: var(--azul-deep); }
 .card-btn.selected { background: var(--amarillo); border-color: var(--naranja); transform: scale(0.98); }
 
-/* LÍNEA ROJA PARPADEANTE SOLICITADA */
 .field-error { border: 2px solid var(--rojo) !important; animation: border-blink 0.8s infinite alternate !important; background: #fff5f5 !important; }
 @keyframes border-blink { from { border-color: var(--rojo); box-shadow: 0 0 5px rgba(230, 57, 70, 0.2); } to { border-color: transparent; box-shadow: none; } }
 
-.btn-time { padding: 12px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
+/* AJUSTE DE ALTURA EN BOTONES DE TIEMPO AM/PM */
+.btn-time { padding: 8px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
 .btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
 .modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
 .modern-input:focus { border-color: var(--turquesa); background: white; }
 
-/* OCULTAR PLACEHOLDERS AL ACTIVAR CAJA */
 .modern-input:focus::placeholder { color: transparent; }
 
 .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
@@ -74,11 +77,16 @@ header {
 .upload-label { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; font-size: 0.7rem; font-weight: 800; color: var(--turquesa); text-align: center; }
 .preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
 .remove-btn { position: absolute; top: 5px; right: 5px; background: var(--rojo); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-weight: 800; cursor: pointer; display: none; z-index: 10; }
-.btn-send { background: var(--azul-deep); color: white; width: 100%; padding: 20px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.2rem; cursor: pointer; margin-top: 30px; box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
+
+/* AJUSTE DE ALTURA EN BOTÓN DE ENVÍO PRINCIPAL */
+.btn-send { background: var(--azul-deep); color: white; width: 100%; padding: 14px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 30px; box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
 .btn-send:hover { transform: translateY(-2px); background: #054a6d; }
+
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
 .modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
-.modal-btn { background: var(--turquesa); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+
+/* AJUSTE EN BOTÓN DE MODALES */
+.modal-btn { background: var(--turquesa); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
 .modal-btn:hover { background: var(--azul-deep); }
 .modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
 
@@ -240,7 +248,6 @@ quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibrom
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 
-// LIMPIAR ERRORES AL ESCRIBIR
 document.addEventListener('input', (e) => { if(e.target.classList.contains('field-error')) e.target.classList.remove('field-error'); });
 
 function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon; document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex'; }
