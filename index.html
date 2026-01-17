@@ -15,7 +15,7 @@
 body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
 
 header { 
-    background: var(--azul-deep); 
+    background: var(--azul-deep);
     padding: 8px 25px; 
     display: flex; 
     align-items: center; 
@@ -29,7 +29,6 @@ header {
 .header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white; line-height: 1; }
 .acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px; }
 .nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
-/* CAMBIO: Se eliminó el estilo italic de los botones de pestañas */
 .tab-btn { padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
 .admin-access { flex: 1; display: flex; justify-content: flex-end; }
@@ -37,21 +36,8 @@ header {
 .btn-login:active { transform: translateY(2px); box-shadow: 0 1px 0 #c79100; }
 .btn-logout { background: var(--rojo); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
 
-.row-new { 
-    background-color: #e3f2fd !important; 
-    border-left: 5px solid var(--turquesa) !important;
-}
-.badge-new {
-    background: var(--turquesa);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 800;
-    margin-left: 8px;
-    display: inline-block;
-    animation: blink 2s infinite;
-}
+.row-new { background-color: #e3f2fd !important; border-left: 5px solid var(--turquesa) !important; }
+.badge-new { background: var(--turquesa); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; animation: blink 2s infinite; }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
 .stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -70,12 +56,19 @@ header {
 .category-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
 .card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 10px 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 60px; line-height: 1.2; color: var(--azul-deep); }
 .card-btn.selected { background: var(--amarillo); border-color: var(--naranja); transform: scale(0.98); }
-.error-highlight { border: 2.5px solid var(--rojo) !important; animation: shake 0.4s; background: #fff5f5 !important; }
-@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+/* LÍNEA ROJA PARPADEANTE SOLICITADA */
+.field-error { border: 2px solid var(--rojo) !important; animation: border-blink 0.8s infinite alternate !important; background: #fff5f5 !important; }
+@keyframes border-blink { from { border-color: var(--rojo); box-shadow: 0 0 5px rgba(230, 57, 70, 0.2); } to { border-color: transparent; box-shadow: none; } }
+
 .btn-time { padding: 12px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
 .btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
 .modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
 .modern-input:focus { border-color: var(--turquesa); background: white; }
+
+/* OCULTAR PLACEHOLDERS AL ACTIVAR CAJA */
+.modern-input:focus::placeholder { color: transparent; }
+
 .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
 .upload-box { height: 90px; border: 2.5px dashed var(--celeste); border-radius: 15px; position: relative; overflow: hidden; background: #f0f9ff; }
 .upload-label { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; font-size: 0.7rem; font-weight: 800; color: var(--turquesa); text-align: center; }
@@ -179,6 +172,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
       <div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
       <div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
     </div>
+  
     <div id="sec-3" class="hidden">
       <label class="section-title" id="label-3">🩺 3. DETALLE *</label>
       <div id="cont-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;"></div>
@@ -202,7 +196,12 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
       <div><label class="txt-small">Correo Electrónico</label><input type="email" id="mail" class="modern-input" placeholder="Para envío de arte final *"></div>
     </div>
     <label class="section-title">✏️ 9. OBSERVACIONES / DETALLES DE DISEÑO</label><textarea id="observaciones" class="modern-input" rows="3" placeholder="Indique medidas, colores institucionales o entes participantes adicionales..."></textarea>
+    
     <label class="section-title">📸 10. SOPORTES FOTOGRÁFICOS (MÁX 3)</label>
+    <div style="background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #5d4600; font-weight: 600; line-height: 1.4;">
+      ⚠️ Si el registro fotográfico enviado no cumple con las condiciones de calidad para la solicitud, será sustituido por material de archivo.
+    </div>
+    
     <div class="photo-grid">
       <div class="upload-box"><label for="f1" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f1" class="hidden" accept="image/*" onchange="handleFile(this, 'p1', 'b1')"><img id="p1" class="preview"><button type="button" id="b1" class="remove-btn" onclick="clearFile('f1', 'p1', 'b1')">×</button></div>
       <div class="upload-box"><label for="f2" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f2" class="hidden" accept="image/*" onchange="handleFile(this, 'p2', 'b2')"><img id="p2" class="preview"><button type="button" id="b2" class="remove-btn" onclick="clearFile('f2', 'p2', 'b2')">×</button></div>
@@ -233,7 +232,6 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLsIXUlpux-6y-lv1YB5biW1xAidlMcyusS9SSPYyjf6qloEXRSetPK3JPX3w-1NBzyw/exec";
 let isAdmin = false; let selectedAMPM = ""; let catType = ""; let catName = ""; let localData = [];
-
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
@@ -242,6 +240,9 @@ quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibrom
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 
+// LIMPIAR ERRORES AL ESCRIBIR
+document.addEventListener('input', (e) => { if(e.target.classList.contains('field-error')) e.target.classList.remove('field-error'); });
+
 function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon; document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex'; }
 function showLogin() { document.getElementById('modalIcon').innerText = "🔐"; document.getElementById('modalTitle').innerText = "Acceso Restringido"; document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración."; document.getElementById('loginArea').classList.remove('hidden'); document.getElementById('closeModalBtn').classList.remove('hidden'); const btn = document.getElementById('mainModalBtn'); btn.innerText = "VALIDAR CREDENCIALES"; btn.onclick = validateLogin; document.getElementById('modalAlert').style.display = 'flex'; }
 function validateLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") { isAdmin = true; document.getElementById('authBtn').className = "btn-logout"; document.getElementById('authBtn').innerText = "Cerrar Gestión"; document.getElementById('authBtn').onclick = logout; document.getElementById('th-admin').classList.remove('hidden'); closeModal(); updateTable(); } else { alert("Usuario o Contraseña incorrectos."); } }
@@ -249,9 +250,9 @@ function logout() { isAdmin = false; document.getElementById('authBtn').classNam
 function closeModal() { document.getElementById('modalAlert').style.display = 'none'; }
 function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
 function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
-function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('error-highlight'); }
-function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('error-highlight'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
-function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('error-highlight'); }; cont.appendChild(d); }); }
+function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error'); }
+function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
+function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); }); }
 
 function showPage(id, btn) { 
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
@@ -260,7 +261,7 @@ function showPage(id, btn) {
     window.scrollTo({top: 0, behavior: 'smooth'});
     if(btn) btn.classList.add('active'); 
     else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); 
-    if(id === 'list-page') updateTable(); 
+    if(id === 'list-page') updateTable();
 }
 
 async function updateTable() {
@@ -272,20 +273,19 @@ async function updateTable() {
         const res = await fetch(`${SCRIPT_URL}?action=read`);
         const response = await res.json();
         if (response.success && Array.isArray(response.data)) { 
-            localData = response.data; 
+            localData = response.data;
             renderLocalTable(); 
         }
     } catch (e) { 
-        if(localData.length === 0) body.innerHTML = '<tr><td colspan="7" align="center">Error de conexión al servidor</td></tr>'; 
+        if(localData.length === 0) body.innerHTML = '<tr><td colspan="7" align="center">Error de conexión al servidor</td></tr>';
     }
 }
 
 function renderLocalTable() {
     const body = document.getElementById('solicitudes-body');
-    body.innerHTML = ""; 
+    body.innerHTML = "";
     let counts = { total:0, pend:0, proc:0, fin:0, baja:0 };
     const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-
     sortedData.forEach((s, idx) => {
         counts.total++;
         const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
@@ -331,7 +331,8 @@ function renderLocalTable() {
 
 async function modStatus(id, st) {
     const pill = document.getElementById('pill-' + id);
-    const oldClass = pill.className; const oldText = pill.innerText;
+    const oldClass = pill.className;
+    const oldText = pill.innerText;
     const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
     pill.className = `status-pill status-${newStatusClass}`; pill.innerText = st;
     try {
@@ -343,75 +344,83 @@ async function modStatus(id, st) {
 async function deleteReq(id) {
     if(!confirm("¿Eliminar registro permanentemente?")) return;
     localData = localData.filter(x => x.id != id); renderLocalTable();
-    try { await fetch(SCRIPT_URL, { method:'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=delete&id=${id}` }); } catch (e) { alert("Error al eliminar."); updateTable(); }
+    try { await fetch(SCRIPT_URL, { method:'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=delete&id=${id}` });
+    } catch (e) { alert("Error al eliminar."); updateTable(); }
 }
 
 document.getElementById('sigrafForm').onsubmit = async (e) => {
-    e.preventDefault(); document.querySelectorAll('.error-highlight').forEach(el => el.classList.remove('error-highlight'));
-    const fields = { u: document.getElementById('unidad'), f: document.getElementById('fecha'), h: document.getElementById('hora'), m: document.getElementById('mail'), d: document.getElementById('direccion') };
-    let error = false;
-
-    // VALIDACIÓN: HORA OBLIGATORIA
-    if (fields.h.value.trim() === "") { fields.h.classList.add('error-highlight'); error = true; }
-    if (fields.u.value.trim() === "" || fields.u.value.trim() === "U.M.I.") { fields.u.classList.add('error-highlight'); error = true; }
-    if (!catName) { document.getElementById('cat-grid').classList.add('error-highlight'); error = true; }
-    if (!fields.f.value) { fields.f.classList.add('error-highlight'); error = true; }
-    if (!selectedAMPM) { document.getElementById('hora-box').classList.add('error-highlight'); error = true; }
-    if (!fields.m.value.includes('@')) { fields.m.classList.add('error-highlight'); error = true; }
-    if (fields.d.value.trim().length < 5) { fields.d.classList.add('error-highlight'); error = true; }
+    e.preventDefault();
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
     
-    if (error) { openModal("❌ Campos Incompletos", "Por favor complete todos los campos obligatorios, incluyendo la hora de Inicio."); return; }
+    const fields = [
+        { id: 'unidad', label: 'Unidad Solicitante', val: document.getElementById('unidad').value.trim() },
+        { id: 'cat-grid', label: 'Tipo de Jornada', val: catName },
+        { id: 'sec-3', label: 'Detalle de Especialidades/Patologías', isList: true },
+        { id: 'fecha', label: 'Fecha de Actividad', val: document.getElementById('fecha').value },
+        { id: 'hora', label: 'Hora de Inicio', val: document.getElementById('hora').value.trim() },
+        { id: 'hora-box', label: 'Formato de Hora (AM/PM)', val: selectedAMPM },
+        { id: 'direccion', label: 'Dirección Exacta', val: document.getElementById('direccion').value.trim() },
+        { id: 'mail', label: 'Correo Electrónico', val: document.getElementById('mail').value.trim() }
+    ];
 
-    // RESTRICCIÓN: 48 HORAS DE ANTICIPACIÓN
-    const fechaSeleccionada = new Date(fields.f.value + 'T00:00:00');
+    for (let field of fields) {
+        let isInvalid = false;
+        const el = document.getElementById(field.id);
+        
+        if (field.isList) {
+            if (catType === 'otros') {
+                if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true;
+            } else {
+                if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true;
+            }
+        } else {
+            if (!field.val || (field.id === 'unidad' && field.val === "U.M.I.") || (field.id === 'mail' && !field.val.includes('@'))) {
+                isInvalid = true;
+            }
+        }
+
+        if (isInvalid) {
+            el.classList.add('field-error');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            openModal("❌ Campo Faltante", `Falta completar el campo: ${field.label}`);
+            return;
+        }
+    }
+
+    const fechaSeleccionada = new Date(document.getElementById('fecha').value + 'T00:00:00');
     const ahora = new Date();
-    const diferenciaMs = fechaSeleccionada - ahora;
-    const diferenciaHoras = diferenciaMs / (1000 * 60 * 60);
-
-    if (diferenciaHoras < 48) {
-        openModal("⏳ Restricción de Tiempo", "Lo sentimos, las solicitudes deben realizarse con al menos 48 horas de anticipación. Por favor verifique la fecha de la actividad.");
-        fields.f.classList.add('error-highlight');
+    if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 48) {
+        openModal("⏳ Restricción de Tiempo", "Lo sentimos, las solicitudes deben realizarse con al menos 48 horas de anticipación.");
+        document.getElementById('fecha').classList.add('field-error');
         return;
     }
 
     const params = new URLSearchParams();
-    params.append("Unidad", fields.u.value); params.append("Jornada", catName);
+    params.append("Unidad", document.getElementById('unidad').value); params.append("Jornada", catName);
     let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
     if(catType === 'otros') ops = document.getElementById('desc-otro').value;
     params.append("Opciones", ops); params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
-    params.append("Fecha", fields.f.value); params.append("Hora", fields.h.value + " " + selectedAMPM);
-    params.append("Direccion", fields.d.value); params.append("Telefono", document.getElementById('tlf').value);
-    params.append("Correo", fields.m.value); params.append("Observaciones", document.getElementById('observaciones').value);
+    params.append("Fecha", document.getElementById('fecha').value);
+    params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
+    params.append("Direccion", document.getElementById('direccion').value); params.append("Telefono", document.getElementById('tlf').value);
+    params.append("Correo", document.getElementById('mail').value); params.append("Observaciones", document.getElementById('observaciones').value);
     
     let tieneFotos = false;
     for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true; } }
 
-    const loadMain = document.getElementById('loadMainTxt'); const loadSub = document.getElementById('loadSubTxt');
-    if(tieneFotos) { loadMain.innerText = "Subiendo Imágenes..."; loadSub.innerText = "Esto puede tardar dependiendo de su conexión."; }
-    else { loadMain.innerText = "Enviando Solicitud..."; loadSub.innerText = "Registrando datos en el sistema central."; }
-
+    document.getElementById('loadMainTxt').innerText = tieneFotos ? "Subiendo Imágenes..." : "Enviando Solicitud...";
     document.getElementById('loadingOverlay').style.display = 'flex';
+    
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: params });
         const result = await response.json();
-        
         if (result.success) {
-            openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente. Redirigiendo a la cola...", "🚀");
-            document.getElementById('sigrafForm').reset(); catName = ""; catType = "";
-            document.getElementById('sec-3').classList.add('hidden'); document.getElementById('sec-4').classList.add('hidden');
-            document.querySelectorAll('.preview').forEach(img => img.style.display = 'none');
-            document.querySelectorAll('.remove-btn').forEach(btn => btn.style.display = 'none');
-            document.querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
-            document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); selectedAMPM = "";
-            
-            setTimeout(() => {
-                closeModal();
-                showPage('list-page', document.getElementById('tab-list'));
-            }, 2000);
-
+            openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
+            document.getElementById('sigrafForm').reset();
+            setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
         } else { throw new Error(result.error); }
     } catch (e) { 
-        openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío. Verificando cola...", "📋"); 
+        openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
         setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
     }
     finally { document.getElementById('loadingOverlay').style.display = 'none'; }
