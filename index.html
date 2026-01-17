@@ -11,7 +11,6 @@
 --amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
 --verde: #2d6a4f; --gris: #edf2f4; --morado: #6a0dad;
 }
-/* CAMBIO: Se aumentó el peso de la fuente de 400 a 500 para mayor legibilidad */
 * { font-family: 'Georama', sans-serif; box-sizing: border-box; font-weight: 500; }
 body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
 
@@ -30,6 +29,7 @@ header {
 .header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white; line-height: 1; }
 .acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px; }
 .nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
+/* CAMBIO: Se eliminó el estilo italic de los botones de pestañas */
 .tab-btn { padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
 .admin-access { flex: 1; display: flex; justify-content: flex-end; }
@@ -92,7 +92,6 @@ header {
 .table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
 table { width: 100%; border-collapse: collapse; min-width: 900px; }
 th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa); border-bottom: 2px solid var(--gris); }
-/* CAMBIO: Se aumentó el color de td para que sea negro más sólido y legible */
 td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem; line-height: 1.2; color: #1a1a1a; font-weight: 500; }
 .status-pill { padding: 3px 10px; border-radius: 15px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
 .txt-bold { font-weight: 800; color: var(--azul-deep); }
@@ -157,8 +156,8 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
       <span class="acronimo">Sistema Integral de Gestión para Requerimientos de Artes Finalizadas</span>
   </div>
   <div class="nav-tabs">
-    <button id="tab-form" class="tab-btn active" onclick="showPage('form-page', this)">📝 <i>FORMULARIO</i></button>
-    <button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 <i>SOLICITUDES</i></button>
+    <button id="tab-form" class="tab-btn active" onclick="showPage('form-page', this)">📝 FORMULARIO</button>
+    <button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 SOLICITUDES</button>
   </div>
   <div class="admin-access">
       <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
@@ -351,13 +350,29 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     e.preventDefault(); document.querySelectorAll('.error-highlight').forEach(el => el.classList.remove('error-highlight'));
     const fields = { u: document.getElementById('unidad'), f: document.getElementById('fecha'), h: document.getElementById('hora'), m: document.getElementById('mail'), d: document.getElementById('direccion') };
     let error = false;
+
+    // VALIDACIÓN: HORA OBLIGATORIA
+    if (fields.h.value.trim() === "") { fields.h.classList.add('error-highlight'); error = true; }
     if (fields.u.value.trim() === "" || fields.u.value.trim() === "U.M.I.") { fields.u.classList.add('error-highlight'); error = true; }
     if (!catName) { document.getElementById('cat-grid').classList.add('error-highlight'); error = true; }
     if (!fields.f.value) { fields.f.classList.add('error-highlight'); error = true; }
     if (!selectedAMPM) { document.getElementById('hora-box').classList.add('error-highlight'); error = true; }
     if (!fields.m.value.includes('@')) { fields.m.classList.add('error-highlight'); error = true; }
     if (fields.d.value.trim().length < 5) { fields.d.classList.add('error-highlight'); error = true; }
-    if (error) { openModal("❌ Campos Incompletos", "Por favor complete todos los campos obligatorios."); return; }
+    
+    if (error) { openModal("❌ Campos Incompletos", "Por favor complete todos los campos obligatorios, incluyendo la hora de Inicio."); return; }
+
+    // RESTRICCIÓN: 48 HORAS DE ANTICIPACIÓN
+    const fechaSeleccionada = new Date(fields.f.value + 'T00:00:00');
+    const ahora = new Date();
+    const diferenciaMs = fechaSeleccionada - ahora;
+    const diferenciaHoras = diferenciaMs / (1000 * 60 * 60);
+
+    if (diferenciaHoras < 48) {
+        openModal("⏳ Restricción de Tiempo", "Lo sentimos, las solicitudes deben realizarse con al menos 48 horas de anticipación. Por favor verifique la fecha de la actividad.");
+        fields.f.classList.add('error-highlight');
+        return;
+    }
 
     const params = new URLSearchParams();
     params.append("Unidad", fields.u.value); params.append("Jornada", catName);
