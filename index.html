@@ -14,26 +14,15 @@
 * { font-family: 'Georama', sans-serif; box-sizing: border-box; font-weight: 500; }
 body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
 
-header { 
-    background: var(--azul-deep);
-    padding: 8px 25px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    position: sticky; 
-    top: 0; 
-    z-index: 100;
-    min-height: 60px;
-}
+header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; min-height: 60px; }
 .brand-container { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
 .header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white; line-height: 1; }
 .acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px; }
 .nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
 
-/* AJUSTE DE ALTURA EN BOTONES DE NAVEGACIÓN */
 .tab-btn { padding: 6px 16px; border-radius: 20px; border: none; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
-.admin-access { flex: 1; display: flex; justify-content: flex-end; }
+.admin-access { flex: 1; display: flex; justify-content: flex-end; gap: 10px; }
 .btn-login { background: var(--amarillo); border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s; }
 .btn-login:active { transform: translateY(2px); box-shadow: 0 1px 0 #c79100; }
 .btn-logout { background: var(--rojo); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
@@ -54,23 +43,22 @@ header {
 .container { max-width: 1200px; margin: 15px auto; padding: 25px; background: white; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
 .aviso-48h { background: #fff3e0; border: 2.5px solid var(--naranja); color: var(--naranja); padding: 15px; border-radius: 15px; text-align: center; font-weight: 800; margin-bottom: 25px; font-size: 1.1rem; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-.section-title { display: block; font-weight: 800; font-size: 0.85rem; color: var(--turresa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
+.section-title { display: block; font-weight: 800; font-size: 0.85rem; color: var(--turquesa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
 .category-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
 
-/* AJUSTE DE ALTURA EN BOTONES DE CATEGORÍA Y OPCIONES */
 .card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 6px 4px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 45px; line-height: 1.1; color: var(--azul-deep); }
 .card-btn.selected { background: var(--amarillo); border-color: var(--naranja); transform: scale(0.98); }
 
 .field-error { border: 2px solid var(--rojo) !important; animation: border-blink 0.8s infinite alternate !important; background: #fff5f5 !important; }
 @keyframes border-blink { from { border-color: var(--rojo); box-shadow: 0 0 5px rgba(230, 57, 70, 0.2); } to { border-color: transparent; box-shadow: none; } }
 
-/* AJUSTE DE ALTURA EN BOTONES DE TIEMPO AM/PM */
 .btn-time { padding: 8px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
 .btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
 .modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
 .modern-input:focus { border-color: var(--turquesa); background: white; }
 
-.modern-input:focus::placeholder { color: transparent; }
+.pass-container { position: relative; width: 100%; }
+.eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; opacity: 0.6; }
 
 .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
 .upload-box { height: 90px; border: 2.5px dashed var(--celeste); border-radius: 15px; position: relative; overflow: hidden; background: #f0f9ff; }
@@ -78,14 +66,15 @@ header {
 .preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
 .remove-btn { position: absolute; top: 5px; right: 5px; background: var(--rojo); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-weight: 800; cursor: pointer; display: none; z-index: 10; }
 
-/* AJUSTE DE ALTURA EN BOTÓN DE ENVÍO PRINCIPAL */
 .btn-send { background: var(--azul-deep); color: white; width: 100%; padding: 14px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 30px; box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
 .btn-send:hover { transform: translateY(-2px); background: #054a6d; }
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
 .modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
 
-/* AJUSTE EN BOTÓN DE MODALES */
+/* MODAL MANTENIMIENTO */
+#maintOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--azul-deep); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+
 .modal-btn { background: var(--turquesa); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
 .modal-btn:hover { background: var(--azul-deep); }
 .modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
@@ -118,14 +107,17 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; text-align: center; padding: 20px; }
 .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--amarillo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-.loading-text { font-weight: 800; letter-spacing: 1px; font-size: 1.1rem; text-transform: uppercase; }
-.loading-subtext { font-size: 0.85rem; margin-top: 10px; color: var(--celeste); font-weight: 400; max-width: 300px; line-height: 1.4; animation: fadeInOut 2s infinite; }
-
 @keyframes spin { 100% { transform: rotate(360deg); } }
-@keyframes fadeInOut { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 </style>
 </head>
 <body>
+
+<div id="maintOverlay">
+    <span style="font-size: 80px;">🛠️</span>
+    <h1 style="font-weight: 800; font-size: 2.5rem; margin: 20px 0;">SISTEMA EN MANTENIMIENTO</h1>
+    <p style="font-size: 1.2rem; max-width: 500px; opacity: 0.9;">Estamos trabajando para mejorar tu experiencia. Disculpen las molestias ocasionadas.</p>
+    <button class="btn-login" style="margin-top: 30px; padding: 12px 25px; font-size: 1rem;" onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
+</div>
 
 <div id="loadingOverlay">
   <div class="spinner"></div>
@@ -143,7 +135,10 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
         <label class="txt-small">Usuario del Sistema:</label>
         <input type="text" id="adminUser" class="modern-input" style="margin-bottom:15px;" placeholder="Ingrese usuario">
         <label class="txt-small">Clave de Seguridad:</label>
-        <input type="password" id="adminPass" class="modern-input" placeholder="••••••••">
+        <div class="pass-container">
+            <input type="password" id="adminPass" class="modern-input" placeholder="••••••••">
+            <span class="eye-icon" onclick="togglePass()">👁️</span>
+        </div>
     </div>
     
     <button id="mainModalBtn" class="modal-btn">ENTENDIDO</button>
@@ -161,6 +156,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
     <button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 SOLICITUDES</button>
   </div>
   <div class="admin-access">
+      <button id="maintBtn" class="btn-login hidden" style="background: var(--rojo); box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
       <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
   </div>
 </header>
@@ -180,7 +176,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
       <div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
       <div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
     </div>
-  
+
     <div id="sec-3" class="hidden">
       <label class="section-title" id="label-3">🩺 3. DETALLE *</label>
       <div id="cont-3" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;"></div>
@@ -239,7 +235,9 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLsIXUlpux-6y-lv1YB5biW1xAidlMcyusS9SSPYyjf6qloEXRSetPK3JPX3w-1NBzyw/exec";
-let isAdmin = false; let selectedAMPM = ""; let catType = ""; let catName = ""; let localData = [];
+let isAdmin = false; let selectedAMPM = ""; let catType = "";
+let catName = ""; let localData = []; let isMaintActive = false;
+
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
@@ -248,37 +246,121 @@ quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibrom
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 
+document.addEventListener('DOMContentLoaded', () => { updateTable(); });
 document.addEventListener('input', (e) => { if(e.target.classList.contains('field-error')) e.target.classList.remove('field-error'); });
 
-function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon; document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex'; }
-function showLogin() { document.getElementById('modalIcon').innerText = "🔐"; document.getElementById('modalTitle').innerText = "Acceso Restringido"; document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración."; document.getElementById('loginArea').classList.remove('hidden'); document.getElementById('closeModalBtn').classList.remove('hidden'); const btn = document.getElementById('mainModalBtn'); btn.innerText = "VALIDAR CREDENCIALES"; btn.onclick = validateLogin; document.getElementById('modalAlert').style.display = 'flex'; }
-function validateLogin() { const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value; if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") { isAdmin = true; document.getElementById('authBtn').className = "btn-logout"; document.getElementById('authBtn').innerText = "Cerrar Gestión"; document.getElementById('authBtn').onclick = logout; document.getElementById('th-admin').classList.remove('hidden'); closeModal(); updateTable(); } else { alert("Usuario o Contraseña incorrectos."); } }
-function logout() { isAdmin = false; document.getElementById('authBtn').className = "btn-login"; document.getElementById('authBtn').innerText = "🔐 Administrador"; document.getElementById('authBtn').onclick = showLogin; document.getElementById('th-admin').classList.add('hidden'); renderLocalTable(); }
+function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon;
+document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex';
+}
+
+function togglePass() {
+    const input = document.getElementById('adminPass');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function showLogin() { 
+    document.getElementById('modalIcon').innerText = "🔐"; 
+    document.getElementById('modalTitle').innerText = "Acceso Restringido"; 
+    document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración."; 
+    document.getElementById('loginArea').classList.remove('hidden'); 
+    document.getElementById('closeModalBtn').classList.remove('hidden');
+    const btn = document.getElementById('mainModalBtn'); 
+    btn.innerText = "VALIDAR CREDENCIALES"; 
+    btn.onclick = validateLogin; 
+    document.getElementById('modalAlert').style.display = 'flex';
+}
+
+function validateLogin() { 
+    const u = document.getElementById('adminUser').value; 
+    const p = document.getElementById('adminPass').value;
+    if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") { 
+        isAdmin = true; 
+        document.getElementById('authBtn').className = "btn-logout"; 
+        document.getElementById('authBtn').innerText = "Cerrar Gestión";
+        document.getElementById('authBtn').onclick = logout; 
+        document.getElementById('th-admin').classList.remove('hidden'); 
+        document.getElementById('maintBtn').classList.remove('hidden');
+        document.getElementById('maintOverlay').style.display = 'none';
+        closeModal(); 
+        updateTable(); 
+    } else { 
+        alert("Usuario o Contraseña incorrectos."); 
+    } 
+}
+
+function logout() { 
+    isAdmin = false;
+    document.getElementById('authBtn').className = "btn-login"; 
+    document.getElementById('authBtn').innerText = "🔐 Administrador"; 
+    document.getElementById('authBtn').onclick = showLogin; 
+    document.getElementById('th-admin').classList.add('hidden'); 
+    document.getElementById('maintBtn').classList.add('hidden');
+    if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
+    renderLocalTable(); 
+}
+
+async function toggleMaintMode() {
+    if(!isAdmin) return;
+    const nuevoEstado = !isMaintActive;
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    try {
+        await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
+            body: `action=setMaintenance&status=${nuevoEstado}` 
+        });
+        isMaintActive = nuevoEstado;
+        alert("Modo mantenimiento " + (nuevoEstado ? "ACTIVADO" : "DESACTIVADO"));
+        location.reload();
+    } catch (e) { alert("Error al cambiar estado."); }
+    finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+}
+
 function closeModal() { document.getElementById('modalAlert').style.display = 'none'; }
-function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
-function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
-function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error'); }
-function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
-function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); }); }
+function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader();
+reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file);
+} }
+function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none';
+document.getElementById(btnId).style.display = 'none'; }
+function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error');
+}
+function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3');
+const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = "";
+if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios);
+} else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas);
+} else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica);
+} else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo);
+} else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
+c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
+} }
+function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); });
+}
 
 function showPage(id, btn) { 
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
     document.getElementById(id).classList.add('active'); 
     window.scrollTo({top: 0, behavior: 'smooth'});
-    if(btn) btn.classList.add('active'); 
+if(btn) btn.classList.add('active'); 
     else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); 
     if(id === 'list-page') updateTable();
 }
 
 async function updateTable() {
     const body = document.getElementById('solicitudes-body');
-    if (localData.length === 0) {
-        body.innerHTML = '<tr><td colspan="7" style="text-align:center">Sincronizando base de datos SIGRAF...</td></tr>';
-    }
     try {
         const res = await fetch(`${SCRIPT_URL}?action=read`);
         const response = await res.json();
+        
+        // Manejo Mantenimiento
+        isMaintActive = (response.maintenance === "true");
+        if(isMaintActive && !isAdmin) {
+            document.getElementById('maintOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('maintOverlay').style.display = 'none';
+        }
+
         if (response.success && Array.isArray(response.data)) { 
             localData = response.data;
             renderLocalTable(); 
@@ -345,7 +427,8 @@ async function modStatus(id, st) {
     try {
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
         const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
-    } catch (e) { pill.className = oldClass; pill.innerText = oldText; alert("Error de conexión."); }
+    } catch (e) { pill.className = oldClass;
+    pill.innerText = oldText; alert("Error de conexión."); }
 }
 
 async function deleteReq(id) {
@@ -369,7 +452,6 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
         { id: 'direccion', label: 'Dirección Exacta', val: document.getElementById('direccion').value.trim() },
         { id: 'mail', label: 'Correo Electrónico', val: document.getElementById('mail').value.trim() }
     ];
-
     for (let field of fields) {
         let isInvalid = false;
         const el = document.getElementById(field.id);
@@ -413,11 +495,11 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     params.append("Correo", document.getElementById('mail').value); params.append("Observaciones", document.getElementById('observaciones').value);
     
     let tieneFotos = false;
-    for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true; } }
+    for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true;
+    } }
 
     document.getElementById('loadMainTxt').innerText = tieneFotos ? "Subiendo Imágenes..." : "Enviando Solicitud...";
     document.getElementById('loadingOverlay').style.display = 'flex';
-    
     try {
         const response = await fetch(SCRIPT_URL, { method: 'POST', body: params });
         const result = await response.json();
@@ -425,7 +507,8 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
             openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
             document.getElementById('sigrafForm').reset();
             setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
-        } else { throw new Error(result.error); }
+        } else { throw new Error(result.error);
+        }
     } catch (e) { 
         openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
         setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
