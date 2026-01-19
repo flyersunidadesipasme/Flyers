@@ -58,7 +58,7 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .modern-input:focus { border-color: var(--turquesa); background: white; }
 
 .pass-container { position: relative; width: 100%; }
-.eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; opacity: 0.6; }
+.eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; opacity: 0.6; z-index: 10; }
 
 .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
 .upload-box { height: 90px; border: 2.5px dashed var(--celeste); border-radius: 15px; position: relative; overflow: hidden; background: #f0f9ff; }
@@ -69,7 +69,7 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .btn-send { background: var(--azul-deep); color: white; width: 100%; padding: 14px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 30px; box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
 .btn-send:hover { transform: translateY(-2px); background: #054a6d; }
 
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 20000; padding: 20px; }
 .modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
 
 /* MODAL MANTENIMIENTO */
@@ -105,7 +105,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 .page { display: none; }
 .page.active { display: block; }
 
-#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; text-align: center; padding: 20px; }
+#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; color: white; text-align: center; padding: 20px; }
 .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--amarillo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
@@ -121,7 +121,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 
 <div id="loadingOverlay">
   <div class="spinner"></div>
-  <div class="loading-text" id="loadMainTxt">Procesando Solicitud...</div>
+  <div class="loading-text" id="loadMainTxt">Procesando...</div>
   <div class="loading-subtext" id="loadSubTxt"></div>
 </div>
 
@@ -247,10 +247,17 @@ oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "
 };
 
 document.addEventListener('DOMContentLoaded', () => { updateTable(); });
-document.addEventListener('input', (e) => { if(e.target.classList.contains('field-error')) e.target.classList.remove('field-error'); });
 
-function openModal(t, m, icon = "⚠️") { document.getElementById('loginArea').classList.add('hidden'); document.getElementById('closeModalBtn').classList.add('hidden'); document.getElementById('modalIcon').innerText = icon;
-document.getElementById('modalTitle').innerText = t; document.getElementById('modalMsg').innerText = m; const btn = document.getElementById('mainModalBtn'); btn.innerText = "ENTENDIDO"; btn.onclick = closeModal; document.getElementById('modalAlert').style.display = 'flex';
+function openModal(t, m, icon = "⚠️") { 
+    document.getElementById('loginArea').classList.add('hidden'); 
+    document.getElementById('closeModalBtn').classList.add('hidden'); 
+    document.getElementById('modalIcon').innerText = icon;
+    document.getElementById('modalTitle').innerText = t; 
+    document.getElementById('modalMsg').innerText = m; 
+    const btn = document.getElementById('mainModalBtn'); 
+    btn.innerText = "ENTENDIDO"; 
+    btn.onclick = closeModal; 
+    document.getElementById('modalAlert').style.display = 'flex';
 }
 
 function togglePass() {
@@ -280,7 +287,7 @@ function validateLogin() {
         document.getElementById('authBtn').onclick = logout; 
         document.getElementById('th-admin').classList.remove('hidden'); 
         document.getElementById('maintBtn').classList.remove('hidden');
-        document.getElementById('maintOverlay').style.display = 'none';
+        document.getElementById('maintOverlay').style.display = 'none'; // Quitar overlay si estaba
         closeModal(); 
         updateTable(); 
     } else { 
@@ -348,13 +355,12 @@ if(btn) btn.classList.add('active');
 }
 
 async function updateTable() {
-    const body = document.getElementById('solicitudes-body');
     try {
         const res = await fetch(`${SCRIPT_URL}?action=read`);
         const response = await res.json();
         
         // Manejo Mantenimiento
-        isMaintActive = (response.maintenance === "true");
+        isMaintActive = (response.maintenance === "true" || response.maintenance === true);
         if(isMaintActive && !isAdmin) {
             document.getElementById('maintOverlay').style.display = 'flex';
         } else {
@@ -366,7 +372,7 @@ async function updateTable() {
             renderLocalTable(); 
         }
     } catch (e) { 
-        if(localData.length === 0) body.innerHTML = '<tr><td colspan="7" align="center">Error de conexión al servidor</td></tr>';
+        console.error("Error cargando tabla:", e);
     }
 }
 
