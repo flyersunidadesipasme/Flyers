@@ -239,10 +239,10 @@ let isAdmin = false; let selectedAMPM = ""; let catType = "";
 let catName = ""; let localData = []; let isMaintActive = false;
 
 const DATA = {
-especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
-servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación de odontología", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
+especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
+servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
 vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"],
-quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
+quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 
@@ -287,7 +287,7 @@ function validateLogin() {
         document.getElementById('authBtn').onclick = logout; 
         document.getElementById('th-admin').classList.remove('hidden'); 
         document.getElementById('maintBtn').classList.remove('hidden');
-        document.getElementById('maintOverlay').style.display = 'none'; // Quitar overlay si estaba
+        document.getElementById('maintOverlay').style.display = 'none';
         closeModal(); 
         updateTable(); 
     } else { 
@@ -359,7 +359,6 @@ async function updateTable() {
         const res = await fetch(`${SCRIPT_URL}?action=read`);
         const response = await res.json();
         
-        // Manejo Mantenimiento
         isMaintActive = (response.maintenance === "true" || response.maintenance === true);
         if(isMaintActive && !isAdmin) {
             document.getElementById('maintOverlay').style.display = 'flex';
@@ -371,9 +370,7 @@ async function updateTable() {
             localData = response.data;
             renderLocalTable(); 
         }
-    } catch (e) { 
-        console.error("Error cargando tabla:", e);
-    }
+    } catch (e) { console.error("Error cargando tabla:", e); }
 }
 
 function renderLocalTable() {
@@ -513,8 +510,7 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
             openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
             document.getElementById('sigrafForm').reset();
             setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
-        } else { throw new Error(result.error);
-        }
+        } else { throw new Error(result.error); }
     } catch (e) { 
         openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
         setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
