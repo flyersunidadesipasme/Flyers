@@ -297,7 +297,7 @@ function validateLogin() {
     document.getElementById('authBtn').onclick = logout;
     document.getElementById('th-admin').classList.remove('hidden');
     document.getElementById('maintBtn').classList.remove('hidden');
-    document.getElementById('col-fecha-registro').style.display = 'none'; // ✅ OCULTA ENCABEZADO
+    document.getElementById('col-fecha-registro').style.display = 'none';
     document.getElementById('maintOverlay').style.display = 'none';
     clearCredentials();
     closeModal();
@@ -315,7 +315,7 @@ function logout() {
   document.getElementById('authBtn').onclick = showLogin;
   document.getElementById('th-admin').classList.add('hidden');
   document.getElementById('maintBtn').classList.add('hidden');
-  document.getElementById('col-fecha-registro').style.display = ''; // ✅ RESTAURA ENCABEZADO
+  document.getElementById('col-fecha-registro').style.display = '';
   if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
   renderLocalTable();
   clearCredentials();
@@ -394,7 +394,7 @@ async function sendTelegramArte(id) {
     const data = await res.json();
     if(data.success) {
       openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
-      setTimeout(() => closeModal(), 2000); // ✅ CIERRA AUTOMÁTICAMENTE
+      setTimeout(() => closeModal(), 2000);
     } else {
       openModal("❌ Error", "Error: " + data.error, "💥");
     }
@@ -470,7 +470,6 @@ async function updateTable() {
   } catch (e) { console.error("Error cargando tabla:", e); }
 }
 
-// ✅ FUNCIÓN CORREGIDA: OCULTA LA COLUMNA ENTERA EN MODO ADMIN
 function renderLocalTable() {
   const body = document.getElementById('solicitudes-body');
   body.innerHTML = "";
@@ -518,7 +517,6 @@ ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">�
   document.getElementById('count-fin').innerText = counts.fin;
   document.getElementById('count-baja').innerText = counts.baja;
 }
-
 async function modStatus(id, st) {
   const pill = document.getElementById('pill-' + id);
   const oldClass = pill.className;
@@ -531,7 +529,7 @@ async function modStatus(id, st) {
   } catch (e) { pill.className = oldClass; pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
 }
 
-// === ENVÍO CORREGIDO CON ARCHIVOS Y REINICIO ===
+// === ENVÍO CORREGIDO: SOLO BASE64 PARA FOTOS (NO SE GUARDAN EN DRIVE) ===
 document.getElementById('sigrafForm').onsubmit = async (e) => {
   e.preventDefault();
   document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
@@ -569,36 +567,36 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     return;
   }
 
-  const formData = new FormData();
+  const params = new URLSearchParams();
   
-  // === FORMATO DEL NOMBRE DE LA UNIDAD ===
+  // Formato de unidad
   let unidadInput = document.getElementById('unidad').value.trim();
   unidadInput = unidadInput.replace(/^(U\.M\.I\.?\s*)/i, '').trim();
   unidadInput = unidadInput.replace(/\b\w/g, l => l.toUpperCase());
   const unidadFormateada = "U.M.I. " + unidadInput;
-  formData.append("Unidad", unidadFormateada);
+  params.append("Unidad", unidadFormateada);
   
-  formData.append("Jornada", catName);
+  params.append("Jornada", catName);
   let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
   if(catType === 'otros') ops = document.getElementById('desc-otro').value;
-  formData.append("Opciones", ops);
-  formData.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+  params.append("Opciones", ops);
+  params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
   const institucion = document.getElementById('institucion').value.trim();
   const direccionExacta = document.getElementById('direccion-exacta').value.trim();
   const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
-  formData.append("Direccion", direccionCompleta);
-  formData.append("Fecha", document.getElementById('fecha').value);
-  formData.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
-  formData.append("Telefono", document.getElementById('tlf').value);
-  formData.append("Correo", document.getElementById('mail').value);
-  formData.append("Observaciones", document.getElementById('observaciones').value);
+  params.append("Direccion", direccionCompleta);
+  params.append("Fecha", document.getElementById('fecha').value);
+  params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
+  params.append("Telefono", document.getElementById('tlf').value);
+  params.append("Correo", document.getElementById('mail').value);
+  params.append("Observaciones", document.getElementById('observaciones').value);
 
-  // === AÑADIR IMÁGENES COMO ARCHIVOS ===
+  // === ENVIAR FOTOS COMO BASE64 PURO (solo para correo) ===
   for(let i=1; i<=3; i++){
     const img = document.getElementById('p'+i);
-    if(img.src && img.src.startsWith("image")) {
-      const blob = await fetch(img.src).then(r => r.blob());
-      formData.append("foto"+i, blob, "Soporte_" + i + ".jpg");
+    if(img.src && img.src.startsWith("data:image")) {
+      const base64Data = img.src.split(',')[1];
+      params.append("foto"+i, base64Data);
     }
   }
 
@@ -608,20 +606,19 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
   try {
     const response = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
     });
     const result = await response.json();
     if (result.success) {
-      // ✅ REINICIAR FORMULARIO COMPLETO
+      // ✅ REINICIAR FORMULARIO
       document.getElementById('sigrafForm').reset();
-      // ✅ LIMPIAR PREVIEWS DE FOTOS
       for(let i=1; i<=3; i++) {
         const img = document.getElementById('p'+i);
         img.src = '';
         img.style.display = 'none';
         document.getElementById('b'+i).style.display = 'none';
       }
-      // ✅ LIMPIAR SELECCIONES DE CATEGORÍAS
       document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
       document.getElementById('sec-3').classList.add('hidden');
       document.getElementById('sec-4').classList.add('hidden');
