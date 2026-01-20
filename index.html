@@ -87,7 +87,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 .btn-trash:hover { filter: grayscale(0); transform: rotate(10deg); }
 /* Nuevos Estilos Botones Admin */
 .btn-arte { background: #4a90e2; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
-.btn-ver { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
+.btn-ver { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; text-decoration: none; }
 .btn-tg { background: #0088cc; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
 .hidden { display: none !important; }
 .page { display: none; }
@@ -325,7 +325,7 @@ function logout() {
 // === FUNCIONES ADMIN ===
 function openArteModal(id) {
   document.getElementById('currentReqId').value = id;
-  document.getElementById('arteFile').value = ''; // ✅ Limpia el input al abrir el modal
+  document.getElementById('arteFile').value = '';
   document.getElementById('modalIcon').innerText = "🎨";
   document.getElementById('modalTitle').innerText = "Adjuntar Arte Final";
   document.getElementById('modalMsg').innerText = "Seleccione el archivo para la solicitud " + id;
@@ -368,7 +368,7 @@ async function uploadArte() {
         closeModal();
         openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
         updateTable();
-        document.getElementById('arteFile').value = ''; // ✅ Limpia el input después de subir
+        document.getElementById('arteFile').value = '';
       } else {
         openModal("❌ Error", "Error: " + data.error, "💥");
       }
@@ -379,19 +379,6 @@ async function uploadArte() {
     }
   };
   reader.readAsDataURL(file);
-}
-
-function viewArte(id, url) {
-  openModal("🖼️ Vista Previa – " + id, "", "🖼️");
-  const modalMsg = document.getElementById('modalMsg');
-  modalMsg.innerHTML = `
-    <div style="text-align: center; padding: 20px;">
-      <p style="font-size: 1.1rem; margin-bottom: 20px;">El archivo se abrirá en una nueva pestaña.</p>
-      <a href="${url}" target="_blank" style="background: var(--azul-deep); color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">👉 ABRIR EN NUEVA PESTAÑA</a>
-    </div>
-  `;
-  document.getElementById('mainModalBtn').classList.add('hidden');
-  document.getElementById('closeModalBtn').classList.remove('hidden');
 }
 
 async function sendTelegramArte(id) {
@@ -407,6 +394,7 @@ async function sendTelegramArte(id) {
     const data = await res.json();
     if(data.success) {
       openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
+      setTimeout(() => closeModal(), 2000); // ✅ CIERRA EL MODAL AUTOMÁTICAMENTE
     } else {
       openModal("❌ Error", "Error: " + data.error, "💥");
     }
@@ -515,7 +503,7 @@ ${isAdmin ? `<td align="right">
 <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
 <button class="btn-act bg-baja" onclick="modStatus('${s.id}','BAJA PRIORIDAD')">B</button>
 <button class="btn-arte" onclick="openArteModal('${s.id}')">🎨 ADJUNTAR</button>
-${s.ArteFinal ? `<button class="btn-ver" onclick="viewArte('${s.id}', '${s.ArteFinal}')">👁️ VER</button>` : ''}
+${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">👁️ VER</a>` : ''}
 ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">✈️ TG</button>` : ''}
 <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
 </div>
@@ -539,6 +527,8 @@ async function modStatus(id, st) {
     const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
   } catch (e) { pill.className = oldClass; pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
 }
+
+// === ENVÍO CORREGIDO CON ARCHIVOS Y REINICIO ===
 document.getElementById('sigrafForm').onsubmit = async (e) => {
   e.preventDefault();
   document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
@@ -575,45 +565,84 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     document.getElementById('fecha').classList.add('field-error');
     return;
   }
-  const params = new URLSearchParams();
+
+  const formData = new FormData();
   
   // === FORMATO DEL NOMBRE DE LA UNIDAD ===
   let unidadInput = document.getElementById('unidad').value.trim();
   unidadInput = unidadInput.replace(/^(U\.M\.I\.?\s*)/i, '').trim();
   unidadInput = unidadInput.replace(/\b\w/g, l => l.toUpperCase());
   const unidadFormateada = "U.M.I. " + unidadInput;
-  params.append("Unidad", unidadFormateada);
+  formData.append("Unidad", unidadFormateada);
   
-  params.append("Jornada", catName);
+  formData.append("Jornada", catName);
   let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
   if(catType === 'otros') ops = document.getElementById('desc-otro').value;
-  params.append("Opciones", ops); params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+  formData.append("Opciones", ops);
+  formData.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
   const institucion = document.getElementById('institucion').value.trim();
   const direccionExacta = document.getElementById('direccion-exacta').value.trim();
   const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
-  params.append("Direccion", direccionCompleta);
-  params.append("Fecha", document.getElementById('fecha').value);
-  params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
-  params.append("Telefono", document.getElementById('tlf').value);
-  params.append("Correo", document.getElementById('mail').value);
-  params.append("Observaciones", document.getElementById('observaciones').value);
-  let tieneFotos = false;
-  for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("image")) { params.append("foto"+i, img.src); tieneFotos = true; } }
-  document.getElementById('loadMainTxt').innerText = tieneFotos ? "Subiendo Imágenes..." : "Enviando Solicitud...";
+  formData.append("Direccion", direccionCompleta);
+  formData.append("Fecha", document.getElementById('fecha').value);
+  formData.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
+  formData.append("Telefono", document.getElementById('tlf').value);
+  formData.append("Correo", document.getElementById('mail').value);
+  formData.append("Observaciones", document.getElementById('observaciones').value);
+
+  // === AÑADIR IMÁGENES COMO ARCHIVOS ===
+  for(let i=1; i<=3; i++){
+    const img = document.getElementById('p'+i);
+    if(img.src && img.src.startsWith("data:image")) {
+      const blob = await fetch(img.src).then(r => r.blob());
+      formData.append("foto"+i, blob, "Soporte_" + i + ".jpg");
+    }
+  }
+
+  document.getElementById('loadMainTxt').innerText = "Enviando Solicitud...";
   document.getElementById('loadingOverlay').style.display = 'flex';
+
   try {
-    const response = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
     const result = await response.json();
     if (result.success) {
-      openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
+      // ✅ REINICIAR FORMULARIO COMPLETO
       document.getElementById('sigrafForm').reset();
-      setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
-    } else { throw new Error(result.error); }
+      // ✅ LIMPIAR PREVIEWS DE FOTOS
+      for(let i=1; i<=3; i++) {
+        const img = document.getElementById('p'+i);
+        img.src = '';
+        img.style.display = 'none';
+        document.getElementById('b'+i).style.display = 'none';
+      }
+      // ✅ LIMPIAR SELECCIONES DE CATEGORÍAS
+      document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
+      document.getElementById('sec-3').classList.add('hidden');
+      document.getElementById('sec-4').classList.add('hidden');
+      selectedAMPM = "";
+      document.getElementById('btn-am').classList.remove('active');
+      document.getElementById('btn-pm').classList.remove('active');
+      
+      openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
+      setTimeout(() => {
+        closeModal();
+        showPage('list-page', document.getElementById('tab-list'));
+      }, 2000);
+    } else {
+      throw new Error(result.error);
+    }
   } catch (e) {
     openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
-    setTimeout(() => { closeModal(); showPage('list-page', document.getElementById('tab-list')); }, 2000);
+    setTimeout(() => {
+      closeModal();
+      showPage('list-page', document.getElementById('tab-list'));
+    }, 2000);
+  } finally {
+    document.getElementById('loadingOverlay').style.display = 'none';
   }
-  finally { document.getElementById('loadingOverlay').style.display = 'none'; }
 };
 </script>
 </body>
