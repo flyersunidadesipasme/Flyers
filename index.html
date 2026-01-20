@@ -91,7 +91,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 .status-procesando { background: var(--amarillo); color: var(--azul-deep); }
 .status-finalizada { background: var(--verde); color: white; }
 .status-bajaprioridad { background: var(--morado); color: white; }
-.admin-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.admin-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
 .btn-act { border: none; border-radius: 5px; padding: 4px 6px; cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
 .btn-act:hover { transform: scale(1.1); }
 .bg-pend { background: var(--celeste); color: var(--azul-deep); }
@@ -100,6 +100,11 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 .bg-baja { background: var(--morado); }
 .btn-trash { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 8px; filter: grayscale(1); transition: 0.3s; }
 .btn-trash:hover { filter: grayscale(0); transform: rotate(10deg); }
+
+/* Nuevos Estilos Botones Admin */
+.btn-arte { background: #4a90e2; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
+.btn-ver { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; text-decoration: none; }
+.btn-tg { background: #0088cc; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
 
 .hidden { display: none !important; }
 .page { display: none; }
@@ -140,6 +145,12 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
             <span class="eye-icon" onclick="togglePass()">👁️</span>
         </div>
     </div>
+
+    <div id="uploadArea" class="hidden" style="margin-top:20px;">
+        <input type="file" id="arteFile" class="modern-input" accept=".jpg,.jpeg,.png,.pdf,.zip" style="font-size: 0.8rem;">
+        <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Máximo 5MB (Formatos: JPG, PNG, PDF, ZIP)</p>
+        <input type="hidden" id="currentReqId">
+    </div>
     
     <button id="mainModalBtn" class="modal-btn">ENTENDIDO</button>
     <button id="closeModalBtn" class="modal-btn modal-btn-alt hidden" onclick="closeModal()">CERRAR</button>
@@ -165,7 +176,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
   <div class="aviso-48h">⚠️ IMPORTANTE: LAS SOLICITUDES DEBEN REALIZARSE CON 48 HORAS DE ANTICIPACIÓN</div>
   <form id="sigrafForm" novalidate>
     <label class="section-title">🏥 1. UNIDAD SOLICITANTE *</label>
-    <input type="text" id="unidad" class="modern-input" value="U.M.I. ">
+    <input type="text" id="unidad" class="modern-input" value="U.M.I.">
     <label class="section-title">📂 2. TIPO DE JORNADA *</label>
     <div class="category-row" id="cat-grid">
       <div class="card-btn" onclick="selectCat(this, 'escuela')">Ipasme va a la Escuela</div>
@@ -208,7 +219,7 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
     
     <div class="photo-grid">
       <div class="upload-box"><label for="f1" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f1" class="hidden" accept="image/*" onchange="handleFile(this, 'p1', 'b1')"><img id="p1" class="preview"><button type="button" id="b1" class="remove-btn" onclick="clearFile('f1', 'p1', 'b1')">×</button></div>
-      <div class="upload-box"><label for="f2" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f2" class="hidden" accept="image/*" onchange="handleFile(this, 'p2', 'b2')"><img id="p2" class="preview"><button type="button" id="b2" class="remove-btn" onclick="clearFile('f2', 'p2', 'b2')">×</button></div>
+      <div class="upload-box"><label for="f2" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f2" class="hidden" accept="image/*" onchange="handleFile(this, 'p2', 'b2')"><img id="p2" class="preview"><button type="button" id="p2" class="remove-btn" onclick="clearFile('f2', 'p2', 'b2')">×</button></div>
       <div class="upload-box"><label for="f3" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f3" class="hidden" accept="image/*" onchange="handleFile(this, 'p3', 'b3')"><img id="p3" class="preview"><button type="button" id="b3" class="remove-btn" onclick="clearFile('f3', 'p3', 'b3')">×</button></div>
     </div>
     <button type="submit" id="submitBtn" class="btn-send">🚀 ENVIAR SOLICITUD A COMUNICACIONES</button>
@@ -237,7 +248,6 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLsIXUlpux-6y-lv1YB5biW1xAidlMcyusS9SSPYyjf6qloEXRSetPK3JPX3w-1NBzyw/exec";
 let isAdmin = false; let selectedAMPM = ""; let catType = "";
 let catName = ""; let localData = []; let isMaintActive = false;
-
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
@@ -245,18 +255,18 @@ vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide
 quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
-
 document.addEventListener('DOMContentLoaded', () => { updateTable(); });
 
 function openModal(t, m, icon = "⚠️") { 
     document.getElementById('loginArea').classList.add('hidden'); 
-    document.getElementById('closeModalBtn').classList.add('hidden'); 
+    document.getElementById('uploadArea').classList.add('hidden');
+    document.getElementById('closeModalBtn').classList.add('hidden');
     document.getElementById('modalIcon').innerText = icon;
     document.getElementById('modalTitle').innerText = t; 
     document.getElementById('modalMsg').innerText = m; 
     const btn = document.getElementById('mainModalBtn'); 
     btn.innerText = "ENTENDIDO"; 
-    btn.onclick = closeModal; 
+    btn.onclick = closeModal;
     document.getElementById('modalAlert').style.display = 'flex';
 }
 
@@ -267,13 +277,14 @@ function togglePass() {
 
 function showLogin() { 
     document.getElementById('modalIcon').innerText = "🔐"; 
-    document.getElementById('modalTitle').innerText = "Acceso Restringido"; 
+    document.getElementById('modalTitle').innerText = "Acceso Restringido";
     document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración."; 
     document.getElementById('loginArea').classList.remove('hidden'); 
+    document.getElementById('uploadArea').classList.add('hidden');
     document.getElementById('closeModalBtn').classList.remove('hidden');
     const btn = document.getElementById('mainModalBtn'); 
     btn.innerText = "VALIDAR CREDENCIALES"; 
-    btn.onclick = validateLogin; 
+    btn.onclick = validateLogin;
     document.getElementById('modalAlert').style.display = 'flex';
 }
 
@@ -281,7 +292,7 @@ function validateLogin() {
     const u = document.getElementById('adminUser').value; 
     const p = document.getElementById('adminPass').value;
     if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") { 
-        isAdmin = true; 
+        isAdmin = true;
         document.getElementById('authBtn').className = "btn-logout"; 
         document.getElementById('authBtn').innerText = "Cerrar Gestión";
         document.getElementById('authBtn').onclick = logout; 
@@ -289,21 +300,106 @@ function validateLogin() {
         document.getElementById('maintBtn').classList.remove('hidden');
         document.getElementById('maintOverlay').style.display = 'none';
         closeModal(); 
-        updateTable(); 
+        updateTable();
     } else { 
-        alert("Usuario o Contraseña incorrectos."); 
+        alert("Usuario o Contraseña incorrectos.");
     } 
 }
 
 function logout() { 
     isAdmin = false;
     document.getElementById('authBtn').className = "btn-login"; 
-    document.getElementById('authBtn').innerText = "🔐 Administrador"; 
+    document.getElementById('authBtn').innerText = "🔐 Administrador";
     document.getElementById('authBtn').onclick = showLogin; 
     document.getElementById('th-admin').classList.add('hidden'); 
     document.getElementById('maintBtn').classList.add('hidden');
     if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
     renderLocalTable(); 
+}
+
+// FUNCIONES ADMIN NUEVAS
+function openArteModal(id) {
+    document.getElementById('currentReqId').value = id;
+    document.getElementById('modalIcon').innerText = "🎨";
+    document.getElementById('modalTitle').innerText = "Adjuntar Arte Final";
+    document.getElementById('modalMsg').innerText = "Seleccione el archivo para la solicitud " + id;
+    document.getElementById('loginArea').classList.add('hidden');
+    document.getElementById('uploadArea').classList.remove('hidden');
+    document.getElementById('closeModalBtn').classList.remove('hidden');
+    const btn = document.getElementById('mainModalBtn');
+    btn.innerText = "SUBIR A DRIVE";
+    btn.onclick = uploadArte;
+    document.getElementById('modalAlert').style.display = 'flex';
+}
+
+async function uploadArte() {
+    const fileInput = document.getElementById('arteFile');
+    const id = document.getElementById('currentReqId').value;
+    
+    if (fileInput.files.length === 0) {
+        alert("Por favor seleccione un archivo.");
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+        alert("El archivo excede los 5MB permitidos.");
+        return;
+    }
+
+    document.getElementById('loadMainTxt').innerText = "Subiendo Arte...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        const params = new URLSearchParams();
+        params.append("action", "uploadArte");
+        params.append("id", id);
+        params.append("filename", file.name);
+        params.append("file", base64);
+        params.append("mime", file.type);
+
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+            const data = await res.json();
+            if (data.success) {
+                closeModal();
+                alert("¡Arte subido con éxito!");
+                updateTable();
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            alert("Error de conexión al subir.");
+        } finally {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+async function sendTelegramArte(id) {
+    const req = localData.find(x => x.id == id);
+    if(!confirm("¿Enviar el arte de " + id + " a Telegram?")) return;
+    
+    document.getElementById('loadMainTxt').innerText = "Enviando a Telegram...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "sendTelegramArte");
+        params.append("id", id);
+        
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+        const data = await res.json();
+        if(data.success) alert("¡Enviado a Telegram en alta calidad!");
+        else alert("Error: " + data.error);
+    } catch(e) {
+        alert("Error de conexión.");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
 }
 
 async function toggleMaintMode() {
@@ -325,47 +421,22 @@ async function toggleMaintMode() {
 }
 
 function closeModal() { document.getElementById('modalAlert').style.display = 'none'; }
-function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader();
-reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file);
-} }
-function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none';
-document.getElementById(btnId).style.display = 'none'; }
-function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error');
-}
-function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3');
-const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = "";
-if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios);
-} else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas);
-} else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica);
-} else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo);
-} else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
-c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
-} }
-function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); });
-}
+function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
+function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
+function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error'); }
 
-function showPage(id, btn) { 
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
-    document.getElementById(id).classList.add('active'); 
-    window.scrollTo({top: 0, behavior: 'smooth'});
-if(btn) btn.classList.add('active'); 
-    else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); 
-    if(id === 'list-page') updateTable();
-}
+function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
+function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); }); }
+
+function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active'); else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
 
 async function updateTable() {
     try {
         const res = await fetch(`${SCRIPT_URL}?action=read`);
         const response = await res.json();
-        
         isMaintActive = (response.maintenance === "true" || response.maintenance === true);
-        if(isMaintActive && !isAdmin) {
-            document.getElementById('maintOverlay').style.display = 'flex';
-        } else {
-            document.getElementById('maintOverlay').style.display = 'none';
-        }
-
+        if(isMaintActive && !isAdmin) { document.getElementById('maintOverlay').style.display = 'flex'; } 
+        else { document.getElementById('maintOverlay').style.display = 'none'; }
         if (response.success && Array.isArray(response.data)) { 
             localData = response.data;
             renderLocalTable(); 
@@ -408,6 +479,9 @@ function renderLocalTable() {
                     <button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
                     <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
                     <button class="btn-act bg-baja" onclick="modStatus('${s.id}','BAJA PRIORIDAD')">B</button>
+                    <button class="btn-arte" onclick="openArteModal('${s.id}')">🎨 ADJUNTAR</button>
+                    ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">👁️ VER</a>` : ''}
+                    ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">✈️ TG</button>` : ''}
                     <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
                 </div>
             </td>` : ''}`;
@@ -430,21 +504,19 @@ async function modStatus(id, st) {
     try {
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
         const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
-    } catch (e) { pill.className = oldClass;
-    pill.innerText = oldText; alert("Error de conexión."); }
+    } catch (e) { pill.className = oldClass; pill.innerText = oldText; alert("Error de conexión."); }
 }
 
 async function deleteReq(id) {
     if(!confirm("¿Eliminar registro permanentemente?")) return;
     localData = localData.filter(x => x.id != id); renderLocalTable();
-    try { await fetch(SCRIPT_URL, { method:'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=delete&id=${id}` });
-    } catch (e) { alert("Error al eliminar."); updateTable(); }
+    try { await fetch(SCRIPT_URL, { method:'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=delete&id=${id}` }); } 
+    catch (e) { alert("Error al eliminar."); updateTable(); }
 }
 
 document.getElementById('sigrafForm').onsubmit = async (e) => {
     e.preventDefault();
     document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
-    
     const fields = [
         { id: 'unidad', label: 'Unidad Solicitante', val: document.getElementById('unidad').value.trim() },
         { id: 'cat-grid', label: 'Tipo de Jornada', val: catName },
@@ -458,19 +530,12 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     for (let field of fields) {
         let isInvalid = false;
         const el = document.getElementById(field.id);
-        
         if (field.isList) {
-            if (catType === 'otros') {
-                if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true;
-            } else {
-                if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true;
-            }
+            if (catType === 'otros') { if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true; } 
+            else { if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true; }
         } else {
-            if (!field.val || (field.id === 'unidad' && field.val === "U.M.I.") || (field.id === 'mail' && !field.val.includes('@'))) {
-                isInvalid = true;
-            }
+            if (!field.val || (field.id === 'unidad' && field.val === "U.M.I.") || (field.id === 'mail' && !field.val.includes('@'))) { isInvalid = true; }
         }
-
         if (isInvalid) {
             el.classList.add('field-error');
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -478,7 +543,6 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
             return;
         }
     }
-
     const fechaSeleccionada = new Date(document.getElementById('fecha').value + 'T00:00:00');
     const ahora = new Date();
     if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 48) {
@@ -486,7 +550,6 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
         document.getElementById('fecha').classList.add('field-error');
         return;
     }
-
     const params = new URLSearchParams();
     params.append("Unidad", document.getElementById('unidad').value); params.append("Jornada", catName);
     let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
@@ -496,11 +559,8 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
     params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
     params.append("Direccion", document.getElementById('direccion').value); params.append("Telefono", document.getElementById('tlf').value);
     params.append("Correo", document.getElementById('mail').value); params.append("Observaciones", document.getElementById('observaciones').value);
-    
     let tieneFotos = false;
-    for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true;
-    } }
-
+    for(let i=1; i<=3; i++){ const img = document.getElementById('p'+i); if(img.src && img.src.startsWith("data:image")) { params.append("foto"+i, img.src); tieneFotos = true; } }
     document.getElementById('loadMainTxt').innerText = tieneFotos ? "Subiendo Imágenes..." : "Enviando Solicitud...";
     document.getElementById('loadingOverlay').style.display = 'flex';
     try {
