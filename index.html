@@ -297,7 +297,7 @@ function validateLogin() {
     document.getElementById('authBtn').onclick = logout;
     document.getElementById('th-admin').classList.remove('hidden');
     document.getElementById('maintBtn').classList.remove('hidden');
-    document.getElementById('col-fecha-registro').style.display = 'none';
+    document.getElementById('col-fecha-registro').style.display = 'none'; // ✅ OCULTA ENCABEZADO
     document.getElementById('maintOverlay').style.display = 'none';
     clearCredentials();
     closeModal();
@@ -315,7 +315,7 @@ function logout() {
   document.getElementById('authBtn').onclick = showLogin;
   document.getElementById('th-admin').classList.add('hidden');
   document.getElementById('maintBtn').classList.add('hidden');
-  document.getElementById('col-fecha-registro').style.display = '';
+  document.getElementById('col-fecha-registro').style.display = ''; // ✅ RESTAURA ENCABEZADO
   if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
   renderLocalTable();
   clearCredentials();
@@ -394,7 +394,7 @@ async function sendTelegramArte(id) {
     const data = await res.json();
     if(data.success) {
       openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
-      setTimeout(() => closeModal(), 2000); // ✅ CIERRA EL MODAL AUTOMÁTICAMENTE
+      setTimeout(() => closeModal(), 2000); // ✅ CIERRA AUTOMÁTICAMENTE
     } else {
       openModal("❌ Error", "Error: " + data.error, "💥");
     }
@@ -469,6 +469,8 @@ async function updateTable() {
     }
   } catch (e) { console.error("Error cargando tabla:", e); }
 }
+
+// ✅ FUNCIÓN CORREGIDA: OCULTA LA COLUMNA ENTERA EN MODO ADMIN
 function renderLocalTable() {
   const body = document.getElementById('solicitudes-body');
   body.innerHTML = "";
@@ -490,7 +492,7 @@ function renderLocalTable() {
     const tr = document.createElement('tr');
     if(esNueva) tr.className = "row-new";
     tr.innerHTML = `
-<td><span class="txt-small">${s.Timestamp}</span></td>
+${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
 <td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>
 <td class="txt-bold">${unidadLimpia} ${badge}</td>
 <td>${jornadaLimpia}</td>
@@ -516,6 +518,7 @@ ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">�
   document.getElementById('count-fin').innerText = counts.fin;
   document.getElementById('count-baja').innerText = counts.baja;
 }
+
 async function modStatus(id, st) {
   const pill = document.getElementById('pill-' + id);
   const oldClass = pill.className;
@@ -593,7 +596,7 @@ document.getElementById('sigrafForm').onsubmit = async (e) => {
   // === AÑADIR IMÁGENES COMO ARCHIVOS ===
   for(let i=1; i<=3; i++){
     const img = document.getElementById('p'+i);
-    if(img.src && img.src.startsWith("data:image")) {
+    if(img.src && img.src.startsWith("image")) {
       const blob = await fetch(img.src).then(r => r.blob());
       formData.append("foto"+i, blob, "Soporte_" + i + ".jpg");
     }
