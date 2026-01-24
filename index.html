@@ -9,7 +9,7 @@
 :root {
 --celeste: #8ecae6; --turquesa: #219ebc; --azul-deep: #023047;
 --amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
---verde: #2d6a4f; --gris: #edf2f4; --morado: #6a0dad;
+--verde: #2d6a4f; --gris: #edf2f4;
 }
 * { font-family: 'Georama', sans-serif; box-sizing: border-box; font-weight: 500; }
 body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
@@ -33,7 +33,6 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .st-pend { background: var(--celeste); color: var(--azul-deep); }
 .st-proc { background: var(--amarillo); color: var(--azul-deep); }
 .st-fin { background: var(--verde); }
-.st-baja { background: var(--morado); }
 .stat-label { font-size: 0.6rem; text-transform: uppercase; display: block; opacity: 0.8; }
 .stat-val { font-size: 1.1rem; }
 .container { max-width: 1200px; margin: 15px auto; padding: 25px; background: white; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
@@ -60,6 +59,10 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .btn-send:hover { transform: translateY(-2px); background: #054a6d; }
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 20000; padding: 20px; }
 .modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
+/* MODAL CONFIRMACIÓN */
+#confirmModal .modal-content { max-width: 600px; padding: 30px; }
+#previewContent { text-align: left; max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
+#previewContent p { margin: 8px 0; line-height: 1.4; }
 /* MODAL MANTENIMIENTO */
 #maintOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--azul-deep); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
 .modal-btn { background: var(--turquesa); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
@@ -75,14 +78,12 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 .status-pendiente { background: var(--celeste); color: var(--azul-deep); }
 .status-procesando { background: var(--amarillo); color: var(--azul-deep); }
 .status-finalizada { background: var(--verde); color: white; }
-.status-bajaprioridad { background: var(--morado); color: white; }
 .admin-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
 .btn-act { border: none; border-radius: 5px; padding: 4px 6px; cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
 .btn-act:hover { transform: scale(1.1); }
 .bg-pend { background: var(--celeste); color: var(--azul-deep); }
 .bg-proc { background: var(--amarillo); color: var(--azul-deep); }
 .bg-fin { background: var(--verde); }
-.bg-baja { background: var(--morado); }
 .btn-trash { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 8px; filter: grayscale(1); transition: 0.3s; }
 .btn-trash:hover { filter: grayscale(0); transform: rotate(10deg); }
 /* Nuevos Estilos Botones Admin */
@@ -132,6 +133,21 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <button id="closeModalBtn" class="modal-btn modal-btn-alt hidden" onclick="closeModal()">CERRAR</button>
 </div>
 </div>
+<!-- Modal de Confirmación -->
+<div class="modal-overlay" id="confirmModal">
+<div class="modal-content">
+<h2 style="font-weight: 800; color: var(--azul-deep); margin-top: 0;">🔍 Revisa tu Solicitud</h2>
+<div id="previewContent"></div>
+<div style="display: flex; gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto; margin-top: 20px;">
+  <button id="btnCorregir" class="modal-btn modal-btn-alt" style="flex: 1; min-width: 140px; font-size: 1rem; padding: 12px; font-weight: 800; transition: all 0.3s ease; border-radius: 12px;">
+    ✏️ Corregir
+  </button>
+  <button id="btnEnviarConfirmado" class="modal-btn" disabled style="flex: 1; min-width: 140px; font-size: 1rem; padding: 12px; font-weight: 800; transition: all 0.3s ease; border-radius: 12px; background: #e9ecef; color: #495057; cursor: not-allowed;">
+    🚀 Enviar Solicitud (<span id="countdown">10</span>)
+  </button>
+</div>
+</div>
+</div>
 <header>
 <div class="brand-container">
 <h1 class="header-title">SIRA</h1>
@@ -149,8 +165,12 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <div class="container page active" id="form-page">
 <div class="aviso-48h">⚠️ IMPORTANTE: LAS SOLICITUDES DEBEN REALIZARSE CON 48 HORAS DE ANTICIPACIÓN</div>
 <form id="sigrafForm" novalidate>
-<label class="section-title">🏥 1. UNIDAD SOLICITANTE *</label>
-<input type="text" id="unidad" class="modern-input" placeholder="Ej: San Juan de Colón">
+<label class="section-title">🏥 1. REGIÓN *</label>
+<div class="category-row" id="region-grid"></div>
+<div id="unidad-section" class="hidden">
+<label class="section-title">🏥 1.5. UNIDAD MÉDICA *</label>
+<div class="category-row" id="unidad-grid"></div>
+</div>
 <label class="section-title">📂 2. TIPO DE JORNADA *</label>
 <div class="category-row" id="cat-grid">
 <div class="card-btn" onclick="selectCat(this, 'escuela')">Ipasme va a la Escuela</div>
@@ -178,14 +198,14 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 ⚠️ Complete al menos el nombre de la institución. La dirección exacta es opcional pero recomendada.
 </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-  <div>
-    <label class="txt-small">🏫 Institución *</label>
-    <input type="text" id="institucion" class="modern-input" placeholder="Escuela, Liceo, Jardín de niños, etc.">
-  </div>
-  <div>
-    <label class="txt-small">🧭 Dirección exacta</label>
-    <input type="text" id="direccion-exacta" class="modern-input" placeholder="Municipio, Parroquia, Ciudad, etc.">
-  </div>
+<div>
+<label class="txt-small">🏫 Institución *</label>
+<input type="text" id="institucion" class="modern-input" placeholder="Escuela, Liceo, Jardín de niños, etc.">
+</div>
+<div>
+<label class="txt-small">🧭 Dirección exacta</label>
+<input type="text" id="direccion-exacta" class="modern-input" placeholder="Municipio, Parroquia, Ciudad, etc.">
+</div>
 </div>
 <label class="section-title">📱✉️ 8. DATOS DE CONTACTO *</label>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -211,7 +231,6 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <div class="stat-card st-pend"><span class="stat-label">Pendiente</span><span id="count-pend" class="stat-val">0</span></div>
 <div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
 <div class="stat-card st-fin"><span class="stat-label">Finalizada</span><span id="count-fin" class="stat-val">0</span></div>
-<div class="stat-card st-baja"><span class="stat-label">Prioridad B.</span><span id="count-baja" class="stat-val">0</span></div>
 </div>
 <div class="table-container">
 <table>
@@ -231,224 +250,348 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 </div>
 </div>
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
-let isAdmin = false; let selectedAMPM = ""; let catType = "";
-let catName = ""; let localData = []; let isMaintActive = false;
+// === LISTADO DE UNIDADES IPASME POR REGIÓN (CORREGIDO Y ORDENADO) ===
+const UNIDADES_IPASME_RAW = {
+"Capital": [
+"Don Simón Rodríguez",
+"C.N.E.D. Dr. Julio de Armas",
+"Centro de Salud para El Buen Vivir Dr. Salvador Allende"
+],
+"Región Central": [
+"Maracay", "La Victoria", "Valencia", "Puerto Cabello",
+"Club Villas Ipasmar", "Guatire", "Ocumare del Tuy", "Caucagua",
+"Carrizal", "La Guaira"
+],
+"Región Occidental": [
+"Cabimas", "Maracaibo", "Machiques", "San Carlos del Zulia",
+"El Moján", "Barquisimeto", "El Tocuyo", "Carora",
+"San Felipe", "Nirgua", "Punto Fijo", "Coro",
+"Buchivacoa", "Puerto Cumarebo"
+],
+"Región Los Andes": [
+"El Vigía", "Mérida", "Tovar",
+"Hotel Valle Grande", "La Grita", "Rubio",
+"San Cristóbal", "San Juan de Colón", "Ureña",
+"Boconó", "Trujillo", "Valera"
+],
+"Región Oriental": [
+"Anaco", "Barcelona", "Cantaura", "El Tigre",
+"Isidora Agnes, Ciudad Bolívar", "Guasipati",
+"Profa. Mirelva Martínez, San Félix", "Upata", "Maturín",
+"Punta de Mata", "Cumaná", "Cumanacoa", "Carúpano",
+"Güiria", "Tucupita", "Casacoima", "La Asunción",
+"Puerto Ayacucho"
+],
+"Región Los Llanos": [
+"Altagracia de Orituco", "Calabozo", "San Juan de los Morros",
+"Valle de la Pascua", "Zaraza", "San Carlos de Cojedes",
+"Tinaquillo", "San Fernando de Apure", "Guasdualito",
+"Barinas", "Santa Bárbara de Barinas", "Acarigua", "Guanare"
+]
+};
+const ORDEN_REGIONES = [
+"Capital",
+"Región Central",
+"Región Occidental",
+"Región Los Andes",
+"Región Oriental",
+"Región Los Llanos"
+];
+function getNombreRegionLimpio(regionKey) {
+if (regionKey === "Capital") return "Capital";
+return regionKey.replace("Región ", "");
+}
+const UNIDADES_IPASME = {};
+ORDEN_REGIONES.forEach(region => {
+const unidadesOriginales = UNIDADES_IPASME_RAW[region] || [];
+UNIDADES_IPASME[region] = [...unidadesOriginales].sort((a, b) =>
+a.trim().localeCompare(b.trim(), 'es', { sensitivity: 'base' })
+);
+});
+let isAdmin = false;
+let selectedAMPM = "";
+let catType = "";
+let catName = "";
+let localData = [];
+let isMaintActive = false;
+let selectedRegionKey = "";
+let selectedUnidad = "";
 const DATA = {
-especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Ecografía", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
+especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
 vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"],
 quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
-document.addEventListener('DOMContentLoaded', () => { updateTable(); });
-
+document.addEventListener('DOMContentLoaded', () => {
+const regionGrid = document.getElementById('region-grid');
+ORDEN_REGIONES.forEach(regionKey => {
+const btn = document.createElement('div');
+btn.className = 'card-btn';
+btn.innerText = getNombreRegionLimpio(regionKey);
+btn.onclick = () => selectRegion(regionKey);
+regionGrid.appendChild(btn);
+});
+updateTable();
+});
+function selectRegion(regionKey) {
+document.querySelectorAll('#region-grid .card-btn').forEach(b => b.classList.remove('selected'));
+const index = ORDEN_REGIONES.indexOf(regionKey);
+if (index !== -1) {
+document.querySelector(`#region-grid .card-btn:nth-child(${index + 1})`).classList.add('selected');
+}
+selectedRegionKey = regionKey;
+selectedUnidad = "";
+const unidadGrid = document.getElementById('unidad-grid');
+unidadGrid.innerHTML = "";
+const unidades = UNIDADES_IPASME[regionKey] || [];
+unidades.forEach(unidad => {
+const btn = document.createElement('div');
+btn.className = 'card-btn';
+btn.innerText = unidad.trim();
+btn.onclick = () => selectUnidad(unidad.trim());
+unidadGrid.appendChild(btn);
+});
+document.getElementById('unidad-section').classList.remove('hidden');
+}
+function selectUnidad(unidad) {
+selectedUnidad = unidad.trim();
+document.querySelectorAll('#unidad-grid .card-btn').forEach(b => b.classList.remove('selected'));
+const clickedBtn = Array.from(document.querySelectorAll('#unidad-grid .card-btn'))
+  .find(b => b.innerText.trim() === selectedUnidad);
+if (clickedBtn) clickedBtn.classList.add('selected');
+}
 // === FUNCIONES DE SEGURIDAD Y LIMPIEZA ===
 function clearCredentials() {
-  document.getElementById('adminUser').value = '';
-  document.getElementById('adminPass').value = '';
+document.getElementById('adminUser').value = '';
+document.getElementById('adminPass').value = '';
 }
-
 function togglePass() {
-  const input = document.getElementById('adminPass');
-  input.type = input.type === 'password' ? 'text' : 'password';
+const input = document.getElementById('adminPass');
+input.type = input.type === 'password' ? 'text' : 'password';
 }
-
 function openModal(t, m, icon = "⚠️") {
-  clearCredentials();
-  document.getElementById('loginArea').classList.add('hidden');
-  document.getElementById('uploadArea').classList.add('hidden');
-  document.getElementById('closeModalBtn').classList.add('hidden');
-  document.getElementById('modalIcon').innerText = icon;
-  document.getElementById('modalTitle').innerText = t;
-  document.getElementById('modalMsg').innerText = m;
-  const btn = document.getElementById('mainModalBtn');
-  btn.innerText = "ENTENDIDO";
-  btn.onclick = closeModal;
-  document.getElementById('modalAlert').style.display = 'flex';
+clearCredentials();
+document.getElementById('loginArea').classList.add('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('closeModalBtn').classList.add('hidden');
+document.getElementById('modalIcon').innerText = icon;
+document.getElementById('modalTitle').innerText = t;
+document.getElementById('modalMsg').innerText = m;
+const btn = document.getElementById('mainModalBtn');
+btn.innerText = "ENTENDIDO";
+btn.onclick = closeModal;
+document.getElementById('modalAlert').style.display = 'flex';
 }
-
 function closeModal() {
-  clearCredentials();
-  document.getElementById('modalAlert').style.display = 'none';
+clearCredentials();
+document.getElementById('modalAlert').style.display = 'none';
 }
-
 function showLogin() {
-  clearCredentials();
-  document.getElementById('modalIcon').innerText = "🔐";
-  document.getElementById('modalTitle').innerText = "Acceso Restringido";
-  document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración.";
-  document.getElementById('loginArea').classList.remove('hidden');
-  document.getElementById('uploadArea').classList.add('hidden');
-  document.getElementById('closeModalBtn').classList.remove('hidden');
-  const btn = document.getElementById('mainModalBtn');
-  btn.innerText = "VALIDAR CREDENCIALES";
-  btn.onclick = validateLogin;
-  document.getElementById('modalAlert').style.display = 'flex';
-}
+clearCredentials();
+document.getElementById('modalIcon').innerText = "🔐";
+document.getElementById('modalTitle').innerText = "Acceso Restringido";
+document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración.";
+document.getElementById('loginArea').classList.remove('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('closeModalBtn').classList.remove('hidden');
+const btn = document.getElementById('mainModalBtn');
+btn.innerText = "VALIDAR CREDENCIALES";
+btn.onclick = validateLogin;
+document.getElementById('modalAlert').style.display = 'flex';
 
-function validateLogin() {
-  const u = document.getElementById('adminUser').value;
-  const p = document.getElementById('adminPass').value;
-  if(u === "MD-comunicaciones" && p === "Ipasme.2026.comu") {
-    isAdmin = true;
-    document.getElementById('authBtn').className = "btn-logout";
-    document.getElementById('authBtn').innerText = "Cerrar Gestión";
-    document.getElementById('authBtn').onclick = logout;
-    document.getElementById('th-admin').classList.remove('hidden');
-    document.getElementById('maintBtn').classList.remove('hidden');
-    document.getElementById('col-fecha-registro').style.display = 'none';
-    document.getElementById('maintOverlay').style.display = 'none';
-    clearCredentials();
-    closeModal();
-    updateTable();
-  } else {
-    openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
-    clearCredentials();
+// ➕ Permitir Enter para enviar credenciales
+const userField = document.getElementById('adminUser');
+const passField = document.getElementById('adminPass');
+
+const handleEnter = (e) => {
+  if (e.key === 'Enter') {
+    validateLogin();
   }
+};
+
+userField.removeEventListener('keydown', handleEnter);
+passField.removeEventListener('keydown', handleEnter);
+
+userField.addEventListener('keydown', handleEnter);
+passField.addEventListener('keydown', handleEnter);
+}
+async function validateLogin() {
+const u = document.getElementById('adminUser').value.trim();
+const p = document.getElementById('adminPass').value.trim();
+
+if (!u || !p) {
+openModal("❌ Error", "Complete ambos campos.", "🔐");
+return;
 }
 
+document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+try {
+const params = new URLSearchParams();
+params.append("action", "loginAdmin");
+params.append("username", u);
+params.append("password", p);
+
+const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+const data = await res.json();
+
+if (data.success && data.data?.isAdmin) {
+isAdmin = true;
+document.getElementById('authBtn').className = "btn-logout";
+document.getElementById('authBtn').innerText = "Cerrar Gestión";
+document.getElementById('authBtn').onclick = logout;
+document.getElementById('th-admin').classList.remove('hidden');
+document.getElementById('maintBtn').classList.remove('hidden');
+document.getElementById('col-fecha-registro').style.display = 'none';
+document.getElementById('maintOverlay').style.display = 'none';
+clearCredentials();
+closeModal();
+updateTable();
+} else {
+openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
+clearCredentials();
+}
+} catch (err) {
+openModal("❌ Error", "Error de conexión al validar.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
 function logout() {
-  isAdmin = false;
-  document.getElementById('authBtn').className = "btn-login";
-  document.getElementById('authBtn').innerText = "🔐 Administrador";
-  document.getElementById('authBtn').onclick = showLogin;
-  document.getElementById('th-admin').classList.add('hidden');
-  document.getElementById('maintBtn').classList.add('hidden');
-  document.getElementById('col-fecha-registro').style.display = '';
-  if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
-  renderLocalTable();
-  clearCredentials();
+isAdmin = false;
+document.getElementById('authBtn').className = "btn-login";
+document.getElementById('authBtn').innerText = "🔐 Administrador";
+document.getElementById('authBtn').onclick = showLogin;
+document.getElementById('th-admin').classList.add('hidden');
+document.getElementById('maintBtn').classList.add('hidden');
+document.getElementById('col-fecha-registro').style.display = '';
+if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
+renderLocalTable();
+clearCredentials();
 }
 // === FIN FUNCIONES DE SEGURIDAD ===
-
 // === FUNCIONES ADMIN ===
 function openArteModal(id) {
-  document.getElementById('currentReqId').value = id;
-  document.getElementById('arteFile').value = '';
-  document.getElementById('modalIcon').innerText = "🎨";
-  document.getElementById('modalTitle').innerText = "Adjuntar Arte Final";
-  document.getElementById('modalMsg').innerText = "Seleccione el archivo para la solicitud " + id;
-  document.getElementById('loginArea').classList.add('hidden');
-  document.getElementById('uploadArea').classList.remove('hidden');
-  document.getElementById('closeModalBtn').classList.remove('hidden');
-  const btn = document.getElementById('mainModalBtn');
-  btn.innerText = "SUBIR A DRIVE";
-  btn.onclick = uploadArte;
-  document.getElementById('modalAlert').style.display = 'flex';
+document.getElementById('currentReqId').value = id;
+document.getElementById('arteFile').value = '';
+document.getElementById('modalIcon').innerText = "🎨";
+document.getElementById('modalTitle').innerText = "Adjuntar Arte Final";
+document.getElementById('modalMsg').innerText = "Seleccione el archivo para la solicitud " + id;
+document.getElementById('loginArea').classList.add('hidden');
+document.getElementById('uploadArea').classList.remove('hidden');
+document.getElementById('closeModalBtn').classList.remove('hidden');
+const btn = document.getElementById('mainModalBtn');
+btn.innerText = "SUBIR A DRIVE";
+btn.onclick = uploadArte;
+document.getElementById('modalAlert').style.display = 'flex';
 }
-
 async function uploadArte() {
-  const fileInput = document.getElementById('arteFile');
-  const id = document.getElementById('currentReqId').value;
-  if (fileInput.files.length === 0) {
-    openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
-    return;
-  }
-  const file = fileInput.files[0];
-  if (file.size > 5 * 1024 * 1024) {
-    openModal("📏 Tamaño Excedido", "El archivo excede los 5MB permitidos.", "⚠️");
-    return;
-  }
-  document.getElementById('loadMainTxt').innerText = "Subiendo Arte...";
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64 = e.target.result.split(',')[1];
-    const params = new URLSearchParams();
-    params.append("action", "uploadArte");
-    params.append("id", id);
-    params.append("filename", file.name);
-    params.append("file", base64);
-    params.append("mime", file.type);
-    try {
-      const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
-      const data = await res.json();
-      if (data.success) {
-        closeModal();
-        openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
-        updateTable();
-        document.getElementById('arteFile').value = '';
-      } else {
-        openModal("❌ Error", "Error: " + data.error, "💥");
-      }
-    } catch (err) {
-      openModal("❌ Error", "Error de conexión al subir.", "💥");
-    } finally {
-      document.getElementById('loadingOverlay').style.display = 'none';
-    }
-  };
-  reader.readAsDataURL(file);
+const fileInput = document.getElementById('arteFile');
+const id = document.getElementById('currentReqId').value;
+if (fileInput.files.length === 0) {
+openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
+return;
 }
-
+const file = fileInput.files[0];
+if (file.size > 5 * 1024 * 1024) {
+openModal("📏 Tamaño Excedido", "El archivo excede los 5MB permitidos.", "⚠️");
+return;
+}
+document.getElementById('loadMainTxt').innerText = "Subiendo Arte...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+const reader = new FileReader();
+reader.onload = async function(e) {
+const base64 = e.target.result.split(',')[1];
+const params = new URLSearchParams();
+params.append("action", "uploadArte");
+params.append("id", id);
+params.append("filename", file.name);
+params.append("file", base64);
+params.append("mime", file.type);
+try {
+const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+const data = await res.json();
+if (data.success) {
+closeModal();
+openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+updateTable();
+document.getElementById('arteFile').value = '';
+} else {
+openModal("❌ Error", "Error: " + data.error, "💥");
+}
+} catch (err) {
+openModal("❌ Error", "Error de conexión al subir.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+};
+reader.readAsDataURL(file);
+}
 async function sendTelegramArte(id) {
-  const req = localData.find(x => x.id == id);
-  if(!confirm("¿Enviar el arte de " + id + " a Telegram?")) return;
-  document.getElementById('loadMainTxt').innerText = "Enviando a Telegram...";
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  try {
-    const params = new URLSearchParams();
-    params.append("action", "sendTelegramArte");
-    params.append("id", id);
-    const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
-    const data = await res.json();
-    if(data.success) {
-      openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
-      setTimeout(() => closeModal(), 2000);
-    } else {
-      openModal("❌ Error", "Error: " + data.error, "💥");
-    }
-  } catch(e) {
-    openModal("❌ Error", "Error de conexión.", "💥");
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
+const req = localData.find(x => x.id == id);
+if(!confirm("¿Enviar el arte de " + id + " a Telegram?")) return;
+document.getElementById('loadMainTxt').innerText = "Enviando a Telegram...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+try {
+const params = new URLSearchParams();
+params.append("action", "sendTelegramArte");
+params.append("id", id);
+const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+const data = await res.json();
+if(data.success) {
+openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
+setTimeout(() => closeModal(), 2000);
+} else {
+openModal("❌ Error", "Error: " + data.error, "💥");
 }
-
+} catch(e) {
+openModal("❌ Error", "Error de conexión.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
 async function toggleMaintMode() {
-  if (!isAdmin) return;
-  const nuevoEstado = !isMaintActive;
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=setMaintenance&status=${nuevoEstado}`
-    });
-    isMaintActive = nuevoEstado;
-    openModal(
-      "⚙️ Modo Mantenimiento",
-      "Modo mantenimiento " + (nuevoEstado ? "ACTIVADO" : "DESACTIVADO") + ".",
-      "🛠️"
-    );
-    setTimeout(() => location.reload(), 1500);
-  } catch (e) {
-    openModal("❌ Error", "Error al cambiar estado del mantenimiento.", "💥");
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
+if (!isAdmin) return;
+const nuevoEstado = !isMaintActive;
+document.getElementById('loadingOverlay').style.display = 'flex';
+try {
+await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=setMaintenance&status=${nuevoEstado}`
+});
+isMaintActive = nuevoEstado;
+openModal(
+"⚙️ Modo Mantenimiento",
+"Modo mantenimiento " + (nuevoEstado ? "ACTIVADO" : "DESACTIVADO") + ".",
+"🛠️"
+);
+setTimeout(() => location.reload(), 1500);
+} catch (e) {
+openModal("❌ Error", "Error al cambiar estado del mantenimiento.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
 }
-
+}
 async function deleteReq(id) {
-  if (!confirm(`¿Está seguro de eliminar la solicitud ${id}?`)) return;
-  if (!confirm(`⚠️ ¡ADVERTENCIA! Esta acción es irreversible.\n¿Eliminar permanentemente de la base de datos?`)) return;
-
-  localData = localData.filter(x => x.id != id);
-  renderLocalTable();
-
-  try {
-    const params = new URLSearchParams();
-    params.append("action", "delete");
-    params.append("id", id);
-    await fetch(SCRIPT_URL, { method: 'POST', body: params });
-    openModal("🗑️ Eliminada", "Solicitud y arte eliminados correctamente.", "✅");
-  } catch (e) {
-    openModal("❌ Error", "Error al eliminar. Revise la conexión.", "💥");
-    updateTable();
-  }
+if (!confirm(`¿Está seguro de eliminar la solicitud ${id}?`)) return;
+if (!confirm(`⚠️ ¡ADVERTENCIA! Esta acción es irreversible.\n¿Eliminar permanentemente de la base de datos?`)) return;
+localData = localData.filter(x => x.id != id);
+renderLocalTable();
+try {
+const params = new URLSearchParams();
+params.append("action", "delete");
+params.append("id", id);
+await fetch(SCRIPT_URL, { method: 'POST', body: params });
+openModal("🗑️ Eliminada", "Solicitud y arte eliminados correctamente.", "✅");
+} catch (e) {
+openModal("❌ Error", "Error al eliminar. Revise la conexión.", "💥");
+updateTable();
+}
 }
 // === FIN FUNCIONES ADMIN ===
-
 // === FUNCIONES GENERALES ===
 function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
 function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
@@ -457,40 +600,38 @@ function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn')
 function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); }); }
 function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active'); else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
 async function updateTable() {
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=read`);
-    const response = await res.json();
-    isMaintActive = (response.maintenance === "true" || response.maintenance === true);
-    if(isMaintActive && !isAdmin) { document.getElementById('maintOverlay').style.display = 'flex'; }
-    else { document.getElementById('maintOverlay').style.display = 'none'; }
-    if (response.success && Array.isArray(response.data)) {
-      localData = response.data;
-      renderLocalTable();
-    }
-  } catch (e) { console.error("Error cargando tabla:", e); }
+try {
+const res = await fetch(`${SCRIPT_URL}?action=read`);
+const response = await res.json();
+isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+if(isMaintActive && !isAdmin) { document.getElementById('maintOverlay').style.display = 'flex'; }
+else { document.getElementById('maintOverlay').style.display = 'none'; }
+if (response.success && Array.isArray(response.data)) {
+localData = response.data;
+renderLocalTable();
 }
-
+} catch (e) { console.error("Error cargando tabla:", e); }
+}
 function renderLocalTable() {
-  const body = document.getElementById('solicitudes-body');
-  body.innerHTML = "";
-  let counts = { total:0, pend:0, proc:0, fin:0, baja:0 };
-  const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-  sortedData.forEach((s, idx) => {
-    counts.total++;
-    const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
-    const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
-    if(statusLimpio === 'pendiente') counts.pend++;
-    if(statusLimpio === 'procesando') counts.proc++;
-    if(statusLimpio === 'finalizada') counts.fin++;
-    if(statusLimpio === 'bajaprioridad') counts.baja++;
-    const esNueva = (idx < 5 && statusReal === "PENDIENTE");
-    const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
-    const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
-    const badge = esNueva ? '<span class="badge-new">NUEVA ✨</span>' : '';
-    let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
-    const tr = document.createElement('tr');
-    if(esNueva) tr.className = "row-new";
-    tr.innerHTML = `
+const body = document.getElementById('solicitudes-body');
+body.innerHTML = "";
+let counts = { total:0, pend:0, proc:0, fin:0 };
+const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+sortedData.forEach((s, idx) => {
+counts.total++;
+const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+if(statusLimpio === 'pendiente') counts.pend++;
+if(statusLimpio === 'procesando') counts.proc++;
+if(statusLimpio === 'finalizada') counts.fin++;
+const esNueva = (idx < 5 && statusReal === "PENDIENTE");
+const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
+const badge = esNueva ? '<span class="badge-new">NUEVA ✨</span>' : '';
+let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
+const tr = document.createElement('tr');
+if(esNueva) tr.className = "row-new";
+tr.innerHTML = `
 ${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
 <td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>
 <td class="txt-bold">${unidadLimpia} ${badge}</td>
@@ -502,148 +643,262 @@ ${isAdmin ? `<td align="right">
 <button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
 <button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
 <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
-<button class="btn-act bg-baja" onclick="modStatus('${s.id}','BAJA PRIORIDAD')">B</button>
 <button class="btn-arte" onclick="openArteModal('${s.id}')">🎨 ADJUNTAR</button>
 ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">👁️ VER</a>` : ''}
 ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">✈️ TG</button>` : ''}
 <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
 </div>
 </td>` : ''}`;
-    body.appendChild(tr);
-  });
-  document.getElementById('count-total').innerText = counts.total;
-  document.getElementById('count-pend').innerText = counts.pend;
-  document.getElementById('count-proc').innerText = counts.proc;
-  document.getElementById('count-fin').innerText = counts.fin;
-  document.getElementById('count-baja').innerText = counts.baja;
+body.appendChild(tr);
+});
+document.getElementById('count-total').innerText = counts.total;
+document.getElementById('count-pend').innerText = counts.pend;
+document.getElementById('count-proc').innerText = counts.proc;
+document.getElementById('count-fin').innerText = counts.fin;
 }
 async function modStatus(id, st) {
-  const pill = document.getElementById('pill-' + id);
-  const oldClass = pill.className;
-  const oldText = pill.innerText;
-  const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
-  pill.className = `status-pill status-${newStatusClass}`; pill.innerText = st;
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
-    const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
-  } catch (e) { pill.className = oldClass; pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
+const pill = document.getElementById('pill-' + id);
+const oldClass = pill.className;
+const oldText = pill.innerText;
+const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+pill.className = `status-pill status-${newStatusClass}`; pill.innerText = st;
+try {
+await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
+const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
+} catch (e) { pill.className = oldClass; pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
 }
-
-// === ENVÍO CORREGIDO: SOLO BASE64 PARA FOTOS (NO SE GUARDAN EN DRIVE) ===
-document.getElementById('sigrafForm').onsubmit = async (e) => {
-  e.preventDefault();
-  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
-  const fields = [
-    { id: 'unidad', label: 'Unidad Solicitante', val: document.getElementById('unidad').value.trim(), required: true },
-    { id: 'cat-grid', label: 'Tipo de Jornada', val: catName },
-    { id: 'sec-3', label: 'Detalle de Especialidades/Patologías', isList: true },
-    { id: 'fecha', label: 'Fecha de Actividad', val: document.getElementById('fecha').value },
-    { id: 'hora', label: 'Hora de Inicio', val: document.getElementById('hora').value.trim() },
-    { id: 'hora-box', label: 'Formato de Hora (AM/PM)', val: selectedAMPM },
-    { id: 'institucion', label: 'Institución', val: document.getElementById('institucion').value.trim(), required: true },
-    { id: 'mail', label: 'Correo Electrónico', val: document.getElementById('mail').value.trim() }
-  ];
-  for (let field of fields) {
-    let isInvalid = false;
-    const el = document.getElementById(field.id);
-    if (field.isList) {
-      if (catType === 'otros') { if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true; }
-      else { if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true; }
-    } else if (field.required !== false) {
-      if (!field.val || (field.id === 'mail' && !field.val.includes('@'))) { isInvalid = true; }
-    }
-    if (isInvalid) {
-      el.classList.add('field-error');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      openModal("❌ Campo Faltante", `Falta completar el campo: ${field.label}`, "⚠️");
-      return;
-    }
-  }
-  const fechaSeleccionada = new Date(document.getElementById('fecha').value + 'T00:00:00');
-  const ahora = new Date();
-  if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 48) {
-    openModal("⏳ Restricción de Tiempo", "Lo sentimos, las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
-    document.getElementById('fecha').classList.add('field-error');
-    return;
-  }
-
-  const params = new URLSearchParams();
+// === VALIDACIÓN Y CONFIRMACIÓN ===
+function validateForm() {
+const fields = [
+{ id: 'region-grid', val: selectedRegionKey, label: 'Región' },
+{ id: 'unidad-grid', val: selectedUnidad, label: 'Unidad Médica' },
+{ id: 'cat-grid', val: catName, label: 'Tipo de Jornada' },
+{ id: 'sec-3', isList: true, label: 'Detalle' },
+{ id: 'fecha', val: document.getElementById('fecha').value, label: 'Fecha de Actividad' },
+{ id: 'hora', val: document.getElementById('hora').value.trim(), label: 'Hora de Inicio' },
+{ id: 'hora-box', val: selectedAMPM, label: 'Formato AM/PM' },
+{ id: 'institucion', val: document.getElementById('institucion').value.trim(), required: true, label: 'Institución' },
+{ id: 'mail', val: document.getElementById('mail').value.trim(), label: 'Correo Electrónico' }
+];
+for (let field of fields) {
+let isInvalid = false;
+const el = document.getElementById(field.id);
+if (field.isList) {
+if (catType === 'otros') {
+if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true;
+} else {
+if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true;
+}
+} else if (field.required !== false) {
+if (!field.val || (field.id === 'mail' && !field.val.includes('@'))) isInvalid = true;
+}
+if (isInvalid) {
+el?.classList.add('field-error');
+el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+openModal("❌ Campo Faltante", `Falta completar: ${field.label}`, "⚠️");
+return false;
+}
+}
+const fechaSeleccionada = new Date(document.getElementById('fecha').value + 'T00:00:00');
+const ahora = new Date();
+if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 48) {
+openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
+document.getElementById('fecha').classList.add('field-error');
+return false;
+}
+return true;
+}
+function showConfirmationModal() {
+if (!validateForm()) return;
+const preview = document.getElementById('previewContent');
+let html = `
+<p><b>📍 Región:</b> ${getNombreRegionLimpio(selectedRegionKey)}</p>
+<p><b>🏥 Unidad Médica:</b> ${selectedUnidad}</p>
+<p><b>📂 Tipo de Jornada:</b> ${catName}</p>
+`;
+if (catType === 'otros') {
+html += `<p><b>✨ Descripción:</b> ${document.getElementById('desc-otro').value.trim()}</p>`;
+} else {
+const selectedOps = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el => el.innerText).join(', ');
+html += `<p><b>🩺 Detalle:</b> ${selectedOps || 'Ninguno'}</p>`;
+}
+const servicios = Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el => el.innerText).join(', ');
+if (servicios) html += `<p><b>✨ Servicios Adicionales:</b> ${servicios}</p>`;
   
-  // Formato de unidad
-  let unidadInput = document.getElementById('unidad').value.trim();
-  unidadInput = unidadInput.replace(/^(U\.M\.I\.?\s*)/i, '').trim();
-  unidadInput = unidadInput.replace(/\b\w/g, l => l.toUpperCase());
-  const unidadFormateada = "U.M.I. " + unidadInput;
-  params.append("Unidad", unidadFormateada);
-  
-  params.append("Jornada", catName);
-  let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
-  if(catType === 'otros') ops = document.getElementById('desc-otro').value;
-  params.append("Opciones", ops);
-  params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
-  const institucion = document.getElementById('institucion').value.trim();
-  const direccionExacta = document.getElementById('direccion-exacta').value.trim();
-  const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
-  params.append("Direccion", direccionCompleta);
-  params.append("Fecha", document.getElementById('fecha').value);
-  params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
-  params.append("Telefono", document.getElementById('tlf').value);
-  params.append("Correo", document.getElementById('mail').value);
-  params.append("Observaciones", document.getElementById('observaciones').value);
+// ✅ Formatear fecha a DD/MM/YYYY
+const fechaInput = document.getElementById('fecha').value;
+const [year, month, day] = fechaInput.split('-');
+const fechaFormateada = `${day}/${month}/${year}`;
 
-  // === ENVIAR FOTOS COMO BASE64 PURO (solo para correo) ===
-  for(let i=1; i<=3; i++){
-    const img = document.getElementById('p'+i);
-    if(img.src && img.src.startsWith("data:image")) {
-      const base64Data = img.src.split(',')[1];
-      params.append("foto"+i, base64Data);
-    }
-  }
+html += `
+<p><b>📅 Fecha de Actividad:</b> ${fechaFormateada}</p>
+<p><b>⏰ Hora de Inicio:</b> ${document.getElementById('hora').value} ${selectedAMPM}</p>
+`;
+const institucion = document.getElementById('institucion').value.trim();
+const direccion = document.getElementById('direccion-exacta').value.trim();
+html += `<p><b>🧭 Ubicación:</b> ${[institucion, direccion].filter(x => x).join(', ')}</p>`;
+html += `
+<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>
+<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>
+`;
+const obs = document.getElementById('observaciones').value.trim();
+if (obs) html += `<p><b>✏️ Observaciones:</b> ${obs}</p>`;
+const fotos = [1,2,3].filter(i => document.getElementById(`p${i}`).src.startsWith('image'));
+html += `<p><b>📸 Soportes Fotográficos:</b> ${fotos.length > 0 ? `${fotos.length} foto(s) adjunta(s)` : 'Ninguno'}</p>`;
+preview.innerHTML = html;
+document.getElementById('confirmModal').style.display = 'flex';
 
-  document.getElementById('loadMainTxt').innerText = "Enviando Solicitud...";
-  document.getElementById('loadingOverlay').style.display = 'flex';
+// ✅ 10 segundos + animación progresiva + hover efectivo
+let timeLeft = 10;
+document.getElementById('countdown').innerText = timeLeft;
+const btnEnviar = document.getElementById('btnEnviarConfirmado');
+btnEnviar.disabled = true;
+btnEnviar.style.background = "#e9ecef";
+btnEnviar.style.color = "#495057";
+btnEnviar.style.cursor = "not-allowed";
 
-  try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
-    });
-    const result = await response.json();
-    if (result.success) {
-      // ✅ REINICIAR FORMULARIO
-      document.getElementById('sigrafForm').reset();
-      for(let i=1; i<=3; i++) {
-        const img = document.getElementById('p'+i);
-        img.src = '';
-        img.style.display = 'none';
-        document.getElementById('b'+i).style.display = 'none';
-      }
-      document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
-      document.getElementById('sec-3').classList.add('hidden');
-      document.getElementById('sec-4').classList.add('hidden');
-      selectedAMPM = "";
-      document.getElementById('btn-am').classList.remove('active');
-      document.getElementById('btn-pm').classList.remove('active');
-      
-      openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
-      setTimeout(() => {
-        closeModal();
-        showPage('list-page', document.getElementById('tab-list'));
-      }, 2000);
-    } else {
-      throw new Error(result.error);
-    }
-  } catch (e) {
-    openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
-    setTimeout(() => {
-      closeModal();
-      showPage('list-page', document.getElementById('tab-list'));
-    }, 2000);
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
+// Añadir hover efectivo al botón "Corregir"
+const btnCorregir = document.getElementById('btnCorregir');
+btnCorregir.onmouseenter = () => {
+  btnCorregir.style.background = "#d1d5db";
+  btnCorregir.style.color = "#212529";
 };
+btnCorregir.onmouseleave = () => {
+  btnCorregir.style.background = "var(--gris)";
+  btnCorregir.style.color = "var(--azul-deep)";
+};
+
+const timer = setInterval(() => {
+  timeLeft--;
+  document.getElementById('countdown').innerText = timeLeft;
+
+  // Animación: barra de progreso visual
+  const progress = ((10 - timeLeft) / 10) * 100;
+  btnEnviar.style.background = `linear-gradient(to right, var(--turquesa) ${progress}%, #e9ecef ${progress}%)`;
+  btnEnviar.style.color = timeLeft <= 3 ? "white" : "#495057";
+
+  if (timeLeft <= 0) {
+    clearInterval(timer);
+    btnEnviar.disabled = false;
+    btnEnviar.style.background = "var(--turquesa)";
+    btnEnviar.style.color = "white";
+    btnEnviar.style.cursor = "pointer";
+    btnEnviar.innerText = "🚀 Enviar Solicitud";
+
+    // Añadir hover al botón activo
+    btnEnviar.onmouseenter = () => {
+      btnEnviar.style.background = "var(--azul-deep)";
+      btnEnviar.style.transform = "scale(1.02)";
+    };
+    btnEnviar.onmouseleave = () => {
+      btnEnviar.style.background = "var(--turquesa)";
+      btnEnviar.style.transform = "scale(1)";
+    };
+  }
+}, 1000);
+
+window.confirmTimer = timer;
+}
+document.getElementById('btnCorregir').onclick = () => {
+  if (window.confirmTimer) clearInterval(window.confirmTimer);
+  document.getElementById('confirmModal').style.display = 'none';
+};
+function proceedToSend() {
+  if (window.confirmTimer) clearInterval(window.confirmTimer);
+  document.getElementById('confirmModal').style.display = 'none';
+  realSubmitForm();
+}
+document.getElementById('btnEnviarConfirmado').onclick = proceedToSend;
+// === ENVÍO REAL ===
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
+document.getElementById('sigrafForm').onsubmit = function(e) {
+e.preventDefault();
+showConfirmationModal();
+};
+function realSubmitForm() {
+const params = new URLSearchParams();
+const EXCEPCIONES_SIN_UMI = [
+"C.N.E.D. Dr. Julio de Armas",
+"Centro de Salud para El Buen Vivir Dr. Salvador Allende",
+"Club Villas Ipasmar",
+"Hotel Valle Grande"
+];
+let unidadFinal = selectedUnidad;
+if (!EXCEPCIONES_SIN_UMI.includes(selectedUnidad.trim())) {
+unidadFinal = selectedUnidad.trim().replace(/\b\w/g, l => l.toUpperCase());
+unidadFinal = "U.M.I. " + unidadFinal;
+}
+params.append("Unidad", unidadFinal);
+params.append("Jornada", catName);
+let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
+if(catType === 'otros') ops = document.getElementById('desc-otro').value;
+params.append("Opciones", ops);
+params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+const institucion = document.getElementById('institucion').value.trim();
+const direccionExacta = document.getElementById('direccion-exacta').value.trim();
+const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
+params.append("Direccion", direccionCompleta);
+params.append("Fecha", document.getElementById('fecha').value);
+params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
+params.append("Telefono", document.getElementById('tlf').value);
+params.append("Correo", document.getElementById('mail').value);
+params.append("Observaciones", document.getElementById('observaciones').value);
+for(let i=1; i<=3; i++){
+const img = document.getElementById('p'+i);
+if(img.src && img.src.startsWith("image")) {
+const base64Data = img.src.split(',')[1];
+params.append("foto"+i, base64Data);
+}
+}
+document.getElementById('loadMainTxt').innerText = "Enviando Solicitud...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params.toString()
+})
+.then(response => response.json())
+.then(result => {
+if (result.success) {
+// ✅ REINICIAR FORMULARIO
+document.getElementById('sigrafForm').reset();
+for(let i=1; i<=3; i++) {
+const img = document.getElementById('p'+i);
+img.src = '';
+img.style.display = 'none';
+document.getElementById('b'+i).style.display = 'none';
+}
+document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
+document.getElementById('sec-3').classList.add('hidden');
+document.getElementById('sec-4').classList.add('hidden');
+selectedAMPM = "";
+document.getElementById('btn-am').classList.remove('active');
+document.getElementById('btn-pm').classList.remove('active');
+selectedRegionKey = "";
+selectedUnidad = "";
+document.getElementById('region-grid').querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
+document.getElementById('unidad-grid').innerHTML = "";
+document.getElementById('unidad-section').classList.add('hidden');
+openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
+setTimeout(() => {
+closeModal();
+showPage('list-page', document.getElementById('tab-list'));
+}, 2000);
+} else {
+throw new Error(result.error);
+}
+})
+.catch(e => {
+openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
+setTimeout(() => {
+closeModal();
+showPage('list-page', document.getElementById('tab-list'));
+}, 2000);
+})
+.finally(() => {
+document.getElementById('loadingOverlay').style.display = 'none';
+});
+}
 </script>
 </body>
 </html>
