@@ -68,6 +68,37 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .modal-btn { background: var(--turquesa); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
 .modal-btn:hover { background: var(--azul-deep); }
 .modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
+
+/* ✅ NUEVA CLASE PARA BOTONES IGUALES EN MODAL DE CONFIRMACIÓN */
+.modal-btn-confirm {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.modal-btn-confirm.corregir {
+  background: var(--gris);
+  color: var(--azul-deep);
+}
+.modal-btn-confirm.enviar {
+  background: var(--turquesa);
+  color: white;
+}
+.modal-btn-confirm:disabled {
+  background: #e9ecef;
+  color: #495057;
+  cursor: not-allowed;
+}
+
 .table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
 table { width: 100%; border-collapse: collapse; min-width: 900px; }
 th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa); border-bottom: 2px solid var(--gris); }
@@ -139,12 +170,8 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <h2 style="font-weight: 800; color: var(--azul-deep); margin-top: 0;">🔍 Revisa tu Solicitud</h2>
 <div id="previewContent"></div>
 <div style="display: flex; gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto; margin-top: 20px;">
-  <button id="btnCorregir" class="modal-btn modal-btn-alt" style="flex: 1; min-width: 140px; font-size: 1rem; padding: 12px; font-weight: 800; transition: all 0.3s ease; border-radius: 12px;">
-    ✏️ Corregir
-  </button>
-  <button id="btnEnviarConfirmado" class="modal-btn" disabled style="flex: 1; min-width: 140px; font-size: 1rem; padding: 12px; font-weight: 800; transition: all 0.3s ease; border-radius: 12px; background: #e9ecef; color: #495057; cursor: not-allowed;">
-    🚀 Enviar Solicitud (<span id="countdown">10</span>)
-  </button>
+  <button id="btnCorregir" class="modal-btn-confirm corregir">✏️ Corregir</button>
+  <button id="btnEnviarConfirmado" class="modal-btn-confirm enviar" disabled>🚀 Enviar Solicitud (<span id="countdown">10</span>)</button>
 </div>
 </div>
 </div>
@@ -237,7 +264,8 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <thead>
 <tr>
 <th id="col-fecha-registro">FECHA REGISTRO</th>
-<th>FECHA ACTIVIDAD</th>
+<th id="col-fecha-actividad">FECHA ACTIVIDAD</th>
+<th id="col-id-solicitud" class="hidden">ID SOLICITUD</th>
 <th>UNIDAD SOLICITANTE</th>
 <th>TIPO DE JORNADA</th>
 <th style="text-align:center">SOPORTES</th>
@@ -358,7 +386,7 @@ function selectUnidad(unidad) {
 selectedUnidad = unidad.trim();
 document.querySelectorAll('#unidad-grid .card-btn').forEach(b => b.classList.remove('selected'));
 const clickedBtn = Array.from(document.querySelectorAll('#unidad-grid .card-btn'))
-  .find(b => b.innerText.trim() === selectedUnidad);
+.find(b => b.innerText.trim() === selectedUnidad);
 if (clickedBtn) clickedBtn.classList.add('selected');
 }
 // === FUNCIONES DE SEGURIDAD Y LIMPIEZA ===
@@ -399,44 +427,35 @@ const btn = document.getElementById('mainModalBtn');
 btn.innerText = "VALIDAR CREDENCIALES";
 btn.onclick = validateLogin;
 document.getElementById('modalAlert').style.display = 'flex';
-
 // ➕ Permitir Enter para enviar credenciales
 const userField = document.getElementById('adminUser');
 const passField = document.getElementById('adminPass');
-
 const handleEnter = (e) => {
-  if (e.key === 'Enter') {
-    validateLogin();
-  }
+if (e.key === 'Enter') {
+validateLogin();
+}
 };
-
 userField.removeEventListener('keydown', handleEnter);
 passField.removeEventListener('keydown', handleEnter);
-
 userField.addEventListener('keydown', handleEnter);
 passField.addEventListener('keydown', handleEnter);
 }
 async function validateLogin() {
 const u = document.getElementById('adminUser').value.trim();
 const p = document.getElementById('adminPass').value.trim();
-
 if (!u || !p) {
 openModal("❌ Error", "Complete ambos campos.", "🔐");
 return;
 }
-
 document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
 document.getElementById('loadingOverlay').style.display = 'flex';
-
 try {
 const params = new URLSearchParams();
 params.append("action", "loginAdmin");
 params.append("username", u);
 params.append("password", p);
-
 const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
 const data = await res.json();
-
 if (data.success && data.data?.isAdmin) {
 isAdmin = true;
 document.getElementById('authBtn').className = "btn-logout";
@@ -445,7 +464,6 @@ document.getElementById('authBtn').onclick = logout;
 document.getElementById('th-admin').classList.remove('hidden');
 document.getElementById('maintBtn').classList.remove('hidden');
 document.getElementById('col-fecha-registro').style.display = 'none';
-document.getElementById('maintOverlay').style.display = 'none';
 clearCredentials();
 closeModal();
 updateTable();
@@ -546,7 +564,7 @@ setTimeout(() => closeModal(), 2000);
 } else {
 openModal("❌ Error", "Error: " + data.error, "💥");
 }
-} catch(e) {
+} catch (e) {
 openModal("❌ Error", "Error de conexión.", "💥");
 } finally {
 document.getElementById('loadingOverlay').style.display = 'none';
@@ -575,9 +593,47 @@ openModal("❌ Error", "Error al cambiar estado del mantenimiento.", "💥");
 document.getElementById('loadingOverlay').style.display = 'none';
 }
 }
-async function deleteReq(id) {
-if (!confirm(`¿Está seguro de eliminar la solicitud ${id}?`)) return;
-if (!confirm(`⚠️ ¡ADVERTENCIA! Esta acción es irreversible.\n¿Eliminar permanentemente de la base de datos?`)) return;
+// === 🔥 ELIMINACIÓN CON MODALES PERSONALIZADOS ===
+let currentDeleteId = null;
+function deleteReq(id) {
+currentDeleteId = id;
+showDeleteConfirm(1);
+}
+function showDeleteConfirm(step) {
+const id = currentDeleteId;
+if (step === 1) {
+openCustomModal(
+"🗑️ Confirmar Eliminación",
+`¿Está seguro de eliminar la solicitud <b>${id}</b>?`,
+() => showDeleteConfirm(2),
+() => closeModal()
+);
+} else if (step === 2) {
+openCustomModal(
+"⚠️ ¡Advertencia Final!",
+`¡Esta acción es <b>irreversible</b>!<br>¿Eliminar permanentemente la solicitud <b>${id}</b> de la base de datos?`,
+() => executeDelete(),
+() => closeModal()
+);
+}
+}
+function openCustomModal(title, message, onConfirm, onCancel) {
+document.getElementById('modalIcon').innerText = "❓";
+document.getElementById('modalTitle').innerText = title;
+document.getElementById('modalMsg').innerHTML = message;
+const mainBtn = document.getElementById('mainModalBtn');
+const altBtn = document.getElementById('closeModalBtn');
+mainBtn.innerText = "SÍ, ACEPTAR";
+mainBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+altBtn.classList.remove('hidden');
+altBtn.innerText = "CANCELAR";
+altBtn.onclick = () => { closeModal(); if (onCancel) onCancel(); };
+document.getElementById('loginArea').classList.add('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('modalAlert').style.display = 'flex';
+}
+async function executeDelete() {
+const id = currentDeleteId;
 localData = localData.filter(x => x.id != id);
 renderLocalTable();
 try {
@@ -585,12 +641,13 @@ const params = new URLSearchParams();
 params.append("action", "delete");
 params.append("id", id);
 await fetch(SCRIPT_URL, { method: 'POST', body: params });
-openModal("🗑️ Eliminada", "Solicitud y arte eliminados correctamente.", "✅");
+openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
 } catch (e) {
 openModal("❌ Error", "Error al eliminar. Revise la conexión.", "💥");
 updateTable();
 }
 }
+// === FIN ELIMINACIÓN ===
 // === FIN FUNCIONES ADMIN ===
 // === FUNCIONES GENERALES ===
 function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
@@ -633,7 +690,8 @@ const tr = document.createElement('tr');
 if(esNueva) tr.className = "row-new";
 tr.innerHTML = `
 ${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
-<td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>
+${isAdmin ? '' : `<td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>`}
+${isAdmin ? `<td><span class="txt-bold">${s.id}</span></td>` : ''}
 <td class="txt-bold">${unidadLimpia} ${badge}</td>
 <td>${jornadaLimpia}</td>
 <td align="center">${icon}</td>
@@ -655,6 +713,9 @@ document.getElementById('count-total').innerText = counts.total;
 document.getElementById('count-pend').innerText = counts.pend;
 document.getElementById('count-proc').innerText = counts.proc;
 document.getElementById('count-fin').innerText = counts.fin;
+// ✅ Actualizar visibilidad de columnas del encabezado
+document.getElementById('col-fecha-actividad').style.display = isAdmin ? 'none' : '';
+document.getElementById('col-id-solicitud').classList.toggle('hidden', !isAdmin);
 }
 async function modStatus(id, st) {
 const pill = document.getElementById('pill-' + id);
@@ -724,12 +785,10 @@ html += `<p><b>🩺 Detalle:</b> ${selectedOps || 'Ninguno'}</p>`;
 }
 const servicios = Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el => el.innerText).join(', ');
 if (servicios) html += `<p><b>✨ Servicios Adicionales:</b> ${servicios}</p>`;
-  
 // ✅ Formatear fecha a DD/MM/YYYY
 const fechaInput = document.getElementById('fecha').value;
 const [year, month, day] = fechaInput.split('-');
 const fechaFormateada = `${day}/${month}/${year}`;
-
 html += `
 <p><b>📅 Fecha de Actividad:</b> ${fechaFormateada}</p>
 <p><b>⏰ Hora de Inicio:</b> ${document.getElementById('hora').value} ${selectedAMPM}</p>
@@ -747,66 +806,60 @@ const fotos = [1,2,3].filter(i => document.getElementById(`p${i}`).src.startsWit
 html += `<p><b>📸 Soportes Fotográficos:</b> ${fotos.length > 0 ? `${fotos.length} foto(s) adjunta(s)` : 'Ninguno'}</p>`;
 preview.innerHTML = html;
 document.getElementById('confirmModal').style.display = 'flex';
-
 // ✅ 10 segundos + animación progresiva + hover efectivo
 let timeLeft = 10;
 document.getElementById('countdown').innerText = timeLeft;
 const btnEnviar = document.getElementById('btnEnviarConfirmado');
 btnEnviar.disabled = true;
-btnEnviar.style.background = "#e9ecef";
-btnEnviar.style.color = "#495057";
-btnEnviar.style.cursor = "not-allowed";
-
+btnEnviar.classList.remove('enviar');
+btnEnviar.classList.add('corregir');
 // Añadir hover efectivo al botón "Corregir"
 const btnCorregir = document.getElementById('btnCorregir');
 btnCorregir.onmouseenter = () => {
-  btnCorregir.style.background = "#d1d5db";
-  btnCorregir.style.color = "#212529";
+btnCorregir.style.background = "#d1d5db";
+btnCorregir.style.color = "#212529";
 };
 btnCorregir.onmouseleave = () => {
-  btnCorregir.style.background = "var(--gris)";
-  btnCorregir.style.color = "var(--azul-deep)";
+btnCorregir.style.background = "var(--gris)";
+btnCorregir.style.color = "var(--azul-deep)";
 };
-
 const timer = setInterval(() => {
-  timeLeft--;
-  document.getElementById('countdown').innerText = timeLeft;
-
-  // Animación: barra de progreso visual
-  const progress = ((10 - timeLeft) / 10) * 100;
-  btnEnviar.style.background = `linear-gradient(to right, var(--turquesa) ${progress}%, #e9ecef ${progress}%)`;
-  btnEnviar.style.color = timeLeft <= 3 ? "white" : "#495057";
-
-  if (timeLeft <= 0) {
-    clearInterval(timer);
-    btnEnviar.disabled = false;
-    btnEnviar.style.background = "var(--turquesa)";
-    btnEnviar.style.color = "white";
-    btnEnviar.style.cursor = "pointer";
-    btnEnviar.innerText = "🚀 Enviar Solicitud";
-
-    // Añadir hover al botón activo
-    btnEnviar.onmouseenter = () => {
-      btnEnviar.style.background = "var(--azul-deep)";
-      btnEnviar.style.transform = "scale(1.02)";
-    };
-    btnEnviar.onmouseleave = () => {
-      btnEnviar.style.background = "var(--turquesa)";
-      btnEnviar.style.transform = "scale(1)";
-    };
-  }
+timeLeft--;
+document.getElementById('countdown').innerText = timeLeft;
+// Animación: barra de progreso visual
+const progress = ((10 - timeLeft) / 10) * 100;
+btnEnviar.style.background = `linear-gradient(to right, var(--turquesa) ${progress}%, #e9ecef ${progress}%)`;
+btnEnviar.style.color = timeLeft <= 3 ? "white" : "#495057";
+if (timeLeft <= 0) {
+clearInterval(timer);
+btnEnviar.disabled = false;
+btnEnviar.classList.remove('corregir');
+btnEnviar.classList.add('enviar');
+btnEnviar.style.background = "var(--turquesa)";
+btnEnviar.style.color = "white";
+btnEnviar.style.cursor = "pointer";
+btnEnviar.innerText = "🚀 Enviar Solicitud";
+// Añadir hover al botón activo
+btnEnviar.onmouseenter = () => {
+btnEnviar.style.background = "var(--azul-deep)";
+btnEnviar.style.transform = "scale(1.02)";
+};
+btnEnviar.onmouseleave = () => {
+btnEnviar.style.background = "var(--turquesa)";
+btnEnviar.style.transform = "scale(1)";
+};
+}
 }, 1000);
-
 window.confirmTimer = timer;
 }
 document.getElementById('btnCorregir').onclick = () => {
-  if (window.confirmTimer) clearInterval(window.confirmTimer);
-  document.getElementById('confirmModal').style.display = 'none';
+if (window.confirmTimer) clearInterval(window.confirmTimer);
+document.getElementById('confirmModal').style.display = 'none';
 };
 function proceedToSend() {
-  if (window.confirmTimer) clearInterval(window.confirmTimer);
-  document.getElementById('confirmModal').style.display = 'none';
-  realSubmitForm();
+if (window.confirmTimer) clearInterval(window.confirmTimer);
+document.getElementById('confirmModal').style.display = 'none';
+realSubmitForm();
 }
 document.getElementById('btnEnviarConfirmado').onclick = proceedToSend;
 // === ENVÍO REAL ===
