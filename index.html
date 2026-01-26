@@ -913,20 +913,17 @@ if(statusLimpio === 'finalizada') counts.fin++;
 const esNueva = (idx < 5 && statusReal === "PENDIENTE");
 const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
 const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
-
 let badge = '';
 let rowClass = '';
-
 if (esNueva) {
-  if (jornadaLimpia === "Obituario") {
-    badge = '<span class="badge-prioridad">PRIORIZAR</span>';
-    rowClass = "row-obituario";
-  } else {
-    badge = '<span class="badge-new">NUEVA ✨</span>';
-    rowClass = "row-new"; // ✅ Resaltado azul recuperado
-  }
+if (jornadaLimpia === "Obituario") {
+badge = '<span class="badge-prioridad">PRIORIZAR</span>';
+rowClass = "row-obituario";
+} else {
+badge = '<span class="badge-new">NUEVA ✨</span>';
+rowClass = "row-new"; // ✅ Resaltado azul recuperado
 }
-
+}
 let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
 const tr = document.createElement('tr');
 if(rowClass) tr.className = rowClass;
@@ -1066,9 +1063,9 @@ let html = `
 <p><b>🏥 Unidad Médica:</b> ${selectedUnidad}</p>
 `;
 if (modoObituario) {
-    html += `<p><b>📋 Tipo de Solicitud:</b> Obituario</p>`;
+html += `<p><b>📋 Tipo de Solicitud:</b> Obituario</p>`;
 } else {
-    html += `<p><b>📂 Tipo de Jornada:</b> ${catName}</p>`;
+html += `<p><b>📂 Tipo de Jornada:</b> ${catName}</p>`;
 }
 if (catType === 'otros' && !modoObituario) {
 html += `<p><b>✨ Descripción:</b> ${document.getElementById('desc-otro').value.trim()}</p>`;
@@ -1165,10 +1162,10 @@ const EXCEPCIONES_SIN_UMI = [
 "Club Villas Ipasmar",
 "Hotel Valle Grande"
 ];
-let unidadFinal = selectedUnidad;
-if (!EXCEPCIONES_SIN_UMI.includes(selectedUnidad.trim())) {
-unidadFinal = selectedUnidad.trim().replace(/\b\w/g, l => l.toUpperCase());
-unidadFinal = "U.M.I. " + unidadFinal;
+// ✅ CORRECCIÓN: se elimina la capitalización automática
+let unidadFinal = selectedUnidad.trim();
+if (!EXCEPCIONES_SIN_UMI.includes(unidadFinal)) {
+  unidadFinal = "U.M.I. " + unidadFinal;
 }
 params.append("Unidad", unidadFinal);
 // ✅ Aquí se envía "Obituario" si está activo
