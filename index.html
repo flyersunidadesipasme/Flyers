@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIRA | Sistema Integral de Requerimientos de Artes</title>
+<title>SIRA 2.0 | Sistema Integral de Requerimientos de Artes</title>
 <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -25,7 +25,9 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .btn-login:active { transform: translateY(2px); box-shadow: 0 1px 0 #c79100; }
 .btn-logout { background: var(--rojo); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
 .row-new { background-color: #e3f2fd !important; border-left: 5px solid var(--turquesa) !important; }
+.row-obituario { background-color: #e0e0e0 !important; border-left: 5px solid #6c757d !important; }
 .badge-new { background: var(--turquesa); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; animation: blink 2s infinite; }
+.badge-prioridad { background: white; color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; border: 1px solid #6c757d; }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 .stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .stat-card { flex: 1; min-width: 100px; padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight: 800; }
@@ -46,6 +48,20 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 @keyframes border-blink { from { border-color: var(--rojo); box-shadow: 0 0 5px rgba(230, 57, 70, 0.2); } to { border-color: transparent; box-shadow: none; } }
 .btn-time { padding: 8px; border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s; }
 .btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
+/* ✅ Estilo mejorado para botón Obituario */
+#btn-obituario {
+padding: 6px 12px !important;
+font-size: 0.75rem !important;
+min-width: auto !important;
+width: auto !important;
+height: auto !important;
+border-radius: 8px !important;
+}
+#btn-obituario.obit-active {
+background: var(--azul-deep) !important;
+color: white !important;
+border-color: var(--azul-deep) !important;
+}
 .modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem; outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
 .modern-input:focus { border-color: var(--turquesa); background: white; }
 .pass-container { position: relative; width: 100%; }
@@ -68,37 +84,35 @@ header { background: var(--azul-deep); padding: 8px 25px; display: flex; align-i
 .modal-btn { background: var(--turquesa); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
 .modal-btn:hover { background: var(--azul-deep); }
 .modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
-
 /* ✅ NUEVA CLASE PARA BOTONES IGUALES EN MODAL DE CONFIRMACIÓN */
 .modal-btn-confirm {
-  flex: 1;
-  min-width: 140px;
-  padding: 12px;
-  font-size: 1rem;
-  font-weight: 800;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+flex: 1;
+min-width: 140px;
+padding: 12px;
+font-size: 1rem;
+font-weight: 800;
+border-radius: 12px;
+border: none;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
 }
 .modal-btn-confirm.corregir {
-  background: var(--gris);
-  color: var(--azul-deep);
+background: var(--gris);
+color: var(--azul-deep);
 }
 .modal-btn-confirm.enviar {
-  background: var(--turquesa);
-  color: white;
+background: var(--turquesa);
+color: white;
 }
 .modal-btn-confirm:disabled {
-  background: #e9ecef;
-  color: #495057;
-  cursor: not-allowed;
+background: #e9ecef;
+color: #495057;
+cursor: not-allowed;
 }
-
 .table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
 table { width: 100%; border-collapse: collapse; min-width: 900px; }
 th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa); border-bottom: 2px solid var(--gris); }
@@ -127,6 +141,21 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 30000; color: white; text-align: center; padding: 20px; }
 .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--amarillo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+/* ✅ Estilo para campos deshabilitados en modo obituario */
+.obit-disabled {
+background-color: #e9ecef !important;
+color: #6c757d !important;
+cursor: not-allowed !important;
+}
+.obit-upload-box {
+background: #e9ecef !important;
+border-color: #ced4da !important;
+cursor: not-allowed !important;
+}
+.obit-upload-label {
+color: #6c757d !important;
+cursor: not-allowed !important;
+}
 </style>
 </head>
 <body>
@@ -170,14 +199,14 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <h2 style="font-weight: 800; color: var(--azul-deep); margin-top: 0;">🔍 Revisa tu Solicitud</h2>
 <div id="previewContent"></div>
 <div style="display: flex; gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto; margin-top: 20px;">
-  <button id="btnCorregir" class="modal-btn-confirm corregir">✏️ Corregir</button>
-  <button id="btnEnviarConfirmado" class="modal-btn-confirm enviar" disabled>🚀 Enviar Solicitud (<span id="countdown">10</span>)</button>
+<button id="btnCorregir" class="modal-btn-confirm corregir">✏️ Corregir</button>
+<button id="btnEnviarConfirmado" class="modal-btn-confirm enviar" disabled>🚀 Enviar Solicitud (<span id="countdown">10</span>)</button>
 </div>
 </div>
 </div>
 <header>
 <div class="brand-container">
-<h1 class="header-title">SIRA</h1>
+<h1 class="header-title">SIRA 2.0</h1>
 <span class="acronimo">Sistema Integral de Requerimientos de Artes</span>
 </div>
 <div class="nav-tabs">
@@ -234,10 +263,10 @@ td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem
 <input type="text" id="direccion-exacta" class="modern-input" placeholder="Municipio, Parroquia, Ciudad, etc.">
 </div>
 </div>
-<label class="section-title">📱✉️ 8. DATOS DE CONTACTO *</label>
+<label class="section-title">📱✉️ 8. DATOS DE CONTACTO</label>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
 <div><label class="txt-small">Número de Teléfono</label><input type="tel" id="tlf" class="modern-input" placeholder="04xx 1234567"></div>
-<div><label class="txt-small">Correo Electrónico</label><input type="email" id="mail" class="modern-input" placeholder="Para envío de arte final *"></div>
+<div><label class="txt-small">Correo Electrónico *</label><input type="email" id="mail" class="modern-input" placeholder="Para envío de arte final"></div>
 </div>
 <label class="section-title">✏️ 9. OBSERVACIONES / DETALLES DE DISEÑO</label><textarea id="observaciones" class="modern-input" rows="3" placeholder="Indique medidas, colores institucionales o entes participantes adicionales..."></textarea>
 <label class="section-title">📸 10. SOPORTES FOTOGRÁFICOS (MÁX 3)</label>
@@ -344,6 +373,7 @@ let localData = [];
 let isMaintActive = false;
 let selectedRegionKey = "";
 let selectedUnidad = "";
+let modoObituario = false; // ✅ NUEVA VARIABLE GLOBAL
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
@@ -351,6 +381,51 @@ vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide
 quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
+// ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
+function setupFieldErrorRemoval() {
+['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
+const el = document.getElementById(id);
+if (el) {
+el.addEventListener('input', () => el.classList.remove('field-error'));
+el.addEventListener('focus', () => el.classList.remove('field-error'));
+}
+});
+document.querySelectorAll('#region-grid .card-btn').forEach(btn => {
+btn.addEventListener('click', () => {
+document.getElementById('region-grid').classList.remove('field-error');
+});
+});
+const unidadGrid = document.getElementById('unidad-grid');
+const observer = new MutationObserver(() => {
+unidadGrid.querySelectorAll('.card-btn').forEach(btn => {
+btn.addEventListener('click', () => {
+document.getElementById('unidad-grid').classList.remove('field-error');
+});
+});
+});
+observer.observe(unidadGrid, { childList: true });
+document.querySelectorAll('#cat-grid .card-btn').forEach(btn => {
+btn.addEventListener('click', () => {
+document.getElementById('cat-grid').classList.remove('field-error');
+});
+});
+const cont3 = document.getElementById('cont-3');
+const observer3 = new MutationObserver(() => {
+cont3.querySelectorAll('.card-btn').forEach(btn => {
+btn.addEventListener('click', () => {
+document.getElementById('sec-3').classList.remove('field-error');
+});
+});
+const descOtro = document.getElementById('desc-otro');
+if (descOtro) {
+descOtro.addEventListener('input', () => document.getElementById('sec-3').classList.remove('field-error'));
+descOtro.addEventListener('focus', () => document.getElementById('sec-3').classList.remove('field-error'));
+}
+});
+observer3.observe(cont3, { childList: true, subtree: true });
+document.getElementById('btn-am').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+document.getElementById('btn-pm').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+}
 document.addEventListener('DOMContentLoaded', () => {
 const regionGrid = document.getElementById('region-grid');
 ORDEN_REGIONES.forEach(regionKey => {
@@ -361,6 +436,7 @@ btn.onclick = () => selectRegion(regionKey);
 regionGrid.appendChild(btn);
 });
 updateTable();
+setupFieldErrorRemoval();
 });
 function selectRegion(regionKey) {
 document.querySelectorAll('#region-grid .card-btn').forEach(b => b.classList.remove('selected'));
@@ -388,6 +464,69 @@ document.querySelectorAll('#unidad-grid .card-btn').forEach(b => b.classList.rem
 const clickedBtn = Array.from(document.querySelectorAll('#unidad-grid .card-btn'))
 .find(b => b.innerText.trim() === selectedUnidad);
 if (clickedBtn) clickedBtn.classList.add('selected');
+}
+// ✅ FUNCIÓN TOGGLE MODO OBITUARIO ACTUALIZADA
+function toggleObituario() {
+modoObituario = !modoObituario;
+const btn = document.getElementById('btn-obituario');
+const fechaInput = document.getElementById('fecha');
+const horaInput = document.getElementById('hora');
+const institucion = document.getElementById('institucion');
+const direccionExacta = document.getElementById('direccion-exacta');
+const observaciones = document.getElementById('observaciones');
+const descOtro = document.getElementById('desc-otro'); // ✅ Referencia al textarea
+const uploadBoxes = document.querySelectorAll('.upload-box');
+const labels = document.querySelectorAll('.upload-label');
+if (modoObituario) {
+btn.classList.add('obit-active');
+btn.innerText = "OBITUARIO";
+const hoy = new Date();
+const yyyy = hoy.getFullYear();
+const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+const dd = String(hoy.getDate()).padStart(2, '0');
+fechaInput.value = `${yyyy}-${mm}-${dd}`;
+fechaInput.disabled = true;
+horaInput.disabled = true;
+institucion.disabled = true;
+direccionExacta.disabled = true;
+observaciones.disabled = true;
+horaInput.classList.add('obit-disabled');
+institucion.classList.add('obit-disabled');
+direccionExacta.classList.add('obit-disabled');
+observaciones.classList.add('obit-disabled');
+uploadBoxes.forEach(box => box.classList.add('obit-upload-box'));
+labels.forEach(label => label.classList.add('obit-upload-label'));
+horaInput.value = '';
+institucion.value = '';
+direccionExacta.value = '';
+observaciones.value = '';
+// ✅ Placeholder corregido: sin "familiar"
+if (descOtro) {
+descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en caso de ser familiar de un trabajador del Ipasme y servicio o jurisdicción a la que pertenece el familiar o el fallecido.";
+}
+Array.from(document.querySelectorAll('.preview')).forEach(img => {
+img.src = ''; img.style.display = 'none';
+});
+Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
+} else {
+btn.classList.remove('obit-active');
+btn.innerText = "OBITUARIO";
+fechaInput.disabled = false;
+horaInput.disabled = false;
+institucion.disabled = false;
+direccionExacta.disabled = false;
+observaciones.disabled = false;
+horaInput.classList.remove('obit-disabled');
+institucion.classList.remove('obit-disabled');
+direccionExacta.classList.remove('obit-disabled');
+observaciones.classList.remove('obit-disabled');
+uploadBoxes.forEach(box => box.classList.remove('obit-upload-box'));
+labels.forEach(label => label.classList.remove('obit-upload-label'));
+// ✅ Restaurar placeholder original
+if (descOtro) {
+descOtro.placeholder = "Detalle aquí su solicitud especial...";
+}
+}
 }
 // === FUNCIONES DE SEGURIDAD Y LIMPIEZA ===
 function clearCredentials() {
@@ -427,7 +566,6 @@ const btn = document.getElementById('mainModalBtn');
 btn.innerText = "VALIDAR CREDENCIALES";
 btn.onclick = validateLogin;
 document.getElementById('modalAlert').style.display = 'flex';
-// ➕ Permitir Enter para enviar credenciales
 const userField = document.getElementById('adminUser');
 const passField = document.getElementById('adminPass');
 const handleEnter = (e) => {
@@ -650,10 +788,101 @@ updateTable();
 // === FIN ELIMINACIÓN ===
 // === FIN FUNCIONES ADMIN ===
 // === FUNCIONES GENERALES ===
-function handleFile(input, imgId, btnId) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; document.getElementById(btnId).style.display = 'block'; }; reader.readAsDataURL(file); } }
-function clearFile(inputId, imgId, btnId) { document.getElementById(inputId).value = ""; const img = document.getElementById(imgId); img.src = ""; img.style.display = 'none'; document.getElementById(btnId).style.display = 'none'; }
-function setAMPM(val) { selectedAMPM = val; document.getElementById('btn-am').classList.remove('active'); document.getElementById('btn-pm').classList.remove('active'); document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active'); document.getElementById('hora-box').classList.remove('field-error'); }
-function selectCat(btn, tipo) { document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); catName = btn.innerText; catType = tipo; document.getElementById('cat-grid').classList.remove('field-error'); const s3 = document.getElementById('sec-3'); const s4 = document.getElementById('sec-4'); const c3 = document.getElementById('cont-3'); const c4 = document.getElementById('cont-4'); s3.classList.remove('hidden'); s4.classList.add('hidden'); c3.innerHTML = ""; c4.innerHTML = ""; if (['escuela', 'integral', 'conjunta'].includes(tipo)) { document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *"; renderList(c3, DATA.especialidades); s4.classList.remove('hidden'); renderList(c4, DATA.servicios); } else if (tipo === 'vacuna') { document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *"; renderList(c3, DATA.vacunas); } else if (tipo === 'quirurgica') { document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *"; renderList(c3, DATA.quirurgica); } else if (tipo === 'oftalmo') { document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *"; renderList(c3, DATA.oftalmo); } else { document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *"; c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>'; } }
+function handleFile(input, imgId, btnId) {
+if (modoObituario) {
+input.value = "";
+return;
+}
+const file = input.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = (e) => {
+const img = document.getElementById(imgId);
+img.src = e.target.result;
+img.style.display = 'block';
+document.getElementById(btnId).style.display = 'block';
+};
+reader.readAsDataURL(file);
+}
+}
+function clearFile(inputId, imgId, btnId) {
+if (modoObituario) return;
+document.getElementById(inputId).value = "";
+const img = document.getElementById(imgId);
+img.src = "";
+img.style.display = 'none';
+document.getElementById(btnId).style.display = 'none';
+}
+function setAMPM(val) {
+if (modoObituario) return;
+selectedAMPM = val;
+document.getElementById('btn-am').classList.remove('active');
+document.getElementById('btn-pm').classList.remove('active');
+document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active');
+document.getElementById('hora-box').classList.remove('field-error');
+}
+// ✅ MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría
+function selectCat(btn, tipo) {
+if (modoObituario && tipo !== 'otros') {
+modoObituario = false;
+const obitBtn = document.getElementById('btn-obituario');
+if (obitBtn) {
+obitBtn.classList.remove('obit-active');
+obitBtn.innerText = "OBITUARIO";
+document.getElementById('fecha').disabled = false;
+document.getElementById('hora').disabled = false;
+document.getElementById('institucion').disabled = false;
+document.getElementById('direccion-exacta').disabled = false;
+document.getElementById('observaciones').disabled = false;
+document.getElementById('hora').classList.remove('obit-disabled');
+document.getElementById('institucion').classList.remove('obit-disabled');
+document.getElementById('direccion-exacta').classList.remove('obit-disabled');
+document.getElementById('observaciones').classList.remove('obit-disabled');
+document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
+document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+}
+}
+document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected'));
+btn.classList.add('selected');
+catName = btn.innerText;
+catType = tipo;
+document.getElementById('cat-grid').classList.remove('field-error');
+const s3 = document.getElementById('sec-3');
+const s4 = document.getElementById('sec-4');
+const c3 = document.getElementById('cont-3');
+const c4 = document.getElementById('cont-4');
+s3.classList.remove('hidden');
+s4.classList.add('hidden');
+c3.innerHTML = "";
+c4.innerHTML = "";
+if (['escuela', 'integral', 'conjunta'].includes(tipo)) {
+document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *";
+renderList(c3, DATA.especialidades);
+s4.classList.remove('hidden');
+renderList(c4, DATA.servicios);
+} else if (tipo === 'vacuna') {
+document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *";
+renderList(c3, DATA.vacunas);
+} else if (tipo === 'quirurgica') {
+document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *";
+renderList(c3, DATA.quirurgica);
+} else if (tipo === 'oftalmo') {
+document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *";
+renderList(c3, DATA.oftalmo);
+} else {
+document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
+c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
+c3.innerHTML += `
+<div style="display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; grid-column: 1 / -1;">
+<button type="button" id="btn-obituario" class="btn-time" style="background: #f8f9fa; border-color: var(--gris); color: var(--azul-deep); width: 120px; padding: 8px;" onclick="toggleObituario()">
+OBITUARIO
+</button>
+<div style="flex: 1; min-width: 200px; background: #fff8e1; border: 1px solid #ffe082; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; color: #5d4600; font-weight: 600; line-height: 1.3;">
+⚠️ Activar este modo elimina el requerimiento de 48 horas. Úselo con moderación.
+</div>
+</div>`;
+}
+}
 function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); }); }
 function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active'); else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
 async function updateTable() {
@@ -684,10 +913,23 @@ if(statusLimpio === 'finalizada') counts.fin++;
 const esNueva = (idx < 5 && statusReal === "PENDIENTE");
 const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
 const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
-const badge = esNueva ? '<span class="badge-new">NUEVA ✨</span>' : '';
+
+let badge = '';
+let rowClass = '';
+
+if (esNueva) {
+  if (jornadaLimpia === "Obituario") {
+    badge = '<span class="badge-prioridad">PRIORIZAR</span>';
+    rowClass = "row-obituario";
+  } else {
+    badge = '<span class="badge-new">NUEVA ✨</span>';
+    rowClass = "row-new"; // ✅ Resaltado azul recuperado
+  }
+}
+
 let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
 const tr = document.createElement('tr');
-if(esNueva) tr.className = "row-new";
+if(rowClass) tr.className = rowClass;
 tr.innerHTML = `
 ${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
 ${isAdmin ? '' : `<td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>`}
@@ -713,7 +955,6 @@ document.getElementById('count-total').innerText = counts.total;
 document.getElementById('count-pend').innerText = counts.pend;
 document.getElementById('count-proc').innerText = counts.proc;
 document.getElementById('count-fin').innerText = counts.fin;
-// ✅ Actualizar visibilidad de columnas del encabezado
 document.getElementById('col-fecha-actividad').style.display = isAdmin ? 'none' : '';
 document.getElementById('col-id-solicitud').classList.toggle('hidden', !isAdmin);
 }
@@ -728,44 +969,92 @@ await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-T
 const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
 } catch (e) { pill.className = oldClass; pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
 }
-// === VALIDACIÓN Y CONFIRMACIÓN ===
+// ✅ VALIDACIÓN EN ORDEN CORRECTO
 function validateForm() {
-const fields = [
-{ id: 'region-grid', val: selectedRegionKey, label: 'Región' },
-{ id: 'unidad-grid', val: selectedUnidad, label: 'Unidad Médica' },
-{ id: 'cat-grid', val: catName, label: 'Tipo de Jornada' },
-{ id: 'sec-3', isList: true, label: 'Detalle' },
-{ id: 'fecha', val: document.getElementById('fecha').value, label: 'Fecha de Actividad' },
-{ id: 'hora', val: document.getElementById('hora').value.trim(), label: 'Hora de Inicio' },
-{ id: 'hora-box', val: selectedAMPM, label: 'Formato AM/PM' },
-{ id: 'institucion', val: document.getElementById('institucion').value.trim(), required: true, label: 'Institución' },
-{ id: 'mail', val: document.getElementById('mail').value.trim(), label: 'Correo Electrónico' }
-];
-for (let field of fields) {
-let isInvalid = false;
-const el = document.getElementById(field.id);
-if (field.isList) {
+const fieldsInOrder = [];
+fieldsInOrder.push({
+id: 'region-grid',
+isValid: () => !!selectedRegionKey,
+label: 'Región'
+});
+fieldsInOrder.push({
+id: 'unidad-grid',
+isValid: () => !!selectedUnidad,
+label: 'Unidad Médica'
+});
+fieldsInOrder.push({
+id: 'cat-grid',
+isValid: () => !!catName,
+label: 'Tipo de Jornada'
+});
+fieldsInOrder.push({
+id: 'sec-3',
+isValid: () => {
 if (catType === 'otros') {
-if (document.getElementById('desc-otro').value.trim() === "") isInvalid = true;
+return document.getElementById('desc-otro')?.value.trim() !== '';
 } else {
-if (document.querySelectorAll('#cont-3 .card-btn.selected').length === 0) isInvalid = true;
+return document.querySelectorAll('#cont-3 .card-btn.selected').length > 0;
 }
-} else if (field.required !== false) {
-if (!field.val || (field.id === 'mail' && !field.val.includes('@'))) isInvalid = true;
+},
+label: 'Detalle'
+});
+fieldsInOrder.push({
+id: 'fecha',
+isValid: () => {
+const val = document.getElementById('fecha').value;
+return !!val;
+},
+label: 'Fecha de Actividad'
+});
+if (!modoObituario) {
+fieldsInOrder.push({
+id: 'hora',
+isValid: () => {
+const val = document.getElementById('hora').value.trim();
+return !!val;
+},
+label: 'Hora de Inicio'
+});
+fieldsInOrder.push({
+id: 'hora-box',
+isValid: () => !!selectedAMPM,
+label: 'Formato AM/PM'
+});
+fieldsInOrder.push({
+id: 'institucion',
+isValid: () => {
+const val = document.getElementById('institucion').value.trim();
+return !!val;
+},
+label: 'Institución'
+});
 }
-if (isInvalid) {
+fieldsInOrder.push({
+id: 'mail',
+isValid: () => {
+const val = document.getElementById('mail').value.trim();
+return val && val.includes('@');
+},
+label: 'Correo Electrónico'
+});
+for (const field of fieldsInOrder) {
+const el = document.getElementById(field.id);
+if (!field.isValid()) {
 el?.classList.add('field-error');
 el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 openModal("❌ Campo Faltante", `Falta completar: ${field.label}`, "⚠️");
 return false;
 }
 }
-const fechaSeleccionada = new Date(document.getElementById('fecha').value + 'T00:00:00');
+if (!modoObituario) {
+const fechaInput = document.getElementById('fecha').value;
+const fechaSeleccionada = new Date(fechaInput + 'T00:00:00');
 const ahora = new Date();
 if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 48) {
-openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
 document.getElementById('fecha').classList.add('field-error');
+openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
 return false;
+}
 }
 return true;
 }
@@ -775,45 +1064,47 @@ const preview = document.getElementById('previewContent');
 let html = `
 <p><b>📍 Región:</b> ${getNombreRegionLimpio(selectedRegionKey)}</p>
 <p><b>🏥 Unidad Médica:</b> ${selectedUnidad}</p>
-<p><b>📂 Tipo de Jornada:</b> ${catName}</p>
 `;
-if (catType === 'otros') {
-html += `<p><b>✨ Descripción:</b> ${document.getElementById('desc-otro').value.trim()}</p>`;
+if (modoObituario) {
+    html += `<p><b>📋 Tipo de Solicitud:</b> Obituario</p>`;
 } else {
+    html += `<p><b>📂 Tipo de Jornada:</b> ${catName}</p>`;
+}
+if (catType === 'otros' && !modoObituario) {
+html += `<p><b>✨ Descripción:</b> ${document.getElementById('desc-otro').value.trim()}</p>`;
+} else if (!modoObituario) {
 const selectedOps = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el => el.innerText).join(', ');
 html += `<p><b>🩺 Detalle:</b> ${selectedOps || 'Ninguno'}</p>`;
 }
 const servicios = Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el => el.innerText).join(', ');
 if (servicios) html += `<p><b>✨ Servicios Adicionales:</b> ${servicios}</p>`;
-// ✅ Formatear fecha a DD/MM/YYYY
-const fechaInput = document.getElementById('fecha').value;
-const [year, month, day] = fechaInput.split('-');
+const [year, month, day] = document.getElementById('fecha').value.split('-');
 const fechaFormateada = `${day}/${month}/${year}`;
-html += `
-<p><b>📅 Fecha de Actividad:</b> ${fechaFormateada}</p>
-<p><b>⏰ Hora de Inicio:</b> ${document.getElementById('hora').value} ${selectedAMPM}</p>
-`;
+html += `<p><b>📅 Fecha de Actividad:</b> ${fechaFormateada}</p>`;
+if (!modoObituario) {
+html += `<p><b>⏰ Hora de Inicio:</b> ${document.getElementById('hora').value} ${selectedAMPM}</p>`;
 const institucion = document.getElementById('institucion').value.trim();
 const direccion = document.getElementById('direccion-exacta').value.trim();
 html += `<p><b>🧭 Ubicación:</b> ${[institucion, direccion].filter(x => x).join(', ')}</p>`;
-html += `
-<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>
-<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>
-`;
+html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>`;
+html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>`;
 const obs = document.getElementById('observaciones').value.trim();
 if (obs) html += `<p><b>✏️ Observaciones:</b> ${obs}</p>`;
 const fotos = [1,2,3].filter(i => document.getElementById(`p${i}`).src.startsWith('image'));
 html += `<p><b>📸 Soportes Fotográficos:</b> ${fotos.length > 0 ? `${fotos.length} foto(s) adjunta(s)` : 'Ninguno'}</p>`;
+} else {
+html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>`;
+html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>`;
+html += `<p><b>ℹ️ Modo Obituario activado – Campos opcionales omitidos.</b></p>`;
+}
 preview.innerHTML = html;
 document.getElementById('confirmModal').style.display = 'flex';
-// ✅ 10 segundos + animación progresiva + hover efectivo
 let timeLeft = 10;
 document.getElementById('countdown').innerText = timeLeft;
 const btnEnviar = document.getElementById('btnEnviarConfirmado');
 btnEnviar.disabled = true;
 btnEnviar.classList.remove('enviar');
 btnEnviar.classList.add('corregir');
-// Añadir hover efectivo al botón "Corregir"
 const btnCorregir = document.getElementById('btnCorregir');
 btnCorregir.onmouseenter = () => {
 btnCorregir.style.background = "#d1d5db";
@@ -826,7 +1117,6 @@ btnCorregir.style.color = "var(--azul-deep)";
 const timer = setInterval(() => {
 timeLeft--;
 document.getElementById('countdown').innerText = timeLeft;
-// Animación: barra de progreso visual
 const progress = ((10 - timeLeft) / 10) * 100;
 btnEnviar.style.background = `linear-gradient(to right, var(--turquesa) ${progress}%, #e9ecef ${progress}%)`;
 btnEnviar.style.color = timeLeft <= 3 ? "white" : "#495057";
@@ -839,7 +1129,6 @@ btnEnviar.style.background = "var(--turquesa)";
 btnEnviar.style.color = "white";
 btnEnviar.style.cursor = "pointer";
 btnEnviar.innerText = "🚀 Enviar Solicitud";
-// Añadir hover al botón activo
 btnEnviar.onmouseenter = () => {
 btnEnviar.style.background = "var(--azul-deep)";
 btnEnviar.style.transform = "scale(1.02)";
@@ -882,19 +1171,18 @@ unidadFinal = selectedUnidad.trim().replace(/\b\w/g, l => l.toUpperCase());
 unidadFinal = "U.M.I. " + unidadFinal;
 }
 params.append("Unidad", unidadFinal);
-params.append("Jornada", catName);
+// ✅ Aquí se envía "Obituario" si está activo
+params.append("Jornada", modoObituario ? "Obituario" : catName);
 let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
 if(catType === 'otros') ops = document.getElementById('desc-otro').value;
 params.append("Opciones", ops);
 params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+if (!modoObituario) {
 const institucion = document.getElementById('institucion').value.trim();
 const direccionExacta = document.getElementById('direccion-exacta').value.trim();
 const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
 params.append("Direccion", direccionCompleta);
-params.append("Fecha", document.getElementById('fecha').value);
 params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
-params.append("Telefono", document.getElementById('tlf').value);
-params.append("Correo", document.getElementById('mail').value);
 params.append("Observaciones", document.getElementById('observaciones').value);
 for(let i=1; i<=3; i++){
 const img = document.getElementById('p'+i);
@@ -903,6 +1191,14 @@ const base64Data = img.src.split(',')[1];
 params.append("foto"+i, base64Data);
 }
 }
+} else {
+params.append("Direccion", "");
+params.append("Hora", "");
+params.append("Observaciones", "");
+}
+params.append("Fecha", document.getElementById('fecha').value);
+params.append("Telefono", document.getElementById('tlf').value);
+params.append("Correo", document.getElementById('mail').value);
 document.getElementById('loadMainTxt').innerText = "Enviando Solicitud...";
 document.getElementById('loadingOverlay').style.display = 'flex';
 fetch(SCRIPT_URL, {
@@ -913,7 +1209,6 @@ body: params.toString()
 .then(response => response.json())
 .then(result => {
 if (result.success) {
-// ✅ REINICIAR FORMULARIO
 document.getElementById('sigrafForm').reset();
 for(let i=1; i<=3; i++) {
 const img = document.getElementById('p'+i);
@@ -929,6 +1224,18 @@ document.getElementById('btn-am').classList.remove('active');
 document.getElementById('btn-pm').classList.remove('active');
 selectedRegionKey = "";
 selectedUnidad = "";
+modoObituario = false;
+document.getElementById('fecha').disabled = false;
+document.getElementById('hora').disabled = false;
+document.getElementById('institucion').disabled = false;
+document.getElementById('direccion-exacta').disabled = false;
+document.getElementById('observaciones').disabled = false;
+document.getElementById('hora').classList.remove('obit-disabled');
+document.getElementById('institucion').classList.remove('obit-disabled');
+document.getElementById('direccion-exacta').classList.remove('obit-disabled');
+document.getElementById('observaciones').classList.remove('obit-disabled');
+document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
+document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
 document.getElementById('region-grid').querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
 document.getElementById('unidad-grid').innerHTML = "";
 document.getElementById('unidad-section').classList.add('hidden');
