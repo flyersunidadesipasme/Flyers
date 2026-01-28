@@ -303,6 +303,7 @@ box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ M
 <div class="card-btn" onclick="selectCat(this, 'conjunta')">Jornada Conjunta</div>
 <div class="card-btn" onclick="selectCat(this, 'vacuna')">Plan Masivo de Vacunación</div>
 <div class="card-btn" onclick="selectCat(this, 'quirurgica')">Captación Quirúrgica</div>
+<div class="card-btn" onclick="selectCat(this, 'pediatrica')">Captación Quirúrgica Pediátrica</div>
 <div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
 <div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
 </div>
@@ -361,7 +362,7 @@ line-height: 1.4;">
 </div>
 <div class="container page" id="list-page">
 <div class="stats-grid" id="stats-panel">
-<div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total" 
+<div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total"
 class="stat-val">0</span></div>
 <div class="stat-card st-pend"><span class="stat-label">Pendiente</span><span id="count-pend" class="stat-val">0</span></div>
 <div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
@@ -453,12 +454,13 @@ let isMaintActive = false;
 let selectedRegionKey = "";
 let selectedUnidad = "";
 let modoObituario = false;
-// ✅ NUEVA VARIABLE GLOBAL
+// ✅ NUEVA VARIABLE GLOBAL CON PATOLOGÍAS PEDIÁTRICAS
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
 vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"],
 quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
+pediatrica: ["Criptorquidias", "Fimosis", "Hernia epigástrica", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Quiste tirogloso", "Varicocele"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 // ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
@@ -902,7 +904,7 @@ document.getElementById('btn-pm').classList.remove('active');
 document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active');
 document.getElementById('hora-box').classList.remove('field-error');
 }
-// ✅ MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría
+// ✅ MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría Y AGREGAR SOPORTE PARA PEDIÁTRICA
 function selectCat(btn, tipo) {
 if (modoObituario && tipo !== 'otros') {
 modoObituario = false;
@@ -947,6 +949,9 @@ renderList(c3, DATA.vacunas);
 } else if (tipo === 'quirurgica') {
 document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *";
 renderList(c3, DATA.quirurgica);
+} else if (tipo === 'pediatrica') {
+document.getElementById('label-3').innerText = "👶 3. PATOLOGÍAS PEDIÁTRICAS *";
+renderList(c3, DATA.pediatrica);
 } else if (tipo === 'oftalmo') {
 document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *";
 renderList(c3, DATA.oftalmo);
@@ -968,8 +973,7 @@ OBITUARIO
 }
 function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); });
 }
-function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active');
-else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
+function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active'); else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
 async function updateTable() {
 try {
 const res = await fetch(`${SCRIPT_URL}?action=read`);
