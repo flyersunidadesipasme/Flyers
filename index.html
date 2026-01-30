@@ -220,6 +220,55 @@ cursor: not-allowed !important;
 color: #6c757d !important;
 cursor: not-allowed !important;
 }
+
+/* ✅ ESTILOS PARA BOTÓN DE REPORTE MENSUAL - SOLO HABILITADO 1° DE MES */
+#reportBtn {
+position: relative;
+overflow: hidden;
+}
+#reportBtn:disabled {
+opacity: 0.65;
+cursor: not-allowed !important;
+transform: none !important;
+box-shadow: 0 3px 0 #1a3d2d !important;
+}
+#reportBtn:not(:disabled):hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 0 #1a3d2d;
+}
+#reportBtn:not(:disabled):active {
+transform: translateY(1px);
+box-shadow: 0 2px 0 #1a3d2d;
+}
+#reportBtnText {
+display: block;
+transition: opacity 0.3s;
+}
+#reportBtnDays {
+font-size: 0.65rem;
+display: block;
+opacity: 0.9;
+margin-top: 2px;
+font-weight: 600;
+transition: opacity 0.3s;
+}
+.report-info-banner {
+background: linear-gradient(135deg, #2d6a4f 0%, #1e4a35 100%);
+color: white;
+padding: 12px;
+border-radius: 8px;
+margin-top: 10px;
+font-size: 0.85rem;
+text-align: center;
+font-weight: 600;
+box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+.report-info-banner span {
+display: block;
+font-size: 1.1rem;
+font-weight: 800;
+margin-top: 3px;
+}
 </style>
 </head>
 <body>
@@ -272,6 +321,7 @@ margin-top: 20px;">
 </div>
 </div>
 </div>
+
 <header>
 <div class="brand-container">
 <h1 class="header-title">SIRA 2.0</h1>
@@ -284,6 +334,11 @@ margin-top: 20px;">
 <div class="admin-access">
 <button id="maintBtn" class="btn-login hidden" style="background: var(--rojo);
 box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
+<!-- ✅ BOTÓN DE REPORTE MENSUAL - SOLO HABILITADO 1° DE MES -->
+<button id="reportBtn" class="btn-login hidden" style="background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%); box-shadow: 0 3px 0 #1e4a35; color: white;" onclick="generateMonthlyReport()">
+  <span id="reportBtnText">📊 Generar Reporte Mensual</span>
+  <span id="reportBtnDays"></span>
+</button>
 <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
 </div>
 </header>
@@ -463,6 +518,171 @@ quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", 
 pediatrica: ["Criptorquidias", "Fimosis", "Hernia epigástrica", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Quiste tirogloso", "Varicocele"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
+
+// ✅ FUNCIONES PARA REPORTE MENSUAL - SOLO HABILITADO 1° DE MES
+function generateMonthlyReport() {
+  // Verificar que sea el primer día del mes
+  const today = new Date();
+  if (today.getDate() !== 1) {
+    openModal("⏳ No disponible", "El reporte mensual solo está disponible el primer día de cada mes.", "📊");
+    return;
+  }
+  
+  // ✅ CONFIRMACIÓN NATIVA DEL NAVEGADOR (SEGURA Y BLOQUEANTE)
+  if (!confirm("⚠️ ¿CONFIRMA que desea generar el reporte mensual del mes anterior?\n\n" +
+               "✅ Se enviará por correo y Telegram\n" +
+               "✅ Luego se eliminarán SOLO las solicitudes finalizadas con fecha de registro del mes anterior\n\n" +
+               "ℹ️ Las solicitudes creadas HOY (1° de mes) NO serán eliminadas\n" +
+               "⚠️ Esta acción es IRREVERSIBLE para las del mes anterior")) {
+    return;
+  }
+  
+  document.getElementById('loadMainTxt').innerText = "Generando reporte mensual...";
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  // Obtener credenciales almacenadas del admin
+  const adminUser = PROPS.getProperty("ADMIN_USER");
+  const adminPass = PROPS.getProperty("ADMIN_PASS");
+  
+  // ✅ CORREGIDO: Primero generar el reporte, LUEGO eliminar las finalizadas
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `action=generateMonthlyReport&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // ✅ Mensaje con modal personalizado: especifica que solo se eliminan del mes anterior
+      openModal("✅ Reporte Generado", 
+        "El reporte mensual ha sido generado y enviado correctamente.\n\n" +
+        "ℹ️ Ahora se procederá a eliminar SOLO las solicitudes finalizadas con fecha de registro del mes anterior (" + 
+        new Date(new Date().getFullYear(), new Date().getMonth()-1, 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) + 
+        ") para optimizar el sistema.\n\n" +
+        "✅ Las solicitudes creadas hoy (1°) permanecerán intactas.", 
+        "📊");
+      
+      setTimeout(() => {
+        document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes finalizadas del mes anterior...";
+        
+        return fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `action=deleteFinalizadas&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
+        });
+      }, 2000);
+    } else {
+      throw new Error(data.error || "Error al generar el reporte");
+    }
+  })
+  .then(response => {
+    if (response) {
+      return response.json();
+    }
+  })
+  .then(data => {
+    if (data && data.success) {
+      // ✅ Mensaje final con modal personalizado: incluye el período eliminado
+      openModal("✅ Limpieza Completada", 
+        `¡Reporte mensual generado y ${data.count || 0} solicitudes finalizadas del mes anterior (${data.periodo}) eliminadas correctamente!\n\n` +
+        "✅ Las solicitudes creadas hoy (1°) permanecen en el sistema.", 
+        "📊");
+      updateTable();
+    } else if (data) {
+      throw new Error(data.error || "Error al limpiar solicitudes");
+    }
+  })
+  .catch(err => {
+    openModal("❌ Error", "Error: " + err.message, "💥");
+  })
+  .finally(() => {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  });
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE
+function updateReportButtonStatus() {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  
+  const btn = document.getElementById('reportBtn');
+  const text = document.getElementById('reportBtnText');
+  const daysText = document.getElementById('reportBtnDays');
+  
+  if (!btn || !isAdmin) return;
+  
+  // Calcular días restantes para el próximo 1°
+  let daysRemaining;
+  if (currentDay === 1) {
+    daysRemaining = 0;
+  } else {
+    daysRemaining = totalDaysInMonth - currentDay + 1;
+  }
+  
+  // Actualizar texto
+  if (currentDay === 1) {
+    daysText.innerHTML = '<div class="report-info-banner">Hoy es el día para generar el reporte del mes anterior</div>';
+    btn.disabled = false;
+    btn.style.cursor = 'pointer';
+    text.style.opacity = '1';
+    btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
+  } else {
+    daysText.textContent = `Disponible en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
+    btn.disabled = true;
+    btn.style.cursor = 'not-allowed';
+    text.style.opacity = '0.7';
+    
+    // Calcular progreso para el próximo ciclo
+    const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
+    btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
+  }
+}
+
+function checkFirstDayOfMonth() {
+  const today = new Date();
+  if (isAdmin) {
+    document.getElementById('reportBtn').classList.remove('hidden');
+    updateReportButtonStatus();
+    // Actualizar cada minuto para mantener el estado actualizado
+    setInterval(updateReportButtonStatus, 60000);
+  }
+}
+
+// ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
+function handleFile(input, imgId, btnId) {
+  if (modoObituario) {
+    input.value = "";
+    return;
+  }
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.getElementById(imgId);
+      img.src = e.target.result; // "data:image/jpeg;base64,..."
+      img.style.display = 'block';
+      document.getElementById(btnId).style.display = 'block';
+      
+      // ✅ MARCADOR DE IMAGEN VÁLIDA
+      img.setAttribute('data-has-image', 'true');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function clearFile(inputId, imgId, btnId) {
+  if (modoObituario) return;
+  document.getElementById(inputId).value = "";
+  const img = document.getElementById(imgId);
+  img.src = "";
+  img.style.display = 'none';
+  img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
+  document.getElementById(btnId).style.display = 'none';
+}
+
+// ✅ FIN FUNCIONES REPORTE MENSUAL
+
 // ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
 function setupFieldErrorRemoval() {
 ['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
@@ -588,7 +808,9 @@ if (descOtro) {
 descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en caso de ser familiar de un trabajador del Ipasme y servicio o jurisdicción a la que pertenece el familiar o el fallecido.";
 }
 Array.from(document.querySelectorAll('.preview')).forEach(img => {
-img.src = ''; img.style.display = 'none';
+img.src = ''; 
+img.style.display = 'none';
+img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen
 });
 Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
 } else {
@@ -685,6 +907,8 @@ document.getElementById('authBtn').onclick = logout;
 document.getElementById('th-admin').classList.remove('hidden');
 document.getElementById('maintBtn').classList.remove('hidden');
 document.getElementById('col-fecha-registro').style.display = 'none';
+// ✅ Verificar y mostrar botón de reporte - SOLO 1° DE MES
+checkFirstDayOfMonth();
 clearCredentials();
 closeModal();
 updateTable();
@@ -705,6 +929,7 @@ document.getElementById('authBtn').innerText = "🔐 Administrador";
 document.getElementById('authBtn').onclick = showLogin;
 document.getElementById('th-admin').classList.add('hidden');
 document.getElementById('maintBtn').classList.add('hidden');
+document.getElementById('reportBtn').classList.add('hidden');
 document.getElementById('col-fecha-registro').style.display = '';
 if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
 renderLocalTable();
@@ -871,31 +1096,6 @@ updateTable();
 // === FIN ELIMINACIÓN ===
 // === FIN FUNCIONES ADMIN ===
 // === FUNCIONES GENERALES ===
-function handleFile(input, imgId, btnId) {
-if (modoObituario) {
-input.value = "";
-return;
-}
-const file = input.files[0];
-if (file) {
-const reader = new FileReader();
-reader.onload = (e) => {
-const img = document.getElementById(imgId);
-img.src = e.target.result;
-img.style.display = 'block';
-document.getElementById(btnId).style.display = 'block';
-};
-reader.readAsDataURL(file);
-}
-}
-function clearFile(inputId, imgId, btnId) {
-if (modoObituario) return;
-document.getElementById(inputId).value = "";
-const img = document.getElementById(imgId);
-img.src = "";
-img.style.display = 'none';
-document.getElementById(btnId).style.display = 'none';
-}
 function setAMPM(val) {
 if (modoObituario) return;
 selectedAMPM = val;
@@ -923,6 +1123,10 @@ document.getElementById('direccion-exacta').classList.remove('obit-disabled');
 document.getElementById('observaciones').classList.remove('obit-disabled');
 document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
 document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+// ✅ Limpiar marcas de imágenes
+Array.from(document.querySelectorAll('.preview')).forEach(img => {
+img.removeAttribute('data-has-image');
+});
 }
 }
 document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected'));
@@ -991,6 +1195,7 @@ function renderLocalTable() {
 const body = document.getElementById('solicitudes-body');
 body.innerHTML = "";
 let counts = { total:0, pend:0, proc:0, fin:0 };
+// ✅ CORREGIDO: Eliminar límite de 50 solicitudes - mostrar TODAS
 const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
 sortedData.forEach((s, idx) => {
 counts.total++;
@@ -1181,7 +1386,11 @@ html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No
 html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>`;
 const obs = document.getElementById('observaciones').value.trim();
 if (obs) html += `<p><b>✏️ Observaciones:</b> ${obs}</p>`;
-const fotos = [1,2,3].filter(i => document.getElementById(`p${i}`).src.startsWith('data:image'));
+// ✅ CORREGIDO: Contar fotos usando el atributo data-has-image
+const fotos = [1,2,3].filter(i => {
+const img = document.getElementById(`p${i}`);
+return img.getAttribute('data-has-image') === 'true';
+});
 html += `<p><b>📸 Soportes Fotográficos:</b> ${fotos.length > 0 ? `${fotos.length} foto(s) adjunta(s)` : 'Ninguno'}</p>`;
 } else {
 html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>`;
@@ -1275,12 +1484,14 @@ const direccionCompleta = [institucion, direccionExacta].filter(part => part).jo
 params.append("Direccion", direccionCompleta);
 params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
 params.append("Observaciones", document.getElementById('observaciones').value);
-for(let i=1; i<=3; i++){
+// ✅ CORREGIDO: Adjuntar fotos usando el atributo data-has-image
+for(let i=1; i<=3; i++) {
 const img = document.getElementById('p'+i);
-// ✅ CORRECCIÓN APLICADA: startsWith('data:image')
-if(img.src && img.src.startsWith("data:image")) {
+if(img.getAttribute('data-has-image') === 'true') {
 const base64Data = img.src.split(',')[1];
+if (base64Data) {
 params.append("foto"+i, base64Data);
+}
 }
 }
 } else {
@@ -1306,6 +1517,7 @@ for(let i=1; i<=3; i++) {
 const img = document.getElementById('p'+i);
 img.src = '';
 img.style.display = 'none';
+img.removeAttribute('data-has-image'); // ✅ Limpiar marca
 document.getElementById('b'+i).style.display = 'none';
 }
 document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
