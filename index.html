@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIRA 2.0 | Sistema Integral de Requerimientos de Artes</title>
+<title>SIRA 2.5 | Sistema Integral de Requerimientos de Artes</title>
 <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -17,18 +17,20 @@ box-sizing: border-box; font-weight: 500; }
 body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
 header { background: var(--azul-deep);
 padding: 8px 25px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; min-height: 60px;
+flex-wrap: wrap;
+gap: 10px;
 }
-.brand-container { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
+.brand-container { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 150px; }
 .header-title { margin: 0; font-size: 1.3rem; font-weight: 800; color: white;
 line-height: 1; }
 .acronimo { font-size: 0.55rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px;
 }
-.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; }
+.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; min-width: 200px; flex-wrap: wrap; justify-content: flex-start; }
 .tab-btn { padding: 6px 16px; border-radius: 20px; border: none;
 cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px;
 }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
-.admin-access { flex: 1; display: flex; justify-content: flex-end; gap: 10px; }
+.admin-access { flex: 1; display: flex; justify-content: flex-end; gap: 10px; min-width: 200px; flex-wrap: wrap; justify-content: center; }
 .btn-login { background: var(--amarillo);
 border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s;
 }
@@ -37,15 +39,15 @@ border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: p
 border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.75rem; }
 .row-new { background-color: #e3f2fd !important; border-left: 5px solid var(--turquesa) !important;
 }
-.row-obituario { background-color: #e0e0e0 !important; border-left: 5px solid #6c757d !important; }
+.row-obituario { background-color: #ffebee !important; border-left: 5px solid var(--rojo) !important; }
 .badge-new { background: var(--turquesa); color: white; padding: 2px 8px;
 border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; animation: blink 2s infinite; }
-.badge-prioridad { background: white; color: black;
-padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; border: 1px solid #6c757d;
+.badge-prioridad { background: white; color: var(--rojo);
+padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; border: 1px solid var(--rojo);
 }
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1;
 } }
-.stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .stat-card { flex: 1; min-width: 100px;
 padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight: 800; }
 .st-total { background: var(--azul-deep); }
@@ -53,6 +55,13 @@ padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight
 }
 .st-proc { background: var(--amarillo); color: var(--azul-deep); }
 .st-fin { background: var(--verde); }
+
+/* ✅ ESTILOS PARA CONTADORES DE DISEÑADORES */
+.stat-bermina { background: var(--naranja); color: white; }
+.stat-jorsy { background: var(--azul-deep); color: white; }
+.stat-maria { background: var(--verde); color: white; }
+.stat-xamir { background: var(--amarillo); color: var(--azul-deep); }
+
 .stat-label { font-size: 0.6rem; text-transform: uppercase; display: block; opacity: 0.8;
 }
 .stat-val { font-size: 1.1rem; }
@@ -176,6 +185,17 @@ font-weight: 500; }
 .status-procesando { background: var(--amarillo); color: var(--azul-deep); }
 .status-finalizada { background: var(--verde); color: white;
 }
+
+/* ✅ CÍRCULO DE DISEÑADOR EN TABLA */
+.designer-circle {
+display: inline-block;
+width: 10px;
+height: 10px;
+border-radius: 50%;
+margin-right: 5px;
+vertical-align: middle;
+}
+
 .admin-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
 .btn-act { border: none; border-radius: 5px; padding: 4px 6px;
 cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
@@ -189,8 +209,22 @@ margin-left: 8px; filter: grayscale(1); transition: 0.3s; }
 .btn-trash:hover { filter: grayscale(0); transform: rotate(10deg);
 }
 /* Nuevos Estilos Botones Admin */
-.btn-arte { background: #4a90e2; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px;
-font-weight: 800; cursor: pointer; }
+
+/* ✅ BOTÓN ADJUNTAR CORREGIDO: Icono + texto compacto */
+.btn-arte { 
+background: #4a90e2; 
+color: white; 
+border: none; 
+border-radius: 5px; 
+padding: 3px 6px; 
+font-size: 9px;
+font-weight: 800; 
+cursor: pointer; 
+white-space: nowrap;
+min-width: auto;
+width: auto;
+}
+
 .btn-ver { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px;
 font-weight: 800; cursor: pointer; text-decoration: none; }
 .btn-tg { background: #0088cc; color: white; border: none; border-radius: 5px; padding: 4px 6px;
@@ -220,7 +254,6 @@ cursor: not-allowed !important;
 color: #6c757d !important;
 cursor: not-allowed !important;
 }
-
 /* ✅ ESTILOS PARA BOTÓN DE REPORTE MENSUAL - SOLO HABILITADO 1° DE MES */
 #reportBtn {
 position: relative;
@@ -268,6 +301,135 @@ display: block;
 font-size: 1.1rem;
 font-weight: 800;
 margin-top: 3px;
+}
+
+/* ✅ MEJORAS RESPONSIVE PARA MÓVIL */
+@media (max-width: 768px) {
+  /* Header reorganizado para móvil */
+  header {
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 15px;
+    min-height: auto;
+    gap: 8px;
+  }
+  
+  .brand-container {
+    width: 100%;
+    align-items: center;
+    margin-bottom: 0;
+  }
+  
+  .header-title {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+  
+  .acronimo {
+    font-size: 0.65rem;
+    text-align: center;
+    max-width: 100%;
+  }
+  
+  .nav-tabs {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 0 0;
+  }
+  
+  .tab-btn {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    min-width: 100px;
+  }
+  
+  .admin-access {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 5px;
+  }
+  
+  .btn-login, .btn-logout {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    min-width: 100px;
+  }
+  
+  /* Contenedores de stats en columnas */
+  .stats-grid {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .stat-card {
+    min-width: 100%;
+    padding: 10px;
+  }
+  
+  /* Tabla más compacta */
+  th, td {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .status-pill {
+    padding: 2px 8px;
+    font-size: 0.55rem;
+  }
+  
+  .txt-small {
+    font-size: 0.65rem;
+  }
+  
+  .admin-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  
+  .btn-act, .btn-arte, .btn-ver, .btn-tg, .btn-trash {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 3px;
+  }
+  
+  /* Formulario más compacto */
+  .section-title {
+    font-size: 0.8rem;
+    margin: 15px 0 10px;
+  }
+  
+  .modern-input {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+  
+  .card-btn {
+    min-height: 40px;
+    font-size: 0.7rem;
+    padding: 4px 2px;
+  }
+  
+  .btn-send {
+    padding: 12px;
+    font-size: 1rem;
+  }
+  
+  /* Modales más compactos */
+  .modal-content {
+    padding: 25px 20px;
+    margin: 10px;
+  }
+  
+  .modal-btn {
+    padding: 10px;
+    font-size: 0.95rem;
+  }
 }
 </style>
 </head>
@@ -322,9 +484,33 @@ margin-top: 20px;">
 </div>
 </div>
 
+<!-- ✅ MODAL PARA SELECCIONAR DISEÑADOR -->
+<div class="modal-overlay" id="designerModal" style="display:none;">
+<div class="modal-content" style="max-width: 420px; padding: 30px;">
+<span style="font-size: 48px; display: block; margin-bottom: 15px;">🎨</span>
+<div style="font-weight: 800; font-size: 1.5rem; color: var(--azul-deep); margin-bottom: 15px; text-align: center;">
+Seleccionar Diseñador
+</div>
+<p style="margin: 15px 0; color: #555; font-size: 0.95rem; text-align: center;">
+¿Quién realizó el arte final para esta solicitud?
+</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;">
+<button class="modal-btn" style="background: var(--naranja); color: white; padding: 14px; font-weight: 800;" 
+onclick="selectDesigner('Bermina')">👩‍🎨 Bermina</button>
+<button class="modal-btn" style="background: var(--azul-deep); color: white; padding: 14px; font-weight: 800;" 
+onclick="selectDesigner('Jorsy')">👨‍🎨 Jorsy</button>
+<button class="modal-btn" style="background: var(--verde); color: white; padding: 14px; font-weight: 800;" 
+onclick="selectDesigner('María F.')">👩‍🎨 María F.</button>
+<button class="modal-btn" style="background: var(--amarillo); color: var(--azul-deep); padding: 14px; font-weight: 800;" 
+onclick="selectDesigner('Xamir')">👨‍🎨 Xamir</button>
+</div>
+</div>
+</div>
+
 <header>
 <div class="brand-container">
-<h1 class="header-title">SIRA 2.0</h1>
+<h1 class="header-title">SIRA 2.5</h1>
 <span class="acronimo">Sistema Integral de Requerimientos de Artes</span>
 </div>
 <div class="nav-tabs">
@@ -336,8 +522,8 @@ margin-top: 20px;">
 box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
 <!-- ✅ BOTÓN DE REPORTE MENSUAL - SOLO HABILITADO 1° DE MES -->
 <button id="reportBtn" class="btn-login hidden" style="background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%); box-shadow: 0 3px 0 #1e4a35; color: white;" onclick="generateMonthlyReport()">
-  <span id="reportBtnText">📊 Generar Reporte Mensual</span>
-  <span id="reportBtnDays"></span>
+<span id="reportBtnText">📊 Generar Reporte Mensual</span>
+<span id="reportBtnDays"></span>
 </button>
 <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
 </div>
@@ -416,13 +602,20 @@ line-height: 1.4;">
 </form>
 </div>
 <div class="container page" id="list-page">
+<!-- ✅ DOS FILAS DE CONTADORES -->
 <div class="stats-grid" id="stats-panel">
-<div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total"
-class="stat-val">0</span></div>
+<div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total" class="stat-val">0</span></div>
 <div class="stat-card st-pend"><span class="stat-label">Pendiente</span><span id="count-pend" class="stat-val">0</span></div>
 <div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
 <div class="stat-card st-fin"><span class="stat-label">Finalizada</span><span id="count-fin" class="stat-val">0</span></div>
 </div>
+<div class="stats-grid" id="designers-stats" style="display:none; margin-top:8px;">
+<div class="stat-card stat-bermina" id="stat-bermina"><span class="stat-label">Bermina</span><span id="count-bermina" class="stat-val">0</span></div>
+<div class="stat-card stat-jorsy" id="stat-jorsy"><span class="stat-label">Jorsy</span><span id="count-jorsy" class="stat-val">0</span></div>
+<div class="stat-card stat-maria" id="stat-maria"><span class="stat-label">María F.</span><span id="count-maria" class="stat-val">0</span></div>
+<div class="stat-card stat-xamir" id="stat-xamir"><span class="stat-label">Xamir</span><span id="count-xamir" class="stat-val">0</span></div>
+</div>
+
 <div class="table-container">
 <table>
 <thead>
@@ -509,7 +702,211 @@ let isMaintActive = false;
 let selectedRegionKey = "";
 let selectedUnidad = "";
 let modoObituario = false;
-// ✅ NUEVA VARIABLE GLOBAL CON PATOLOGÍAS PEDIÁTRICAS
+
+// ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
+const designerColors = {
+"Bermina": "#fb8500",
+"Jorsy": "#023047",
+"María F.": "#2d6a4f",
+"Xamir": "#ffb703"
+};
+
+// ✅ NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
+let requestIdForDesigner = null;
+
+// ✅ NUEVA FUNCIÓN: SELECCIONAR DISEÑADOR Y GUARDAR
+async function selectDesigner(designer) {
+if (!requestIdForDesigner) return;
+
+document.getElementById('loadMainTxt').innerText = "Guardando diseñador...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+try {
+const params = new URLSearchParams();
+params.append("action", "updateStatus");
+params.append("id", requestIdForDesigner);
+params.append("status", "FINALIZADA");
+params.append("disenador", designer);
+
+const response = await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params.toString()
+});
+
+const data = await response.json();
+
+if (data.success) {
+const item = localData.find(x => x.id == requestIdForDesigner);
+if (item) {
+item.Estatus = "FINALIZADA";
+item.Disenador = designer;
+}
+
+document.getElementById('designerModal').style.display = 'none';
+requestIdForDesigner = null;
+renderLocalTable();
+openModal("✅ Éxito", `Solicitud asignada a ${designer}`, "🎨");
+} else {
+throw new Error(data.error);
+}
+} catch (e) {
+openModal("❌ Error", "Error al guardar: " + e.message, "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
+
+// ✅ MODIFICAR FUNCIÓN modStatus PARA DETECTAR FINALIZADA
+async function modStatus(id, st) {
+const pill = document.getElementById('pill-' + id);
+const oldClass = pill.className;
+const oldText = pill.innerText;
+const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+
+pill.className = `status-pill status-${newStatusClass}`; 
+pill.innerText = st;
+
+try {
+// ✅ SI ES FINALIZADA, MOSTRAR MODAL DE DISEÑADOR
+if (st === "FINALIZADA") {
+requestIdForDesigner = id;
+document.getElementById('designerModal').style.display = 'flex';
+return;
+}
+
+await fetch(SCRIPT_URL, { 
+method: 'POST', 
+mode: 'no-cors', 
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
+body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}`
+});
+
+const item = localData.find(x => x.id == id); 
+if(item) item.Estatus = st; 
+renderLocalTable();
+} catch (e) { 
+pill.className = oldClass;
+pill.innerText = oldText; 
+openModal("❌ Error", "Error de conexión.", "💥"); 
+}
+}
+
+// ✅ MODIFICAR FUNCIÓN renderLocalTable PARA MOSTRAR CÍRCULOS Y CONTADORES
+function renderLocalTable() {
+const body = document.getElementById('solicitudes-body');
+body.innerHTML = "";
+
+let counts = { 
+total: 0, 
+pend: 0, 
+proc: 0, 
+fin: 0,
+bermina: 0,
+jorsy: 0,
+maria: 0,
+xamir: 0
+};
+
+// ✅ CORREGIDO: Eliminar límite de 50 solicitudes - mostrar TODAS
+const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+
+sortedData.forEach((s, idx) => {
+counts.total++;
+const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+
+if(statusLimpio === 'pendiente') counts.pend++;
+if(statusLimpio === 'procesando') counts.proc++;
+if(statusLimpio === 'finalizada') {
+counts.fin++;
+
+// ✅ CONTAR POR DISEÑADOR
+if (s.Disenador) {
+if (s.Disenador === "Bermina") counts.bermina++;
+else if (s.Disenador === "Jorsy") counts.jorsy++;
+else if (s.Disenador === "María F.") counts.maria++;
+else if (s.Disenador === "Xamir") counts.xamir++;
+}
+}
+
+// ✅ CAMBIO: TODAS las pendientes son NEW (sin límite de 5)
+const esNueva = (statusReal === "PENDIENTE");
+const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
+
+let badge = '';
+let rowClass = '';
+if (esNueva) {
+if (jornadaLimpia === "Obituario") {
+badge = '<span class="badge-prioridad">PRIORIZAR</span>';
+rowClass = "row-obituario";
+} else {
+badge = '<span class="badge-new">NEW</span>'; // ✅ Texto cambiado a "NEW"
+rowClass = "row-new";
+}
+}
+
+// ✅ CÍRCULO DE DISEÑADOR
+let designerCircle = '';
+if (s.Disenador && statusLimpio === 'finalizada') {
+const color = designerColors[s.Disenador] || '#6c757d';
+designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+}
+
+let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
+const tr = document.createElement('tr');
+if(rowClass) tr.className = rowClass;
+
+tr.innerHTML = `
+${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
+${isAdmin ? '' : `<td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>`}
+${isAdmin ?
+`<td><span class="txt-bold">${s.id}</span></td>` : ''}
+<td class="txt-bold">${unidadLimpia} ${badge}</td>
+<td>${jornadaLimpia}</td>
+<td align="center">${icon}</td>
+<td>
+${designerCircle}
+<span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+</td>
+${isAdmin ?
+`<td align="right">
+<div class="admin-actions">
+<button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
+<button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
+<button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
+<!-- ✅ BOTÓN CORREGIDO: Icono + texto compacto -->
+<button class="btn-arte" onclick="openArteModal('${s.id}')">🎨 Adj</button>
+${s.ArteFinal ?
+`<a href="${s.ArteFinal}" target="_blank" class="btn-ver">👁️ VER</a>` : ''}
+${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">✈️ TG</button>` : ''}
+<button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
+</div>
+</td>` : ''}`;
+body.appendChild(tr);
+});
+
+document.getElementById('count-total').innerText = counts.total;
+document.getElementById('count-pend').innerText = counts.pend;
+document.getElementById('count-proc').innerText = counts.proc;
+document.getElementById('count-fin').innerText = counts.fin;
+
+// ✅ ACTUALIZAR CONTADORES DE DISEÑADORES (SOLO ADMIN) - NUEVA LÓGICA PARA DOS FILAS
+if (isAdmin) {
+document.getElementById('designers-stats').style.display = 'flex';
+document.getElementById('count-bermina').innerText = counts.bermina;
+document.getElementById('count-jorsy').innerText = counts.jorsy;
+document.getElementById('count-maria').innerText = counts.maria;
+document.getElementById('count-xamir').innerText = counts.xamir;
+} else {
+document.getElementById('designers-stats').style.display = 'none';
+}
+
+document.getElementById('col-fecha-actividad').style.display = isAdmin ? 'none' : '';
+document.getElementById('col-id-solicitud').classList.toggle('hidden', !isAdmin);
+}
+
 const DATA = {
 especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Gerontología", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
 servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Farmacia", "Fisioterapia", "Fonoaudiología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje"],
@@ -518,171 +915,152 @@ quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", 
 pediatrica: ["Criptorquidias", "Fimosis", "Hernia epigástrica", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Quiste tirogloso", "Varicocele"],
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
-
 // ✅ FUNCIONES PARA REPORTE MENSUAL - SOLO HABILITADO 1° DE MES
 function generateMonthlyReport() {
-  // Verificar que sea el primer día del mes
-  const today = new Date();
-  if (today.getDate() !== 1) {
-    openModal("⏳ No disponible", "El reporte mensual solo está disponible el primer día de cada mes.", "📊");
-    return;
-  }
-  
-  // ✅ CONFIRMACIÓN NATIVA DEL NAVEGADOR (SEGURA Y BLOQUEANTE)
-  if (!confirm("⚠️ ¿CONFIRMA que desea generar el reporte mensual del mes anterior?\n\n" +
-               "✅ Se enviará por correo y Telegram\n" +
-               "✅ Luego se eliminarán SOLO las solicitudes finalizadas con fecha de registro del mes anterior\n\n" +
-               "ℹ️ Las solicitudes creadas HOY (1° de mes) NO serán eliminadas\n" +
-               "⚠️ Esta acción es IRREVERSIBLE para las del mes anterior")) {
-    return;
-  }
-  
-  document.getElementById('loadMainTxt').innerText = "Generando reporte mensual...";
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  
-  // Obtener credenciales almacenadas del admin
-  const adminUser = PROPS.getProperty("ADMIN_USER");
-  const adminPass = PROPS.getProperty("ADMIN_PASS");
-  
-  // ✅ CORREGIDO: Primero generar el reporte, LUEGO eliminar las finalizadas
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `action=generateMonthlyReport&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // ✅ Mensaje con modal personalizado: especifica que solo se eliminan del mes anterior
-      openModal("✅ Reporte Generado", 
-        "El reporte mensual ha sido generado y enviado correctamente.\n\n" +
-        "ℹ️ Ahora se procederá a eliminar SOLO las solicitudes finalizadas con fecha de registro del mes anterior (" + 
-        new Date(new Date().getFullYear(), new Date().getMonth()-1, 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) + 
-        ") para optimizar el sistema.\n\n" +
-        "✅ Las solicitudes creadas hoy (1°) permanecerán intactas.", 
-        "📊");
-      
-      setTimeout(() => {
-        document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes finalizadas del mes anterior...";
-        
-        return fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `action=deleteFinalizadas&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
-        });
-      }, 2000);
-    } else {
-      throw new Error(data.error || "Error al generar el reporte");
-    }
-  })
-  .then(response => {
-    if (response) {
-      return response.json();
-    }
-  })
-  .then(data => {
-    if (data && data.success) {
-      // ✅ Mensaje final con modal personalizado: incluye el período eliminado
-      openModal("✅ Limpieza Completada", 
-        `¡Reporte mensual generado y ${data.count || 0} solicitudes finalizadas del mes anterior (${data.periodo}) eliminadas correctamente!\n\n` +
-        "✅ Las solicitudes creadas hoy (1°) permanecen en el sistema.", 
-        "📊");
-      updateTable();
-    } else if (data) {
-      throw new Error(data.error || "Error al limpiar solicitudes");
-    }
-  })
-  .catch(err => {
-    openModal("❌ Error", "Error: " + err.message, "💥");
-  })
-  .finally(() => {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  });
+// Verificar que sea el primer día del mes
+const today = new Date();
+if (today.getDate() !== 1) {
+openModal("⏳ No disponible", "El reporte mensual solo está disponible el primer día de cada mes.", "📊");
+return;
 }
-
+// ✅ CONFIRMACIÓN NATIVA DEL NAVEGADOR (SEGURA Y BLOQUEANTE)
+if (!confirm("⚠️ ¿CONFIRMA que desea generar el reporte mensual del mes anterior?\n" +
+"✅ Se enviará por correo y Telegram\n" +
+"✅ Luego se eliminarán SOLO las solicitudes finalizadas con fecha de registro del mes anterior\n" +
+"ℹ️ Las solicitudes creadas HOY (1° de mes) NO serán eliminadas\n" +
+"⚠️ Esta acción es IRREVERSIBLE para las del mes anterior")) {
+return;
+}
+document.getElementById('loadMainTxt').innerText = "Generando reporte mensual...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+// Obtener credenciales almacenadas del admin
+const adminUser = PROPS.getProperty("ADMIN_USER");
+const adminPass = PROPS.getProperty("ADMIN_PASS");
+// ✅ CORREGIDO: Primero generar el reporte, LUEGO eliminar las finalizadas
+fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=generateMonthlyReport&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
+})
+.then(response => response.json())
+.then(data => {
+if (data.success) {
+// ✅ Mensaje con modal personalizado: especifica que solo se eliminan del mes anterior
+openModal("✅ Reporte Generado",
+"El reporte mensual ha sido generado y enviado correctamente.\n" +
+"ℹ️ Ahora se procederá a eliminar SOLO las solicitudes finalizadas con fecha de registro del mes anterior (" +
+new Date(new Date().getFullYear(), new Date().getMonth()-1, 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) +
+") para optimizar el sistema.\n" +
+"✅ Las solicitudes creadas hoy (1°) permanecerán intactas.",
+"📊");
+setTimeout(() => {
+document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes finalizadas del mes anterior...";
+return fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=deleteFinalizadas&username=${encodeURIComponent(adminUser)}&password=${encodeURIComponent(adminPass)}`
+});
+}, 2000);
+} else {
+throw new Error(data.error || "Error al generar el reporte");
+}
+})
+.then(response => {
+if (response) {
+return response.json();
+}
+})
+.then(data => {
+if (data && data.success) {
+// ✅ Mensaje final con modal personalizado: incluye el período eliminado
+openModal("✅ Limpieza Completada",
+`¡Reporte mensual generado y ${data.count || 0} solicitudes finalizadas del mes anterior (${data.periodo}) eliminadas correctamente!\n` +
+"✅ Las solicitudes creadas hoy (1°) permanecen en el sistema.",
+"📊");
+updateTable();
+} else if (data) {
+throw new Error(data.error || "Error al limpiar solicitudes");
+}
+})
+.catch(err => {
+openModal("❌ Error", "Error: " + err.message, "💥");
+})
+.finally(() => {
+document.getElementById('loadingOverlay').style.display = 'none';
+});
+}
 // ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE
 function updateReportButtonStatus() {
-  const today = new Date();
-  const currentDay = today.getDate();
-  const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  
-  const btn = document.getElementById('reportBtn');
-  const text = document.getElementById('reportBtnText');
-  const daysText = document.getElementById('reportBtnDays');
-  
-  if (!btn || !isAdmin) return;
-  
-  // Calcular días restantes para el próximo 1°
-  let daysRemaining;
-  if (currentDay === 1) {
-    daysRemaining = 0;
-  } else {
-    daysRemaining = totalDaysInMonth - currentDay + 1;
-  }
-  
-  // Actualizar texto
-  if (currentDay === 1) {
-    daysText.innerHTML = '<div class="report-info-banner">Hoy es el día para generar el reporte del mes anterior</div>';
-    btn.disabled = false;
-    btn.style.cursor = 'pointer';
-    text.style.opacity = '1';
-    btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
-  } else {
-    daysText.textContent = `Disponible en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
-    btn.disabled = true;
-    btn.style.cursor = 'not-allowed';
-    text.style.opacity = '0.7';
-    
-    // Calcular progreso para el próximo ciclo
-    const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
-    btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
-  }
+const today = new Date();
+const currentDay = today.getDate();
+const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+const btn = document.getElementById('reportBtn');
+const text = document.getElementById('reportBtnText');
+const daysText = document.getElementById('reportBtnDays');
+if (!btn || !isAdmin) return;
+// Calcular días restantes para el próximo 1°
+let daysRemaining;
+if (currentDay === 1) {
+daysRemaining = 0;
+} else {
+daysRemaining = totalDaysInMonth - currentDay + 1;
 }
-
+// Actualizar texto
+if (currentDay === 1) {
+daysText.innerHTML = '<div class="report-info-banner">Hoy es el día para generar el reporte del mes anterior</div>';
+btn.disabled = false;
+btn.style.cursor = 'pointer';
+text.style.opacity = '1';
+btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
+} else {
+daysText.textContent = `Disponible en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
+btn.disabled = true;
+btn.style.cursor = 'not-allowed';
+text.style.opacity = '0.7';
+// Calcular progreso para el próximo ciclo
+const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
+btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
+}
+}
 function checkFirstDayOfMonth() {
-  const today = new Date();
-  if (isAdmin) {
-    document.getElementById('reportBtn').classList.remove('hidden');
-    updateReportButtonStatus();
-    // Actualizar cada minuto para mantener el estado actualizado
-    setInterval(updateReportButtonStatus, 60000);
-  }
+const today = new Date();
+if (isAdmin) {
+document.getElementById('reportBtn').classList.remove('hidden');
+updateReportButtonStatus();
+// Actualizar cada minuto para mantener el estado actualizado
+setInterval(updateReportButtonStatus, 60000);
 }
-
+}
 // ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
 function handleFile(input, imgId, btnId) {
-  if (modoObituario) {
-    input.value = "";
-    return;
-  }
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.getElementById(imgId);
-      img.src = e.target.result; // "data:image/jpeg;base64,..."
-      img.style.display = 'block';
-      document.getElementById(btnId).style.display = 'block';
-      
-      // ✅ MARCADOR DE IMAGEN VÁLIDA
-      img.setAttribute('data-has-image', 'true');
-    };
-    reader.readAsDataURL(file);
-  }
+if (modoObituario) {
+input.value = "";
+return;
 }
-
+const file = input.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = (e) => {
+const img = document.getElementById(imgId);
+img.src = e.target.result; // "image/jpeg;base64,..."
+img.style.display = 'block';
+document.getElementById(btnId).style.display = 'block';
+// ✅ MARCADOR DE IMAGEN VÁLIDA
+img.setAttribute('data-has-image', 'true');
+};
+reader.readAsDataURL(file);
+}
+}
 function clearFile(inputId, imgId, btnId) {
-  if (modoObituario) return;
-  document.getElementById(inputId).value = "";
-  const img = document.getElementById(imgId);
-  img.src = "";
-  img.style.display = 'none';
-  img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
-  document.getElementById(btnId).style.display = 'none';
+if (modoObituario) return;
+document.getElementById(inputId).value = "";
+const img = document.getElementById(imgId);
+img.src = "";
+img.style.display = 'none';
+img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
+document.getElementById(btnId).style.display = 'none';
 }
-
 // ✅ FIN FUNCIONES REPORTE MENSUAL
-
 // ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
 function setupFieldErrorRemoval() {
 ['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
@@ -808,7 +1186,7 @@ if (descOtro) {
 descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en caso de ser familiar de un trabajador del Ipasme y servicio o jurisdicción a la que pertenece el familiar o el fallecido.";
 }
 Array.from(document.querySelectorAll('.preview')).forEach(img => {
-img.src = ''; 
+img.src = '';
 img.style.display = 'none';
 img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen
 });
@@ -1175,94 +1553,45 @@ OBITUARIO
 </div>`;
 }
 }
-function renderList(cont, list) { list.forEach(i => { const d = document.createElement('div'); d.className = 'card-btn'; d.innerText = i; d.onclick = () => { d.classList.toggle('selected'); document.getElementById('sec-3').classList.remove('field-error'); }; cont.appendChild(d); });
+function renderList(cont, list) { 
+list.forEach(i => { 
+const d = document.createElement('div'); 
+d.className = 'card-btn'; 
+d.innerText = i; 
+d.onclick = () => { 
+d.classList.toggle('selected'); 
+document.getElementById('sec-3').classList.remove('field-error'); 
+}; 
+cont.appendChild(d); 
+});
 }
-function showPage(id, btn) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo({top: 0, behavior: 'smooth'}); if(btn) btn.classList.add('active'); else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); if(id === 'list-page') updateTable(); }
+function showPage(id, btn) { 
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+document.getElementById(id).classList.add('active'); 
+window.scrollTo({top: 0, behavior: 'smooth'}); 
+if(btn) btn.classList.add('active'); 
+else document.getElementById('tab-' + id.split('-')[0]).classList.add('active'); 
+if(id === 'list-page') updateTable(); 
+}
 async function updateTable() {
 try {
 const res = await fetch(`${SCRIPT_URL}?action=read`);
 const response = await res.json();
 isMaintActive = (response.maintenance === "true" || response.maintenance === true);
-if(isMaintActive && !isAdmin) { document.getElementById('maintOverlay').style.display = 'flex'; }
-else { document.getElementById('maintOverlay').style.display = 'none'; }
+if(isMaintActive && !isAdmin) { 
+document.getElementById('maintOverlay').style.display = 'flex'; 
+}
+else { 
+document.getElementById('maintOverlay').style.display = 'none'; 
+}
 if (response.success && Array.isArray(response.data)) {
 localData = response.data;
 renderLocalTable();
 }
-} catch (e) { console.error("Error cargando tabla:", e); }
+} catch (e) { 
+console.error("Error cargando tabla:", e); 
 }
-function renderLocalTable() {
-const body = document.getElementById('solicitudes-body');
-body.innerHTML = "";
-let counts = { total:0, pend:0, proc:0, fin:0 };
-// ✅ CORREGIDO: Eliminar límite de 50 solicitudes - mostrar TODAS
-const sortedData = [...localData].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-sortedData.forEach((s, idx) => {
-counts.total++;
-const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
-const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
-if(statusLimpio === 'pendiente') counts.pend++;
-if(statusLimpio === 'procesando') counts.proc++;
-if(statusLimpio === 'finalizada') counts.fin++;
-const esNueva = (idx < 5 && statusReal === "PENDIENTE");
-const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
-const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
-let badge = '';
-let rowClass = '';
-if (esNueva) {
-if (jornadaLimpia === "Obituario") {
-badge = '<span class="badge-prioridad">PRIORIZAR</span>';
-rowClass = "row-obituario";
-} else {
-badge = '<span class="badge-new">NUEVA ✨</span>';
-rowClass = "row-new"; // ✅ Resaltado azul recuperado
-}
-}
-let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
-const tr = document.createElement('tr');
-if(rowClass) tr.className = rowClass;
-tr.innerHTML = `
-${isAdmin ? '' : `<td><span class="txt-small">${s.Timestamp}</span></td>`}
-${isAdmin ? '' : `<td><span class="txt-bold">${s.Fecha}</span><br><span class="txt-small">${s.Hora || ''}</span></td>`}
-${isAdmin ?
-`<td><span class="txt-bold">${s.id}</span></td>` : ''}
-<td class="txt-bold">${unidadLimpia} ${badge}</td>
-<td>${jornadaLimpia}</td>
-<td align="center">${icon}</td>
-<td><span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span></td>
-${isAdmin ?
-`<td align="right">
-<div class="admin-actions">
-<button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
-<button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
-<button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
-<button class="btn-arte" onclick="openArteModal('${s.id}')">🎨 ADJUNTAR</button>
-${s.ArteFinal ?
-`<a href="${s.ArteFinal}" target="_blank" class="btn-ver">👁️ VER</a>` : ''}
-${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">✈️ TG</button>` : ''}
-<button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
-</div>
-</td>` : ''}`;
-body.appendChild(tr);
-});
-document.getElementById('count-total').innerText = counts.total;
-document.getElementById('count-pend').innerText = counts.pend;
-document.getElementById('count-proc').innerText = counts.proc;
-document.getElementById('count-fin').innerText = counts.fin;
-document.getElementById('col-fecha-actividad').style.display = isAdmin ? 'none' : '';
-document.getElementById('col-id-solicitud').classList.toggle('hidden', !isAdmin);
-}
-async function modStatus(id, st) {
-const pill = document.getElementById('pill-' + id);
-const oldClass = pill.className;
-const oldText = pill.innerText;
-const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
-pill.className = `status-pill status-${newStatusClass}`; pill.innerText = st;
-try {
-await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `action=updateStatus&id=${id}&status=${encodeURIComponent(st)}` });
-const item = localData.find(x => x.id == id); if(item) item.Estatus = st; renderLocalTable();
-} catch (e) { pill.className = oldClass;
-pill.innerText = oldText; openModal("❌ Error", "Error de conexión.", "💥"); }
 }
 // ✅ VALIDACIÓN EN ORDEN CORRECTO
 function validateForm() {
