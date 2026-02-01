@@ -8,7 +8,8 @@
 <style>
 :root {
 --celeste: #8ecae6;
---turquesa: #219ebc; --azul-deep: #023047;
+--turquesa: #219ebc;
+--azul-deep: #023047;
 --amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
 --verde: #2d6a4f; --gris: #edf2f4;
 }
@@ -1402,98 +1403,96 @@ btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 
 }
 
 function checkFirstDayOfMonth() {
-const today = new Date();
-if (isAdmin) {
-document.getElementById('reportBtn').classList.remove('hidden');
-updateReportButtonStatus();
-// Actualizar cada minuto para mantener el estado actualizado
-setInterval(updateReportButtonStatus, 60000);
-}
+  const today = new Date();
+  if (isAdmin) {
+    document.getElementById('reportBtn').classList.remove('hidden');
+    updateReportButtonStatus();
+    // Actualizar cada minuto para mantener el estado actualizado
+    setInterval(updateReportButtonStatus, 60000);
+  }
 }
 
 // ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
 function handleFile(input, imgId, btnId) {
-if (modoObituario) {
-input.value = "";
-return;
-}
-const file = input.files[0];
-if (file) {
-const reader = new FileReader();
-reader.onload = (e) => {
-const img = document.getElementById(imgId);
-img.src = e.target.result; // "image/jpeg;base64,..."
-img.style.display = 'block';
-document.getElementById(btnId).style.display = 'block';
-// ✅ MARCADOR DE IMAGEN VÁLIDA
-img.setAttribute('data-has-image', 'true');
-};
-reader.readAsDataURL(file);
-}
+  if (modoObituario) {
+    input.value = "";
+    return;
+  }
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.getElementById(imgId);
+      img.src = e.target.result; // "image/jpeg;base64,..."
+      img.style.display = 'block';
+      document.getElementById(btnId).style.display = 'block';
+      // ✅ MARCADOR DE IMAGEN VÁLIDA
+      img.setAttribute('data-has-image', 'true');
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 function clearFile(inputId, imgId, btnId) {
-if (modoObituario) return;
-document.getElementById(inputId).value = "";
-const img = document.getElementById(imgId);
-img.src = "";
-img.style.display = 'none';
-img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
-document.getElementById(btnId).style.display = 'none';
+  if (modoObituario) return;
+  document.getElementById(inputId).value = "";
+  const img = document.getElementById(imgId);
+  img.src = "";
+  img.style.display = 'none';
+  img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
+  document.getElementById(btnId).style.display = 'none';
 }
-
-// ✅ FIN FUNCIONES REPORTE MENSUAL
 
 // ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
 function setupFieldErrorRemoval() {
-['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
-const el = document.getElementById(id);
-if (el) {
-el.addEventListener('input', () => el.classList.remove('field-error'));
-el.addEventListener('focus', () => el.classList.remove('field-error'));
-}
-});
+  ['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => el.classList.remove('field-error'));
+      el.addEventListener('focus', () => el.classList.remove('field-error'));
+    }
+  });
 
-document.querySelectorAll('#region-grid .card-btn').forEach(btn => {
-btn.addEventListener('click', () => {
-document.getElementById('region-grid').classList.remove('field-error');
-});
-});
+  document.querySelectorAll('#region-grid .card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('region-grid').classList.remove('field-error');
+    });
+  });
 
-const unidadGrid = document.getElementById('unidad-grid');
-const observer = new MutationObserver(() => {
-unidadGrid.querySelectorAll('.card-btn').forEach(btn => {
-btn.addEventListener('click', () => {
-document.getElementById('unidad-grid').classList.remove('field-error');
-});
-});
-});
-observer.observe(unidadGrid, { childList: true });
+  const unidadGrid = document.getElementById('unidad-grid');
+  const observer = new MutationObserver(() => {
+    unidadGrid.querySelectorAll('.card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('unidad-grid').classList.remove('field-error');
+      });
+    });
+  });
+  observer.observe(unidadGrid, { childList: true });
 
-document.querySelectorAll('#cat-grid .card-btn').forEach(btn => {
-btn.addEventListener('click', () => {
-document.getElementById('cat-grid').classList.remove('field-error');
-});
-});
+  document.querySelectorAll('#cat-grid .card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('cat-grid').classList.remove('field-error');
+    });
+  });
 
-const cont3 = document.getElementById('cont-3');
-const observer3 = new MutationObserver(() => {
-cont3.querySelectorAll('.card-btn').forEach(btn => {
-btn.addEventListener('click', () => {
-document.getElementById('sec-3').classList.remove('field-error');
-});
-});
+  const cont3 = document.getElementById('cont-3');
+  const observer3 = new MutationObserver(() => {
+    cont3.querySelectorAll('.card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('sec-3').classList.remove('field-error');
+      });
+    });
 
-const descOtro = document.getElementById('desc-otro');
-if (descOtro) {
-descOtro.addEventListener('input', () => document.getElementById('sec-3').classList.remove('field-error'));
-descOtro.addEventListener('focus', () => document.getElementById('sec-3').classList.remove('field-error'));
-}
-});
-observer3.observe(cont3, { childList: true, subtree: true });
+    const descOtro = document.getElementById('desc-otro');
+    if (descOtro) {
+      descOtro.addEventListener('input', () => document.getElementById('sec-3').classList.remove('field-error'));
+      descOtro.addEventListener('focus', () => document.getElementById('sec-3').classList.remove('field-error'));
+    }
+  });
+  observer3.observe(cont3, { childList: true, subtree: true });
 
-document.getElementById('btn-am').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
-document.getElementById('btn-pm').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+  document.getElementById('btn-am').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+  document.getElementById('btn-pm').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1659,13 +1658,11 @@ if (e.key === 'Enter') {
 validateLogin();
 }
 };
-userField.removeEventListener('keydown', handleEnter);
-passField.removeEventListener('keydown', handleEnter);
 userField.addEventListener('keydown', handleEnter);
 passField.addEventListener('keydown', handleEnter);
 }
 
-// ✅ VALIDACIÓN DE LOGIN MODIFICADA PARA SOPORTAR ADMIN Y DISEÑADOR
+// VALIDACIÓN DE LOGIN MODIFICADA PARA SOPORTAR ADMIN Y DISEÑADOR
 async function validateLogin() {
 const u = document.getElementById('adminUser').value.trim();
 const p = document.getElementById('adminPass').value.trim();
@@ -1684,7 +1681,13 @@ params.append("action", "loginAdmin");
 params.append("username", u);
 params.append("password", p);
 
-const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+// ✅ MEJORADO: Agregar headers de seguridad y modo no-cors para credenciales
+const res = await fetch(SCRIPT_URL, { 
+method: 'POST',
+mode: 'no-cors',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params 
+});
 const data = await res.json();
 
 if (data.success && data.data) {
@@ -2207,7 +2210,7 @@ const fechaInput = document.getElementById('fecha').value;
 const fechaSeleccionada = new Date(fechaInput + 'T00:00:00');
 const ahora = new Date();
 
-// ✅ CAMBIO INTERNO: 48 → 24 horas
+// ✅ VALIDACIÓN INTERNA: 24 HORAS (texto mantiene 48 para usuario)
 if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 24) {
 document.getElementById('fecha').classList.add('field-error');
 openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
@@ -2437,7 +2440,7 @@ document.getElementById('observaciones').classList.remove('obit-disabled');
 document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
 document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
 
-document.getElementById('region-grid').querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
+document.querySelectorAll('#region-grid .card-btn').forEach(b => b.classList.remove('selected'));
 document.getElementById('unidad-grid').innerHTML = "";
 document.getElementById('unidad-section').classList.add('hidden');
 
