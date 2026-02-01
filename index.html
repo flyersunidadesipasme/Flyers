@@ -25,12 +25,12 @@ gap: 10px;
 line-height: 1; }
 .acronimo { font-size: 0.5rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px;
 }
-.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; min-width: 200px; flex-wrap: wrap; justify-content: flex-start; }
+.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; min-width: 200px; flex-wrap: wrap; }
 .tab-btn { padding: 6px 16px; border-radius: 20px; border: none;
 cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px;
 }
 .tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
-.admin-access { flex: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; min-width: 280px; flex-wrap: wrap; justify-content: center; }
+.admin-access { flex: 1; display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 280px; flex-wrap: wrap; justify-content: flex-end; }
 /* ✅ ESTILO PARA MENSAJE DE BIENVENIDA - MÁS LLAMATIVO */
 .welcome-message {
 font-size: 1rem;
@@ -63,9 +63,9 @@ transform: translateY(0) scale(1);
 .admin-buttons {
 display: flex;
 gap: 8px;
-width: 100%;
 justify-content: flex-end;
-flex-wrap: wrap;
+flex-wrap: nowrap;
+align-items: center;
 }
 .btn-login { background: var(--amarillo);
 border: none; padding: 6px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.7rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s;
@@ -290,6 +290,10 @@ cursor: not-allowed !important;
 #reportBtn {
 position: relative;
 overflow: hidden;
+display: flex;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
 }
 #reportBtn:disabled {
 opacity: 0.65;
@@ -306,33 +310,19 @@ transform: translateY(1px);
 box-shadow: 0 2px 0 #1a3d2d;
 }
 #reportBtnText {
-display: block;
+display: inline;
 transition: opacity 0.3s;
 }
-#reportBtnDays {
-font-size: 0.65rem;
-display: block;
-opacity: 0.9;
-margin-top: 2px;
+.report-days-badge {
+font-size: 0.6rem;
+background: rgba(255,255,255,0.2);
+padding: 2px 6px;
+border-radius: 10px;
 font-weight: 600;
-transition: opacity 0.3s;
+display: none;
 }
-.report-info-banner {
-background: linear-gradient(135deg, #2d6a4f 0%, #1e4a35 100%);
-color: white;
-padding: 12px;
-border-radius: 8px;
-margin-top: 10px;
-font-size: 0.85rem;
-text-align: center;
-font-weight: 600;
-box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-}
-.report-info-banner span {
-display: block;
-font-size: 1.1rem;
-font-weight: 800;
-margin-top: 3px;
+.report-days-badge.show {
+display: inline-block;
 }
 /* ✅ MEJORAS RESPONSIVE PARA MÓVIL */
 @media (max-width: 768px) {
@@ -373,22 +363,24 @@ min-width: 100px;
 .admin-access {
 width: 100%;
 align-items: center;
+justify-content: center;
 flex-wrap: wrap;
 gap: 6px;
 margin-top: 5px;
 }
 .welcome-message {
-font-size: 0.9rem;
-padding: 6px 12px;
+font-size: 0.85rem;
+padding: 5px 10px;
 }
 .admin-buttons {
 justify-content: center;
 width: 100%;
+flex-wrap: wrap;
 }
 .btn-login, .btn-logout {
-padding: 5px 10px;
-font-size: 0.65rem;
-min-width: 85px;
+padding: 5px 8px;
+font-size: 0.6rem;
+min-width: auto;
 }
 /* Contenedores de stats en columnas */
 .stats-grid {
@@ -541,8 +533,8 @@ onclick="selectDesigner('Xamir')">👨‍🎨 Xamir</button>
 <button id="maintBtn" class="btn-login hidden" style="background: var(--rojo);
 box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
 <button id="reportBtn" class="btn-login hidden" style="background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%); box-shadow: 0 3px 0 #1e4a35; color: white;" onclick="generateMonthlyReport()">
-<span id="reportBtnText">📊 Reporte</span>
-<span id="reportBtnDays"></span>
+<span id="reportBtnText">📊 Generar Reporte</span>
+<span id="reportBtnDays" class="report-days-badge"></span>
 </button>
 <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
 </div>
@@ -941,50 +933,39 @@ return;
 }
 document.getElementById('loadMainTxt').innerText = "Generando reporte mensual...";
 document.getElementById('loadingOverlay').style.display = 'flex';
-// ✅ CORREGIDO: Primero generar el reporte, LUEGO eliminar las finalizadas
+// Funcion auxiliar para esperar
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Primero generar el reporte, LUEGO eliminar las finalizadas
 fetch(SCRIPT_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 body: `action=generateMonthlyReport&username=${encodeURIComponent(adminCredentials.username)}&password=${encodeURIComponent(adminCredentials.password)}`
 })
 .then(response => response.json())
-.then(data => {
+.then(async data => {
 if (data.success) {
-// ✅ Mensaje con modal personalizado: especifica que solo se eliminan del mes anterior
 openModal("✅ Reporte Generado",
 "El reporte mensual ha sido generado y enviado correctamente.\n" +
-"ℹ️ Ahora se procederá a eliminar SOLO las solicitudes finalizadas con fecha de registro del mes anterior (" +
-new Date(new Date().getFullYear(), new Date().getMonth()-1, 1).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) +
-") para optimizar el sistema.\n" +
-"✅ Las solicitudes creadas hoy (1°) permanecerán intactas.",
+"Ahora se procederá a eliminar las solicitudes finalizadas del mes anterior.",
 "📊");
-setTimeout(() => {
+await delay(2000);
 document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes finalizadas del mes anterior...";
-return fetch(SCRIPT_URL, {
+const deleteResponse = await fetch(SCRIPT_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 body: `action=deleteFinalizadas&username=${encodeURIComponent(adminCredentials.username)}&password=${encodeURIComponent(adminCredentials.password)}`
 });
-}, 2000);
-} else {
-throw new Error(data.error || "Error al generar el reporte");
-}
-})
-.then(response => {
-if (response) {
-return response.json();
-}
-})
-.then(data => {
-if (data && data.success) {
-// ✅ Mensaje final con modal personalizado: incluye el período eliminado
+const deleteData = await deleteResponse.json();
+if (deleteData.success) {
 openModal("✅ Limpieza Completada",
-`¡Reporte mensual generado y ${data.count || 0} solicitudes finalizadas del mes anterior (${data.periodo}) eliminadas correctamente!\n` +
-"✅ Las solicitudes creadas hoy (1°) permanecen en el sistema.",
+`Reporte generado y ${deleteData.count || 0} solicitudes finalizadas eliminadas correctamente.`,
 "📊");
 updateTable();
-} else if (data) {
-throw new Error(data.error || "Error al limpiar solicitudes");
+} else {
+throw new Error(deleteData.error || "Error al limpiar solicitudes");
+}
+} else {
+throw new Error(data.error || "Error al generar el reporte");
 }
 })
 .catch(err => {
@@ -1013,13 +994,15 @@ daysRemaining = totalDaysInMonth - currentDay + 1;
 }
 // Actualizar texto
 if (currentDay === 1) {
-daysText.innerHTML = '<div class="report-info-banner">Hoy es el día para generar el reporte del mes anterior</div>';
+daysText.textContent = 'Disponible hoy';
+daysText.classList.add('show');
 btn.disabled = false;
 btn.style.cursor = 'pointer';
 text.style.opacity = '1';
 btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
 } else {
-daysText.textContent = `Disponible en ${daysRemaining} día${daysRemaining !== 1 ? 's' : ''}`;
+daysText.textContent = `${daysRemaining}d`;
+daysText.classList.add('show');
 btn.disabled = true;
 btn.style.cursor = 'not-allowed';
 text.style.opacity = '0.7';
