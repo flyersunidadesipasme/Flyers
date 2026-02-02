@@ -875,6 +875,28 @@ async function detectConnectionSpeed() {
     }
 }
 
+// ✅ REINICIAR ESTADO DE CHUNKS
+function resetChunkUploadState() {
+    chunkUpload.isActive = false;
+    chunkUpload.currentFile = null;
+    chunkUpload.chunks = [];
+    chunkUpload.currentChunk = 0;
+    chunkUpload.totalChunks = 0;
+    chunkUpload.uploadedChunks = 0;
+    chunkUpload.pauseRequested = false;
+    chunkUpload.startTime = null;
+    chunkUpload.retryCount = 0;
+    chunkUpload.resumeToken = null;
+    
+    // ✅ Limpiar timer si existe
+    if (window.confirmTimer) {
+        clearInterval(window.confirmTimer);
+        window.confirmTimer = null;
+    }
+    
+    console.log("🔄 Estado de chunks reiniciado");
+}
+
 // ✅ DIVIDIR ARCHIVO EN CHUNKS
 function splitFileIntoChunks(file) {
     const chunks = [];
@@ -1720,9 +1742,80 @@ btn.onclick = closeModal;
 document.getElementById('modalAlert').style.display = 'flex';
 }
 
+// CERRAR MODAL - CORREGIDA
 function closeModal() {
-clearCredentials();
-document.getElementById('modalAlert').style.display = 'none';
+    const modal = document.getElementById('modalAlert');
+    if (!modal) return;
+    
+    // Reiniciar todos los elementos del modal
+    clearCredentials();
+    
+    // Limpiar áreas específicas
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    if (loginArea) loginArea.classList.add('hidden');
+    if (uploadArea) uploadArea.classList.add('hidden');
+    
+    // Restaurar botones a estado por defecto
+    const mainBtn = document.getElementById('mainModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    if (mainBtn) {
+        mainBtn.classList.remove('hidden');
+        mainBtn.innerText = "ENTENDIDO";
+        mainBtn.onclick = closeModal;
+        mainBtn.style.display = 'block';
+    }
+    
+    if (closeBtn) {
+        closeBtn.classList.remove('hidden');
+        closeBtn.onclick = () => {
+            resetChunkUploadState();
+            closeModal();
+        };
+    }
+    
+    // Limpiar input de archivo
+    const arteFile = document.getElementById('arteFile');
+    if (arteFile) arteFile.value = '';
+    
+    // Limpiar ID actual
+    const currentReqId = document.getElementById('currentReqId');
+    if (currentReqId) currentReqId.value = '';
+    
+    // Ocultar modal
+    modal.style.display = 'none';
+    
+    // Forzar reinicio de progreso si existe
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressInfo = document.getElementById('progressInfo');
+    const progressSpeed = document.getElementById('progressSpeed');
+    const progressETA = document.getElementById('progressETA');
+    const btnPauseResume = document.getElementById('btnPauseResume');
+    const btnCancelUpload = document.getElementById('btnCancelUpload');
+    
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressPercent) progressPercent.innerText = '0%';
+    if (progressStatus) progressStatus.innerText = '';
+    if (progressInfo) progressInfo.innerText = '';
+    if (progressSpeed) progressSpeed.innerText = '';
+    if (progressETA) progressETA.innerText = '';
+    
+    // Restaurar botón de pausa/reanudar
+    if (btnPauseResume) {
+        btnPauseResume.innerHTML = '⏸️ Pausar';
+        btnPauseResume.style.display = 'none';
+    }
+    
+    // Restaurar botón de cancelar
+    if (btnCancelUpload) {
+        btnCancelUpload.style.display = 'none';
+    }
+    
+    // Reiniciar estado de chunks
+    resetChunkUploadState();
 }
 
 function showLogin() {
@@ -1789,7 +1882,7 @@ designerName: data.data.designerName || ""
 isAdmin = data.data.isAdmin || false;
 isDesigner = data.data.isDesigner || false;
 
-// ✅ MOSTRAR MENSAJE DE BIENVENIDA CON NOMBRE DEL USUARIO Y ROL
+// MOSTRAR MENSAJE DE BIENVENIDA CON NOMBRE DEL USUARIO Y ROL
 let welcomeText = userCredentials.displayName;
 if (isDesigner) {
 welcomeText += " (Diseñador)";
@@ -1801,26 +1894,26 @@ document.getElementById('authBtn').className = "btn-logout";
 document.getElementById('authBtn').innerText = `Cerrar Sesión`;
 document.getElementById('authBtn').onclick = logout;
 
-// ✅ CONFIGURAR VISIBILIDAD SEGÚN ROL
+// CONFIGURAR VISIBILIDAD SEGÚN ROL
 document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
 document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
 
 if (isAdmin) {
 document.getElementById('maintBtn').classList.remove('hidden');
-// ✅ Verificar y mostrar botón de reporte - SOLO 1° DE MES
+// Verificar y mostrar botón de reporte - SOLO 1° DE MES
 checkFirstDayOfMonth();
 }
 
 if (isDesigner) {
-// ✅ Ocultar botones restringidos para diseñadores
+// Ocultar botones restringidos para diseñadores
 document.getElementById('maintBtn').classList.add('hidden');
 document.getElementById('reportBtn').classList.add('hidden');
 }
 
-// ✅ ACTUALIZAR VISIBILIDAD DEL BUSCADOR
+// ACTUALIZAR VISIBILIDAD DEL BUSCADOR
 updateSearchVisibility();
 
-// ✅ RESTABLECER BÚSQUEDA Y OCULTAR MODAL AL INICIAR SESIÓN
+// RESTABLECER BÚSQUEDA Y OCULTAR MODAL AL INICIAR SESIÓN
 currentSearchId = "";
 isSearchActive = false;
 resetSearchHighlight();
@@ -1840,22 +1933,22 @@ document.getElementById('loadingOverlay').style.display = 'none';
 }
 }
 
-// ✅ FUNCIÓN DE LOGOUT MODIFICADA
+// FUNCIÓN DE LOGOUT MODIFICADA
 function logout() {
 isAdmin = false;
 isDesigner = false;
 userCredentials = { username: "", password: "", displayName: "", role: "", designerName: "" };
 
-// ✅ RESTABLECER BÚSQUEDA
+// RESTABLECER BÚSQUEDA
 currentSearchId = "";
 isSearchActive = false;
 resetSearchHighlight();
 
-// ✅ LIMPIAR INPUT DE BÚSQUEDA
+// LIMPIAR INPUT DE BÚSQUEDA
 const searchInput = document.getElementById('searchIdInput');
 if (searchInput) searchInput.value = "";
 
-// ✅ OCULTAR MODAL DE ID NO ENCONTRADO
+// OCULTAR MODAL DE ID NO ENCONTRADO
 document.getElementById('idNotFoundModal').style.display = 'none';
 
 document.getElementById('userNameDisplay').innerText = "";
@@ -1878,25 +1971,67 @@ clearCredentials();
 // === FIN FUNCIONES DE SEGURIDAD ===
 
 // === FUNCIONES ADMIN ===
+// ABRIR MODAL DE ARTE - CORREGIDA
 function openArteModal(id) {
-document.getElementById('currentReqId').value = id;
-document.getElementById('arteFile').value = '';
-document.getElementById('modalIcon').innerText = "🎨";
-document.getElementById('modalTitle').innerText = "Adjuntar Arte Final";
-document.getElementById('modalMsg').innerText = "Seleccione el archivo para la solicitud " + id;
-document.getElementById('loginArea').classList.add('hidden');
-document.getElementById('uploadArea').classList.remove('hidden');
-document.getElementById('closeModalBtn').classList.remove('hidden');
-const btn = document.getElementById('mainModalBtn');
-btn.innerText = "SUBIR A DRIVE";
-btn.onclick = uploadArte;
-document.getElementById('modalAlert').style.display = 'flex';
+    // Reiniciar estado antes de abrir
+    resetChunkUploadState();
+    
+    const currentReqId = document.getElementById('currentReqId');
+    const arteFile = document.getElementById('arteFile');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const mainBtn = document.getElementById('mainModalBtn');
+    
+    // Validar elementos existen
+    if (!currentReqId || !arteFile || !modalIcon || !modalTitle || !modalMsg) {
+        console.error("❌ Elementos del modal no encontrados");
+        return;
+    }
+    
+    // Limpiar y configurar
+    currentReqId.value = id;
+    arteFile.value = '';
+    
+    modalIcon.innerText = "🎨";
+    modalTitle.innerText = "Adjuntar Arte Final";
+    modalMsg.innerText = "Seleccione el archivo para la solicitud " + id;
+    
+    loginArea.classList.add('hidden');
+    uploadArea.classList.remove('hidden');
+    
+    closeBtn.classList.remove('hidden');
+    
+    // Configurar botón principal
+    mainBtn.classList.remove('hidden');
+    mainBtn.innerText = "SUBIR A DRIVE";
+    mainBtn.onclick = uploadArte;
+    mainBtn.style.display = 'block';
+    
+    // Mostrar modal
+    document.getElementById('modalAlert').style.display = 'flex';
+    
+    // Forzar foco en el input de archivo
+    setTimeout(() => {
+        arteFile.focus();
+    }, 100);
 }
 
 // SUBIR ARTE CON SISTEMA DE CHUNKS
 async function uploadArte() {
+    // Reiniciar estado antes de comenzar
+    resetChunkUploadState();
+    
     const fileInput = document.getElementById('arteFile');
-    const id = document.getElementById('currentReqId').value;
+    const id = document.getElementById('currentReqId')?.value;
+    
+    if (!fileInput || !id) {
+        openModal("❌ Error", "Datos del formulario incompletos.", "⚠️");
+        return;
+    }
     
     if (fileInput.files.length === 0) {
         openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
@@ -2057,7 +2192,7 @@ document.getElementById('loadingOverlay').style.display = 'none';
 }
 }
 
-// === 🔥 ELIMINACIÓN CON MODALES PERSONALIZADOS ===
+// === ELIMINACIÓN CON MODALES PERSONALIZADOS ===
 let currentDeleteId = null;
 
 function deleteReq(id) {
@@ -2098,7 +2233,7 @@ const altBtn = document.getElementById('closeModalBtn');
 
 mainBtn.innerText = "SÍ, ACEPTAR";
 mainBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
-altBtn.classList.remove('hidden'); // ✅ Asegurar que sea visible
+altBtn.classList.remove('hidden'); // Asegurar que sea visible
 altBtn.innerText = "CANCELAR";
 altBtn.onclick = () => { closeModal(); if (onCancel) onCancel(); };
 
@@ -2110,7 +2245,7 @@ document.getElementById('modalAlert').style.display = 'flex';
 async function executeDelete() {
     const id = currentDeleteId;
     
-    // ✅ Mostrar mensaje de carga
+    // Mostrar mensaje de carga
     document.getElementById('loadMainTxt').innerText = "Eliminando solicitud...";
     document.getElementById('loadingOverlay').style.display = 'flex';
     
@@ -2118,11 +2253,11 @@ async function executeDelete() {
         const params = new URLSearchParams();
         params.append("action", "delete");
         params.append("id", id);
-        // ✅ ENVIAR CREDENCIALES DE ADMINISTRADOR (FALTABA ESTO)
+        // ENVIAR CREDENCIALES DE ADMINISTRADOR (FALTABA ESTO)
         params.append("username", userCredentials.username);
         params.append("password", userCredentials.password);
         
-        // ✅ ESPERAR RESPUESTA DEL SERVIDOR ANTES DE MOSTRAR ÉXITO
+        // ESPERAR RESPUESTA DEL SERVIDOR ANTES DE MOSTRAR ÉXITO
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
             body: params 
@@ -2131,7 +2266,7 @@ async function executeDelete() {
         const data = await response.json();
         
         if (data.success) {
-            // ✅ SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
+            // SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
             localData = localData.filter(x => x.id != id);
             renderLocalTable();
             
@@ -2161,7 +2296,7 @@ document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('ac
 document.getElementById('hora-box').classList.remove('field-error');
 }
 
-// ✅ MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría Y AGREGAR SOPORTE PARA PEDIÁTRICA
+// MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría Y AGREGAR SOPORTE PARA PEDIÁTRICA
 function selectCat(btn, tipo) {
 if (modoObituario && tipo !== 'otros') {
 modoObituario = false;
@@ -2181,7 +2316,7 @@ document.getElementById('observaciones').classList.remove('obit-disabled');
 document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
 document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
 
-// ✅ Limpiar marcas de imágenes
+// Limpiar marcas de imágenes
 Array.from(document.querySelectorAll('.preview')).forEach(img => {
 img.removeAttribute('data-has-image');
 });
@@ -2283,7 +2418,7 @@ console.error("Error cargando tabla:", e);
 }
 }
 
-// ✅ VALIDACIÓN EN ORDEN CORRECTO
+// VALIDACIÓN EN ORDEN CORRECTO
 function validateForm() {
 const fieldsInOrder = [];
 
@@ -2376,7 +2511,7 @@ const fechaInput = document.getElementById('fecha').value;
 const fechaSeleccionada = new Date(fechaInput + 'T00:00:00');
 const ahora = new Date();
 
-// ✅ VALIDACIÓN INTERNA: 24 HORAS (texto mantiene 48 para usuario)
+// VALIDACIÓN INTERNA: 24 HORAS (texto mantiene 48 para usuario)
 if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 24) {
 document.getElementById('fecha').classList.add('field-error');
 openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
@@ -2427,7 +2562,7 @@ html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No
 const obs = document.getElementById('observaciones').value.trim();
 if (obs) html += `<p><b>✏️ Observaciones:</b> ${obs}</p>`;
 
-// ✅ CORREGIDO: Contar fotos usando el atributo data-has-image
+// CORREGIDO: Contar fotos usando el atributo data-has-image
 const fotos = [1,2,3].filter(i => {
 const img = document.getElementById(`p${i}`);
 return img.getAttribute('data-has-image') === 'true';
@@ -2518,7 +2653,7 @@ const EXCEPCIONES_SIN_UMI = [
 "Hotel Valle Grande"
 ];
 
-// ✅ CORRECCIÓN: se elimina la capitalización automática
+// CORRECCIÓN: se elimina la capitalización automática
 let unidadFinal = selectedUnidad.trim();
 if (!EXCEPCIONES_SIN_UMI.includes(unidadFinal)) {
 unidadFinal = "U.M.I. " + unidadFinal;
@@ -2526,7 +2661,7 @@ unidadFinal = "U.M.I. " + unidadFinal;
 
 params.append("Unidad", unidadFinal);
 
-// ✅ Aquí se envía "Obituario" si está activo
+// Aquí se envía "Obituario" si está activo
 params.append("Jornada", modoObituario ? "Obituario" : catName);
 
 let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
@@ -2543,7 +2678,7 @@ params.append("Direccion", direccionCompleta);
 params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
 params.append("Observaciones", document.getElementById('observaciones').value);
 
-// ✅ CORREGIDO: Adjuntar fotos usando el atributo data-has-image
+// CORREGIDO: Adjuntar fotos usando el atributo data-has-image
 for(let i=1; i<=3; i++) {
 const img = document.getElementById('p'+i);
 if(img.getAttribute('data-has-image') === 'true') {
@@ -2580,7 +2715,7 @@ for(let i=1; i<=3; i++) {
 const img = document.getElementById('p'+i);
 img.src = '';
 img.style.display = 'none';
-img.removeAttribute('data-has-image'); // ✅ Limpiar marca
+img.removeAttribute('data-has-image'); // Limpiar marca
 document.getElementById('b'+i).style.display = 'none';
 }
 
@@ -2630,9 +2765,9 @@ showPage('list-page', document.getElementById('tab-list'));
 document.getElementById('loadingOverlay').style.display = 'none';
 });
 }
-// ✅ FUNCIONES PARA SISTEMA DE CHUNKS
+// === FUNCIONES PARA SISTEMA DE CHUNKS ===
 
-// ✅ SUBIR CHUNKS SECUENCIALMENTE CON REINTENTOS
+// SUBIR CHUNKS SECUENCIALMENTE CON REINTENTOS
 async function uploadChunksSequential(id, filename, mimeType) {
     const totalChunks = chunkUpload.totalChunks;
     
@@ -2651,12 +2786,12 @@ async function uploadChunksSequential(id, filename, mimeType) {
                 chunkSuccess = true;
                 chunkUpload.uploadedChunks++;
                 
-                // ✅ Actualizar progreso
+                // Actualizar progreso
                 const progress = Math.min(100, (chunkUpload.uploadedChunks / totalChunks) * 100);
                 document.getElementById('progressBar').style.width = progress + '%';
                 document.getElementById('progressPercent').innerText = Math.round(progress) + '%';
                 
-                // ✅ Calcular tiempo restante
+                // Calcular tiempo restante
                 if (chunkUpload.uploadedChunks > 1) {
                     const elapsed = (Date.now() - chunkUpload.startTime) / 1000;
                     const avgTimePerChunk = elapsed / chunkUpload.uploadedChunks;
@@ -2667,7 +2802,7 @@ async function uploadChunksSequential(id, filename, mimeType) {
                         `Tiempo restante: ~${etaSeconds}s`;
                 }
                 
-                // ✅ Pequeña pausa entre chunks para no saturar
+                // Pequeña pausa entre chunks para no saturar
                 if (i < totalChunks - 1) {
                     await new Promise(resolve => setTimeout(resolve, 
                         chunkUpload.connectionSpeed === 'slow' ? 500 : 200));
@@ -2681,7 +2816,7 @@ async function uploadChunksSequential(id, filename, mimeType) {
                     throw new Error(`Chunk ${i + 1} fallido después de ${retryCount} intentos: ${error.message}`);
                 }
                 
-                // ✅ Esperar antes de reintentar (exponencial)
+                // Esperar antes de reintentar (exponencial)
                 const waitTime = Math.min(5000, 1000 * Math.pow(2, retryCount));
                 document.getElementById('progressStatus').innerText = 
                     `⏸️ Reintentando chunk ${i + 1}... (${retryCount}/${chunkUpload.maxRetries})`;
@@ -2690,11 +2825,11 @@ async function uploadChunksSequential(id, filename, mimeType) {
         }
     }
     
-    // ✅ Todos los chunks subidos, finalizar
+    // Todos los chunks subidos, finalizar
     await finalizeChunkedUpload(id, filename, mimeType);
 }
 
-// ✅ SUBIR UN SOLO CHUNK
+// SUBIR UN SOLO CHUNK
 async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
     const chunk = chunkUpload.chunks[chunkIndex];
     const reader = new FileReader();
@@ -2740,7 +2875,7 @@ async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
     });
 }
 
-// ✅ FINALIZAR SUBIDA POR CHUNKS
+// FINALIZAR SUBIDA POR CHUNKS
 async function finalizeChunkedUpload(id, filename, mimeType) {
     document.getElementById('progressStatus').innerText = '✅ Finalizando subida...';
     
@@ -2777,47 +2912,62 @@ async function finalizeChunkedUpload(id, filename, mimeType) {
     }
 }
 
-// ✅ MOSTRAR MODAL DE PROGRESO
+// MOSTRAR MODAL DE PROGRESO - CORREGIDA
 function showUploadProgressModal(id, filename, fileSizeMB) {
-    document.getElementById('modalIcon').innerText = "📤";
-    document.getElementById('modalTitle').innerText = "Subiendo Archivo";
-    document.getElementById('modalMsg').innerHTML = `
-        <div style="text-align: left; margin-top: 15px;">
-            <div id="progressInfo" style="font-size: 0.9rem; margin-bottom: 8px; color: #555;"></div>
-            <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;"></div>
-            
-            <div style="background: #f0f9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span id="progressStatus" style="font-weight: 600; color: var(--azul-deep);">Preparando...</span>
-                    <span id="progressPercent" style="font-weight: 800; color: var(--turquesa);">0%</span>
-                </div>
-                <div style="background: #e9ecef; border-radius: 20px; height: 12px; overflow: hidden;">
-                    <div id="progressBar" style="background: linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 100%); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 20px;"></div>
-                </div>
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const mainBtn = document.getElementById('mainModalBtn');
+    
+    if (!modalIcon || !modalTitle || !modalMsg) return;
+    
+    modalIcon.innerText = "";
+    modalTitle.innerText = "Subiendo Archivo";
+    modalMsg.innerHTML = `
+    <div style="text-align: left; margin-top: 15px;">
+        <div id="progressInfo" style="font-size: 0.9rem; margin-bottom: 8px; color: #555;">Archivo: ${filename} (${fileSizeMB.toFixed(2)}MB)</div>
+        <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;">Conexión: ${chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB</div>
+        <div style="background: #f0f9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span id="progressStatus" style="font-weight: 600; color: var(--azul-deep);">Preparando...</span>
+                <span id="progressPercent" style="font-weight: 800; color: var(--turquesa);">0%</span>
             </div>
-            
-            <div id="progressETA" style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 8px;"></div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="btnPauseResume" class="modal-btn" style="background: #6c757d; flex: 1; padding: 8px;" onclick="togglePauseResume()">
-                    ⏸️ Pausar
-                </button>
-                <button id="btnCancelUpload" class="modal-btn" style="background: var(--rojo); flex: 1; padding: 8px;" onclick="cancelUpload()">
-                    ❌ Cancelar
-                </button>
+            <div style="background: #e9ecef; border-radius: 20px; height: 12px; overflow: hidden;">
+                <div id="progressBar" style="background: linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 100%); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 20px;"></div>
             </div>
         </div>
+        <div id="progressETA" style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 8px;"></div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button id="btnPauseResume" class="modal-btn" style="background: #6c757d; flex: 1; padding: 8px;" onclick="togglePauseResume()">
+                Pausar
+            </button>
+            <button id="btnCancelUpload" class="modal-btn" style="background: var(--rojo); flex: 1; padding: 8px;" onclick="cancelUpload()">
+                Cancelar
+            </button>
+        </div>
+    </div>
     `;
     
-    document.getElementById('loginArea').classList.add('hidden');
-    document.getElementById('uploadArea').classList.add('hidden');
-    document.getElementById('closeModalBtn').classList.remove('hidden'); // ✅ SIEMPRE MOSTRAR BOTÓN DE CIERRE
-    document.getElementById('mainModalBtn').classList.add('hidden');
+    loginArea.classList.add('hidden');
+    uploadArea.classList.add('hidden');
+    
+    closeBtn.classList.remove('hidden');
+    closeBtn.onclick = () => {
+        resetChunkUploadState();
+        closeModal();
+    };
+    
+    if (mainBtn) mainBtn.classList.add('hidden');
+    
     document.getElementById('modalAlert').style.display = 'flex';
 }
 
-// ✅ PAUSAR/REANUDAR SUBIDA
+// PAUSAR/REANUDAR SUBIDA
 function togglePauseResume() {
+    chunkUpload.pauseRequested = !chunkUpload.pauseRequested;
     chunkUpload.pauseRequested = !chunkUpload.pauseRequested;
     const btn = document.getElementById('btnPauseResume');
     
@@ -2830,7 +2980,7 @@ function togglePauseResume() {
     }
 }
 
-// ✅ ESPERAR A QUE SE REANUDE
+// ESPERAR A QUE SE REANUDE
 function waitForResume() {
     return new Promise((resolve) => {
         const checkInterval = setInterval(() => {
@@ -2842,12 +2992,35 @@ function waitForResume() {
     });
 }
 
-// ✅ CANCELAR SUBIDA
+// CANCELAR SUBIDA - CORREGIDA
 function cancelUpload() {
-    chunkUpload.isActive = false;
-    chunkUpload.pauseRequested = false;
+    const id = document.getElementById('currentReqId')?.value;
+    
+    // Llamar al backend para limpiar recursos
+    if (id && chunkUpload.isActive) {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=cancelChunkedUpload&id=${encodeURIComponent(id)}` 
+        })
+        .then(response => response.json())
+        .catch(err => {
+            console.warn("⚠️ Error limpiando recursos: " + err.message);
+        });
+    }
+    
+    // Reiniciar estado de chunks
+    resetChunkUploadState();
+    
+    // Cerrar modal
     closeModal();
-    openModal("⚠️ Cancelado", "La subida ha sido cancelada.", "ℹ️");
+    openModal("⚠️ Cancelado", "La subida ha sido cancelada y los recursos limpiados.", "ℹ️");
+    
+    // Reiniciar input de archivo
+    setTimeout(() => {
+        const fileInput = document.getElementById('arteFile');
+        if (fileInput) fileInput.value = '';
+    }, 300);
 }
 </script>
 </body>
