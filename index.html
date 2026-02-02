@@ -2098,7 +2098,7 @@ const altBtn = document.getElementById('closeModalBtn');
 
 mainBtn.innerText = "SÍ, ACEPTAR";
 mainBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
-altBtn.classList.remove('hidden');
+altBtn.classList.remove('hidden'); // ✅ Asegurar que sea visible
 altBtn.innerText = "CANCELAR";
 altBtn.onclick = () => { closeModal(); if (onCancel) onCancel(); };
 
