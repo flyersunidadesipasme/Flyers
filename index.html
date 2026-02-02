@@ -833,7 +833,7 @@ let chunkUpload = {
 const CHUNK_CONFIG = {
     fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB, 3 simultáneos
     medium: { size: 512 * 1024, concurrent: 2 },   // 512KB, 2 simultáneos  
-    slow: { size: 256 * 1024, concurrent: 1 }      // 256KB, 1 simultáneo
+    slow: { size: 512 * 1024, concurrent: 1 }      // 512KB, 1 simultáneo (mínimo)
 };
 
 // ✅ DETECTAR VELOCIDAD DE CONEXIÓN
