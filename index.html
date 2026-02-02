@@ -1681,17 +1681,16 @@ params.append("action", "loginAdmin");
 params.append("username", u);
 params.append("password", p);
 
-// ✅ MEJORADO: Agregar headers de seguridad y modo no-cors para credenciales
+// CORREGIDO: Eliminar modo no-cors para poder leer respuesta JSON
 const res = await fetch(SCRIPT_URL, { 
 method: 'POST',
-mode: 'no-cors',
 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 body: params 
 });
 const data = await res.json();
 
 if (data.success && data.data) {
-// ✅ GUARDAR CREDENCIALES DEL USUARIO ACTUAL
+// GUARDAR CREDENCIALES DEL USUARIO ACTUAL
 userCredentials = {
 username: u,
 password: p,
@@ -1964,21 +1963,43 @@ document.getElementById('modalAlert').style.display = 'flex';
 }
 
 async function executeDelete() {
-const id = currentDeleteId;
-localData = localData.filter(x => x.id != id);
-renderLocalTable();
-
-try {
-const params = new URLSearchParams();
-params.append("action", "delete");
-params.append("id", id);
-
-await fetch(SCRIPT_URL, { method: 'POST', body: params });
-openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
-} catch (e) {
-openModal("❌ Error", "Error al eliminar. Revise la conexión.", "💥");
-updateTable();
-}
+    const id = currentDeleteId;
+    
+    // ✅ Mostrar mensaje de carga
+    document.getElementById('loadMainTxt').innerText = "Eliminando solicitud...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "delete");
+        params.append("id", id);
+        // ✅ ENVIAR CREDENCIALES DE ADMINISTRADOR (FALTABA ESTO)
+        params.append("username", userCredentials.username);
+        params.append("password", userCredentials.password);
+        
+        // ✅ ESPERAR RESPUESTA DEL SERVIDOR ANTES DE MOSTRAR ÉXITO
+        const response = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: params 
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // ✅ SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
+            localData = localData.filter(x => x.id != id);
+            renderLocalTable();
+            
+            openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
+        } else {
+            throw new Error(data.error || "Error al eliminar la solicitud");
+        }
+    } catch (e) {
+        openModal("❌ Error", "Error al eliminar: " + e.message, "💥");
+        updateTable(); // Recargar para restaurar la fila
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
 }
 
 // === FIN ELIMINACIÓN ===
