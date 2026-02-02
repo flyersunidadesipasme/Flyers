@@ -1834,6 +1834,8 @@ params.append("id", id);
 params.append("filename", file.name);
 params.append("file", base64);
 params.append("mime", file.type);
+// ✅ ENVIAR NOMBRE DEL USUARIO ACTUAL
+params.append("uploadedBy", userCredentials.displayName);
 
 try {
 const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
