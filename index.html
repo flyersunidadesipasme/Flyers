@@ -812,6 +812,93 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
 // === CONFIGURACIÓN DE SCRIPT URL ===
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
 
+// ✅ VARIABLES PARA SISTEMA DE CHUNKS
+let chunkUpload = {
+    isActive: false,
+    currentFile: null,
+    chunks: [],
+    currentChunk: 0,
+    totalChunks: 0,
+    uploadedChunks: 0,
+    chunkSize: 512 * 1024, // 512KB por defecto
+    connectionSpeed: 'unknown', // fast, medium, slow
+    retryCount: 0,
+    maxRetries: 5,
+    startTime: null,
+    pauseRequested: false,
+    resumeToken: null
+};
+
+// ✅ CONFIGURACIÓN DE CHUNKS SEGÚN VELOCIDAD
+const CHUNK_CONFIG = {
+    fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB, 3 simultáneos
+    medium: { size: 512 * 1024, concurrent: 2 },   // 512KB, 2 simultáneos  
+    slow: { size: 256 * 1024, concurrent: 1 }      // 256KB, 1 simultáneo
+};
+
+// ✅ DETECTAR VELOCIDAD DE CONEXIÓN
+async function detectConnectionSpeed() {
+    const testFileUrl = 'https://httpbin.org/bytes/1048576'; // 1MB de datos
+    const startTime = Date.now();
+    
+    try {
+        const response = await fetch(testFileUrl, { 
+            method: 'GET',
+            cache: 'no-store'
+        });
+        
+        if (!response.ok) throw new Error('Test fallido');
+        
+        // Leer el contenido para medir tiempo real
+        await response.blob();
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000; // segundos
+        const speedMbps = (8 / duration); // 1MB = 8 megabits
+        
+        let speedTier;
+        if (speedMbps > 2) speedTier = 'fast';
+        else if (speedMbps > 0.5) speedTier = 'medium';
+        else speedTier = 'slow';
+        
+        chunkUpload.connectionSpeed = speedTier;
+        chunkUpload.chunkSize = CHUNK_CONFIG[speedTier].size;
+        
+        console.log(`📶 Conexión detectada: ${speedTier} (${speedMbps.toFixed(2)} Mbps)`);
+        console.log(`📦 Tamaño de chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`);
+        
+        return speedTier;
+    } catch (error) {
+        console.warn('⚠️ No se pudo detectar velocidad, usando configuración por defecto');
+        chunkUpload.connectionSpeed = 'medium';
+        chunkUpload.chunkSize = CHUNK_CONFIG.medium.size;
+        return 'medium';
+    }
+}
+
+// ✅ DIVIDIR ARCHIVO EN CHUNKS
+function splitFileIntoChunks(file) {
+    const chunks = [];
+    const fileSize = file.size;
+    const chunkSize = chunkUpload.chunkSize;
+    const totalChunks = Math.ceil(fileSize / chunkSize);
+    
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(start + chunkSize, fileSize);
+        const chunkBlob = file.slice(start, end);
+        
+        chunks.push({
+            index: i,
+            blob: chunkBlob,
+            size: end - start,
+            total: totalChunks,
+            fileId: file.name + '_' + Date.now()
+        });
+    }
+    
+    return chunks;
+}
+
 // === LISTADO DE UNIDADES IPASME POR REGIÓN (CORREGIDO Y ORDENADO) ===
 const UNIDADES_IPASME_RAW = {
 "Capital": [
@@ -1623,7 +1710,7 @@ function openModal(t, m, icon = "⚠️") {
 clearCredentials();
 document.getElementById('loginArea').classList.add('hidden');
 document.getElementById('uploadArea').classList.add('hidden');
-document.getElementById('closeModalBtn').classList.add('hidden');
+document.getElementById('closeModalBtn').classList.remove('hidden'); // SIEMPRE MOSTRAR BOTÓN X
 document.getElementById('modalIcon').innerText = icon;
 document.getElementById('modalTitle').innerText = t;
 document.getElementById('modalMsg').innerText = m;
@@ -1806,56 +1893,112 @@ btn.onclick = uploadArte;
 document.getElementById('modalAlert').style.display = 'flex';
 }
 
+// SUBIR ARTE CON SISTEMA DE CHUNKS
 async function uploadArte() {
-const fileInput = document.getElementById('arteFile');
-const id = document.getElementById('currentReqId').value;
-
-if (fileInput.files.length === 0) {
-openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
-return;
+    const fileInput = document.getElementById('arteFile');
+    const id = document.getElementById('currentReqId').value;
+    
+    if (fileInput.files.length === 0) {
+        openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const fileSizeMB = file.size / (1024 * 1024);
+    
+    // Validar tamaño máximo
+    if (file.size > 6 * 1024 * 1024) {
+        openModal("📏 Tamaño Excedido", "El archivo excede los 6MB permitidos.", "⚠️");
+        return;
+    }
+    
+    // Mostrar modal de progreso
+    showUploadProgressModal(id, file.name, fileSizeMB);
+    
+    try {
+        // Detectar velocidad de conexión
+        document.getElementById('progressStatus').innerText = '📡 Detectando velocidad de conexión...';
+        await detectConnectionSpeed();
+        
+        // Si es menor a 2MB, subir normal (sin chunks)
+        if (file.size <= 2 * 1024 * 1024) {
+            document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo...';
+            await uploadFileNormal(file, id);
+            return;
+        }
+        
+        // Archivos grandes: usar sistema de chunks
+        document.getElementById('progressStatus').innerText = `📦 Fragmentando en chunks...`;
+        
+        // Dividir en chunks
+        const chunks = splitFileIntoChunks(file);
+        chunkUpload.chunks = chunks;
+        chunkUpload.totalChunks = chunks.length;
+        chunkUpload.currentChunk = 0;
+        chunkUpload.uploadedChunks = 0;
+        chunkUpload.startTime = Date.now();
+        chunkUpload.isActive = true;
+        
+        document.getElementById('progressInfo').innerText = 
+            `Archivo: ${file.name} (${fileSizeMB.toFixed(2)}MB)`;
+        document.getElementById('progressSpeed').innerText = 
+            `Conexión: ${chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`;
+        
+        // Subir chunks secuencialmente
+        await uploadChunksSequential(id, file.name, file.type);
+        
+    } catch (error) {
+        console.error('Error en uploadArte:', error);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        openModal("❌ Error", "Error al subir: " + error.message, "💥");
+    }
 }
 
-const file = fileInput.files[0];
-
-if (file.size > 5 * 1024 * 1024) {
-openModal("📏 Tamaño Excedido", "El archivo excede los 5MB permitidos.", "⚠️");
-return;
-}
-
-document.getElementById('loadMainTxt').innerText = "Subiendo Arte...";
-document.getElementById('loadingOverlay').style.display = 'flex';
-
-const reader = new FileReader();
-reader.onload = async function(e) {
-const base64 = e.target.result.split(',')[1];
-const params = new URLSearchParams();
-params.append("action", "uploadArte");
-params.append("id", id);
-params.append("filename", file.name);
-params.append("file", base64);
-params.append("mime", file.type);
-// ✅ ENVIAR NOMBRE DEL USUARIO ACTUAL
-params.append("uploadedBy", userCredentials.displayName);
-
-try {
-const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
-const data = await res.json();
-
-if (data.success) {
-closeModal();
-openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
-updateTable();
-document.getElementById('arteFile').value = '';
-} else {
-openModal("❌ Error", "Error: " + data.error, "💥");
-}
-} catch (err) {
-openModal("❌ Error", "Error de conexión al subir.", "💥");
-} finally {
-document.getElementById('loadingOverlay').style.display = 'none';
-}
-};
-reader.readAsDataURL(file);
+// SUBIR ARCHIVO NORMAL (menor a 2MB)
+async function uploadFileNormal(file, id) {
+    const reader = new FileReader();
+    
+    return new Promise((resolve, reject) => {
+        reader.onload = async function(e) {
+            const base64 = e.target.result.split(',')[1];
+            
+            try {
+                const params = new URLSearchParams();
+                params.append("action", "uploadArte");
+                params.append("id", id);
+                params.append("filename", file.name);
+                params.append("file", base64);
+                params.append("mime", file.type);
+                params.append("uploadedBy", userCredentials.displayName);
+                params.append("isChunked", "false");
+                
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: params 
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressPercent').innerText = '100%';
+                    setTimeout(() => {
+                        closeModal();
+                        openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+                        updateTable();
+                    }, 500);
+                    resolve();
+                } else {
+                    reject(new Error(data.error));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Error leyendo archivo"));
+        reader.readAsDataURL(file);
+    });
 }
 
 async function sendTelegramArte(id) {
@@ -2486,6 +2629,225 @@ showPage('list-page', document.getElementById('tab-list'));
 .finally(() => {
 document.getElementById('loadingOverlay').style.display = 'none';
 });
+}
+// ✅ FUNCIONES PARA SISTEMA DE CHUNKS
+
+// ✅ SUBIR CHUNKS SECUENCIALMENTE CON REINTENTOS
+async function uploadChunksSequential(id, filename, mimeType) {
+    const totalChunks = chunkUpload.totalChunks;
+    
+    for (let i = 0; i < totalChunks; i++) {
+        if (chunkUpload.pauseRequested) {
+            await waitForResume();
+            if (!chunkUpload.isActive) return;
+        }
+        
+        let chunkSuccess = false;
+        let retryCount = 0;
+        
+        while (!chunkSuccess && retryCount < chunkUpload.maxRetries) {
+            try {
+                await uploadSingleChunk(id, filename, mimeType, i);
+                chunkSuccess = true;
+                chunkUpload.uploadedChunks++;
+                
+                // ✅ Actualizar progreso
+                const progress = Math.min(100, (chunkUpload.uploadedChunks / totalChunks) * 100);
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressPercent').innerText = Math.round(progress) + '%';
+                
+                // ✅ Calcular tiempo restante
+                if (chunkUpload.uploadedChunks > 1) {
+                    const elapsed = (Date.now() - chunkUpload.startTime) / 1000;
+                    const avgTimePerChunk = elapsed / chunkUpload.uploadedChunks;
+                    const remainingChunks = totalChunks - chunkUpload.uploadedChunks;
+                    const etaSeconds = Math.round(avgTimePerChunk * remainingChunks);
+                    
+                    document.getElementById('progressETA').innerText = 
+                        `Tiempo restante: ~${etaSeconds}s`;
+                }
+                
+                // ✅ Pequeña pausa entre chunks para no saturar
+                if (i < totalChunks - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 
+                        chunkUpload.connectionSpeed === 'slow' ? 500 : 200));
+                }
+                
+            } catch (error) {
+                retryCount++;
+                console.warn(`⚠️ Chunk ${i + 1}/${totalChunks} fallido (intento ${retryCount}/${chunkUpload.maxRetries})`);
+                
+                if (retryCount >= chunkUpload.maxRetries) {
+                    throw new Error(`Chunk ${i + 1} fallido después de ${retryCount} intentos: ${error.message}`);
+                }
+                
+                // ✅ Esperar antes de reintentar (exponencial)
+                const waitTime = Math.min(5000, 1000 * Math.pow(2, retryCount));
+                document.getElementById('progressStatus').innerText = 
+                    `⏸️ Reintentando chunk ${i + 1}... (${retryCount}/${chunkUpload.maxRetries})`;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+        }
+    }
+    
+    // ✅ Todos los chunks subidos, finalizar
+    await finalizeChunkedUpload(id, filename, mimeType);
+}
+
+// ✅ SUBIR UN SOLO CHUNK
+async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
+    const chunk = chunkUpload.chunks[chunkIndex];
+    const reader = new FileReader();
+    
+    return new Promise((resolve, reject) => {
+        reader.onload = async function(e) {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                
+                const params = new URLSearchParams();
+                params.append("action", "uploadChunk");
+                params.append("id", id);
+                params.append("filename", filename);
+                params.append("mime", mimeType);
+                params.append("chunkIndex", chunk.index);
+                params.append("chunkData", base64);
+                params.append("totalChunks", chunk.total);
+                params.append("fileId", chunk.fileId);
+                params.append("uploadedBy", userCredentials.displayName);
+                
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('progressStatus').innerText = 
+                        `📤 Subiendo chunk ${chunk.index + 1}/${chunk.total}...`;
+                    resolve();
+                } else {
+                    reject(new Error(data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Error leyendo chunk"));
+        reader.readAsDataURL(chunk.blob);
+    });
+}
+
+// ✅ FINALIZAR SUBIDA POR CHUNKS
+async function finalizeChunkedUpload(id, filename, mimeType) {
+    document.getElementById('progressStatus').innerText = '✅ Finalizando subida...';
+    
+    const params = new URLSearchParams();
+    params.append("action", "finalizeChunkedUpload");
+    params.append("id", id);
+    params.append("filename", filename);
+    params.append("mime", mimeType);
+    params.append("totalChunks", chunkUpload.totalChunks);
+    params.append("fileId", chunkUpload.chunks[0].fileId);
+    params.append("uploadedBy", userCredentials.displayName);
+    
+    const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressPercent').innerText = '100%';
+        document.getElementById('progressStatus').innerText = '✅ ¡Completado!';
+        
+        setTimeout(() => {
+            closeModal();
+            openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+            updateTable();
+            document.getElementById('arteFile').value = '';
+        }, 1000);
+    } else {
+        throw new Error(data.error || 'Error al finalizar');
+    }
+}
+
+// ✅ MOSTRAR MODAL DE PROGRESO
+function showUploadProgressModal(id, filename, fileSizeMB) {
+    document.getElementById('modalIcon').innerText = "📤";
+    document.getElementById('modalTitle').innerText = "Subiendo Archivo";
+    document.getElementById('modalMsg').innerHTML = `
+        <div style="text-align: left; margin-top: 15px;">
+            <div id="progressInfo" style="font-size: 0.9rem; margin-bottom: 8px; color: #555;"></div>
+            <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;"></div>
+            
+            <div style="background: #f0f9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span id="progressStatus" style="font-weight: 600; color: var(--azul-deep);">Preparando...</span>
+                    <span id="progressPercent" style="font-weight: 800; color: var(--turquesa);">0%</span>
+                </div>
+                <div style="background: #e9ecef; border-radius: 20px; height: 12px; overflow: hidden;">
+                    <div id="progressBar" style="background: linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 100%); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 20px;"></div>
+                </div>
+            </div>
+            
+            <div id="progressETA" style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 8px;"></div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="btnPauseResume" class="modal-btn" style="background: #6c757d; flex: 1; padding: 8px;" onclick="togglePauseResume()">
+                    ⏸️ Pausar
+                </button>
+                <button id="btnCancelUpload" class="modal-btn" style="background: var(--rojo); flex: 1; padding: 8px;" onclick="cancelUpload()">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('loginArea').classList.add('hidden');
+    document.getElementById('uploadArea').classList.add('hidden');
+    document.getElementById('closeModalBtn').classList.remove('hidden'); // ✅ SIEMPRE MOSTRAR BOTÓN DE CIERRE
+    document.getElementById('mainModalBtn').classList.add('hidden');
+    document.getElementById('modalAlert').style.display = 'flex';
+}
+
+// ✅ PAUSAR/REANUDAR SUBIDA
+function togglePauseResume() {
+    chunkUpload.pauseRequested = !chunkUpload.pauseRequested;
+    const btn = document.getElementById('btnPauseResume');
+    
+    if (chunkUpload.pauseRequested) {
+        btn.innerHTML = '▶️ Reanudar';
+        document.getElementById('progressStatus').innerText = '⏸️ PAUSADO';
+    } else {
+        btn.innerHTML = '⏸️ Pausar';
+        document.getElementById('progressStatus').innerText = '▶️ Reanudando...';
+    }
+}
+
+// ✅ ESPERAR A QUE SE REANUDE
+function waitForResume() {
+    return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+            if (!chunkUpload.pauseRequested || !chunkUpload.isActive) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+    });
+}
+
+// ✅ CANCELAR SUBIDA
+function cancelUpload() {
+    chunkUpload.isActive = false;
+    chunkUpload.pauseRequested = false;
+    closeModal();
+    openModal("⚠️ Cancelado", "La subida ha sido cancelada.", "ℹ️");
 }
 </script>
 </body>
