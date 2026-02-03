@@ -933,14 +933,21 @@ let chunkUpload = {
     maxRetries: 5,
     startTime: null,
     pauseRequested: false,
-    resumeToken: null
+    resumeToken: null,
+    // ✅ NUEVAS VARIABLES PARA VELOCIDAD DE SUBIDA
+    currentChunkStartTime: null,  // Tiempo de inicio del chunk actual
+    currentChunkEndTime: null,    // Tiempo de fin del chunk actual
+    uploadSpeeds: [],             // Array de velocidades históricas
+    avgUploadSpeed: 0,            // Velocidad promedio en KB/s
+    currentUploadSpeed: 0         // Velocidad actual en KB/s
 };
 
 // ✅ CONFIGURACIÓN DE CHUNKS SEGÚN VELOCIDAD
 const CHUNK_CONFIG = {
-    fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB, 3 simultáneos
-    medium: { size: 512 * 1024, concurrent: 2 },   // 512KB, 2 simultáneos  
-    slow: { size: 512 * 1024, concurrent: 1 }      // 512KB, 1 simultáneo (mínimo)
+    fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB (no se usa - conexiones rápidas suben completo)
+    medium: { size: 512 * 1024, concurrent: 2 },   // 512KB para conexiones medias
+    'slow-medium': { size: 256 * 1024, concurrent: 1 }, // 256KB para conexiones lentas-medias
+    slow: { size: 256 * 1024, concurrent: 1 }      // 256KB para conexiones lentas
 };
 
 // ✅ DETECTAR VELOCIDAD DE CONEXIÓN
@@ -965,7 +972,8 @@ async function detectConnectionSpeed() {
         let speedTier;
         if (speedMbps > 2) speedTier = 'fast';
         else if (speedMbps > 0.5) speedTier = 'medium';
-        else speedTier = 'slow';
+        else if (speedMbps > 0.1) speedTier = 'slow-medium'; // Para velocidades entre 0.1-0.5 Mbps
+        else speedTier = 'slow'; // Para velocidades ≤ 0.1 Mbps
         
         chunkUpload.connectionSpeed = speedTier;
         chunkUpload.chunkSize = CHUNK_CONFIG[speedTier].size;
@@ -994,6 +1002,19 @@ function resetChunkUploadState() {
     chunkUpload.startTime = null;
     chunkUpload.retryCount = 0;
     chunkUpload.resumeToken = null;
+    
+    // ✅ RESET VARIABLES DE VELOCIDAD
+    chunkUpload.currentChunkStartTime = null;
+    chunkUpload.currentChunkEndTime = null;
+    chunkUpload.uploadSpeeds = [];
+    chunkUpload.avgUploadSpeed = 0;
+    chunkUpload.currentUploadSpeed = 0;
+    
+    // ✅ LIMPIAR DISPLAY DE VELOCIDAD
+    const speedElement = document.getElementById('progressUploadSpeed');
+    if (speedElement) {
+        speedElement.innerText = '📤 Velocidad: Calculando...';
+    }
     
     // ✅ Limpiar timer si existe
     if (window.confirmTimer) {
@@ -2268,14 +2289,22 @@ async function uploadArte() {
         document.getElementById('progressStatus').innerText = '📡 Detectando velocidad de conexión...';
         await detectConnectionSpeed();
         
-        // Si es menor a 2MB, subir normal (sin chunks)
-        if (file.size <= 2 * 1024 * 1024) {
+        // ✅ NUEVA LÓGICA DE CHUNKS: Solo activar para >1MB y conexión NO rápida
+        if (file.size <= 1024 * 1024) {
+            // Archivos ≤1MB: siempre subir completo (sin chunks)
             document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo...';
             await uploadFileNormal(file, id);
             return;
         }
-        
-        // Archivos grandes: usar sistema de chunks
+
+        if (chunkUpload.connectionSpeed === 'fast') {
+            // Conexión rápida: subir completo incluso si >1MB (hasta 6MB permitidos)
+            document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo (conexión rápida)...';
+            await uploadFileNormal(file, id);
+            return;
+        }
+
+        // ✅ SOLO LLEGAMOS AQUÍ SI: archivo >1MB Y conexión NO es rápida
         document.getElementById('progressStatus').innerText = `📦 Fragmentando en chunks...`;
         
         // Dividir en chunks
@@ -2286,6 +2315,13 @@ async function uploadArte() {
         chunkUpload.uploadedChunks = 0;
         chunkUpload.startTime = Date.now();
         chunkUpload.isActive = true;
+
+        // ✅ INICIALIZAR VARIABLES DE VELOCIDAD
+        chunkUpload.currentChunkStartTime = null;
+        chunkUpload.currentChunkEndTime = null;
+        chunkUpload.uploadSpeeds = [];
+        chunkUpload.avgUploadSpeed = 0;
+        chunkUpload.currentUploadSpeed = 0;
         
         document.getElementById('progressInfo').innerText = 
             `Archivo: ${file.name} (${fileSizeMB.toFixed(2)}MB)`;
@@ -2995,7 +3031,28 @@ async function uploadChunksSequential(id, filename, mimeType) {
         
         while (!chunkSuccess && retryCount < chunkUpload.maxRetries) {
             try {
+                // ✅ REGISTRAR TIEMPO DE INICIO DEL CHUNK
+                chunkUpload.currentChunkStartTime = Date.now();
+                
                 await uploadSingleChunk(id, filename, mimeType, i);
+                
+                // ✅ REGISTRAR TIEMPO DE FIN Y CALCULAR VELOCIDAD
+                chunkUpload.currentChunkEndTime = Date.now();
+                const chunkDuration = (chunkUpload.currentChunkEndTime - chunkUpload.currentChunkStartTime) / 1000; // segundos
+                const chunkSizeKB = chunkUpload.chunks[i].size / 1024; // KB
+                const currentSpeed = chunkSizeKB / chunkDuration; // KB/s
+                
+                // Guardar velocidad actual
+                chunkUpload.currentUploadSpeed = currentSpeed;
+                chunkUpload.uploadSpeeds.push(currentSpeed);
+                
+                // Calcular promedio
+                const totalSpeed = chunkUpload.uploadSpeeds.reduce((sum, speed) => sum + speed, 0);
+                chunkUpload.avgUploadSpeed = totalSpeed / chunkUpload.uploadSpeeds.length;
+                
+                // ✅ ACTUALIZAR VELOCIDAD EN EL MODAL
+                updateUploadSpeedDisplay();
+                
                 chunkSuccess = true;
                 chunkUpload.uploadedChunks++;
                 
@@ -3142,7 +3199,10 @@ function showUploadProgressModal(id, filename, fileSizeMB) {
     modalMsg.innerHTML = `
     <div style="text-align: left; margin-top: 15px;">
         <div id="progressInfo" style="font-size: 0.9rem; margin-bottom: 8px; color: #555;">Archivo: ${filename} (${fileSizeMB.toFixed(2)}MB)</div>
-        <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;">Conexión: ${chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB</div>
+        <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;">Conexión: ${chunkUpload.connectionSpeed === 'slow-medium' ? 'slow' : chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB</div>
+        <div id="progressUploadSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: var(--azul-deep); font-weight: 600;">
+          📤 Velocidad: Calculando...
+        </div>
         <div style="background: #f0f9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                 <span id="progressStatus" style="font-weight: 600; color: var(--azul-deep);">Preparando...</span>
@@ -3176,6 +3236,40 @@ function showUploadProgressModal(id, filename, fileSizeMB) {
     if (mainBtn) mainBtn.classList.add('hidden');
     
     document.getElementById('modalAlert').style.display = 'flex';
+}
+
+// ✅ ACTUALIZAR DISPLAY DE VELOCIDAD DE SUBIDA
+function updateUploadSpeedDisplay() {
+  const speedElement = document.getElementById('progressUploadSpeed');
+  if (!speedElement) return;
+  
+  const currentSpeed = chunkUpload.currentUploadSpeed;
+  const avgSpeed = chunkUpload.avgUploadSpeed;
+  
+  if (currentSpeed > 0) {
+    // Formatear velocidad: KB/s o MB/s según corresponda
+    let speedText = '';
+    let avgText = '';
+    
+    if (currentSpeed >= 1024) {
+      // Mostrar en MB/s
+      speedText = (currentSpeed / 1024).toFixed(2) + ' MB/s';
+      avgText = (avgSpeed / 1024).toFixed(2) + ' MB/s';
+    } else {
+      // Mostrar en KB/s
+      speedText = currentSpeed.toFixed(1) + ' KB/s';
+      avgText = avgSpeed.toFixed(1) + ' KB/s';
+    }
+    
+    // Calcular Mbps (1 byte = 8 bits)
+    const currentMbps = (currentSpeed * 8 / 1024).toFixed(1);
+    const avgMbps = (avgSpeed * 8 / 1024).toFixed(1);
+    
+    speedElement.innerHTML = `📤 Velocidad: <span style="color: var(--turquesa); font-weight: 800;">${currentMbps} Mbps</span> (${speedText})<br>
+    <span style="font-size: 0.75rem; color: #666;">Promedio: ${avgMbps} Mbps (${avgText})</span>`;
+  } else {
+    speedElement.innerText = '📤 Velocidad: Calculando...';
+  }
 }
 
 // PAUSAR/REANUDAR SUBIDA
