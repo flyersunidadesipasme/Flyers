@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<!-- ✨ SONIDO DE NOTIFICACIÓN (suave y agradable) -->
+<audio id="notificationSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+</audio>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIRA 2.5 | Sistema Integral de Requerimientos de Artes</title>
 <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
@@ -105,9 +109,7 @@ padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight
 .container { max-width: 1200px; margin: 15px auto; padding: 25px; background: white; border-radius: 25px;
 box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
 .aviso-48h { background: #fff3e0; border: 2.5px solid var(--naranja); color: var(--naranja); padding: 15px; border-radius: 15px;
-text-align: center; font-weight: 800; margin-bottom: 25px; font-size: 1.1rem; animation: pulse 2s infinite; }
-@keyframes pulse { 0% { opacity: 1;
-} 50% { opacity: 0.7; } 100% { opacity: 1; } }
+text-align: center; font-weight: 800; margin-bottom: 25px; font-size: 1.1rem; }
 .section-title { display: block; font-weight: 800; font-size: 0.85rem;
 color: var(--turquesa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
 .category-row { display: grid;
@@ -578,6 +580,36 @@ animation: badgePulse 2s infinite;
 @keyframes badgePulse {
 0%, 100% { transform: scale(1); }
 50% { transform: scale(1.05); }
+}
+
+/* ✨ ANIMACIÓN DE PULSOS PARA BOTÓN DE ENVÍO */
+.btn-send-pulse {
+  animation: pulse 1.5s infinite;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3) !important;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 255, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(0, 150, 255, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 255, 0); }
+}
+
+/* ✨ ESTILO PARA TEXTO EN DOS LÍNEAS */
+.btn-text {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-text span {
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 /* ✅ ESTILOS PARA CONTADORES COMBINADOS (ADMIN - TEXTO COMPLETO) */
@@ -2858,14 +2890,28 @@ btnEnviar.classList.add('enviar');
 btnEnviar.style.background = "var(--turquesa)";
 btnEnviar.style.color = "white";
 btnEnviar.style.cursor = "pointer";
-btnEnviar.innerText = "🚀 Enviar Solicitud";
+
+// ✨ APLICAR TEXTO EN DOS LÍNEAS
+btnEnviar.innerHTML = `<div class="btn-text"><span>Haz clic para enviar</span><span>la solicitud</span></div>`;
+
+// ✨ APLICAR ANIMACIÓN DE PULSOS
+btnEnviar.classList.add('btn-send-pulse');
+
+// ✨ REPRODUCIR SONIDO
+const sound = document.getElementById('notificationSound');
+if (sound) {
+sound.currentTime = 0;
+sound.play().catch(e => console.log("Sonido no reproducido:", e));
+}
+
+// ✨ EFECTOS HOVER MÁS SUAVES
 btnEnviar.onmouseenter = () => {
-btnEnviar.style.background = "var(--azul-deep)";
-btnEnviar.style.transform = "scale(1.02)";
+btnEnviar.style.transform = "scale(1.03)";
+btnEnviar.style.boxShadow = "0 6px 20px rgba(2, 48, 71, 0.4)";
 };
 btnEnviar.onmouseleave = () => {
-btnEnviar.style.background = "var(--turquesa)";
 btnEnviar.style.transform = "scale(1)";
+btnEnviar.style.boxShadow = "0 4px 15px rgba(0, 150, 255, 0.3)";
 };
 }
 }, 1000);
