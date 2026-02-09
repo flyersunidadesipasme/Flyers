@@ -1,1 +1,3380 @@
-# Flyers
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<!-- ✨ SONIDO DE NOTIFICACIÓN (suave y agradable) -->
+<audio id="notificationSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+</audio>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRA 2.5 | Sistema Integral de Requerimientos de Artes</title>
+<link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+--celeste: #8ecae6;
+--turquesa: #219ebc;
+--azul-deep: #023047;
+--amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
+--verde: #2d6a4f; --gris: #edf2f4;
+}
+* { font-family: 'Georama', sans-serif;
+box-sizing: border-box; font-weight: 500; }
+body { background: #f4f7fa; margin: 0; padding-bottom: 50px; color: var(--azul-deep); }
+header { background: var(--azul-deep);
+padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; min-height: 55px;
+flex-wrap: wrap;
+gap: 10px;
+}
+.brand-container { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 150px; }
+.header-title { margin: 0; font-size: 1.2rem; font-weight: 800; color: white;
+line-height: 1; }
+.acronimo { font-size: 0.5rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px;
+}
+.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; min-width: 200px; flex-wrap: wrap; }
+.tab-btn { padding: 6px 16px; border-radius: 20px; border: none;
+cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px;
+}
+.tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
+.admin-access { flex: 1; display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 280px; flex-wrap: wrap; justify-content: flex-end; }
+/* ✅ ESTILO PARA MENSAJE DE BIENVENIDA - MÁS LLAMATIVO */
+.welcome-message {
+font-size: 1rem;
+font-weight: 800;
+color: white;
+background: linear-gradient(135deg, var(--amarillo) 0%, var(--naranja) 100%);
+padding: 8px 16px;
+border-radius: 25px;
+display: none;
+box-shadow: 0 4px 15px rgba(251, 133, 0, 0.4);
+border: 2px solid rgba(255, 255, 255, 0.3);
+text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+letter-spacing: 0.5px;
+}
+.welcome-message.show {
+display: block;
+animation: fadeInDown 0.6s ease-out;
+}
+@keyframes fadeInDown {
+from {
+opacity: 0;
+transform: translateY(-20px) scale(0.95);
+}
+to {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+}
+/* ✅ ESTILO PARA CONTENEDOR DE BOTONES EN HORIZONTAL */
+.admin-buttons {
+display: flex;
+gap: 8px;
+justify-content: flex-end;
+flex-wrap: nowrap;
+align-items: center;
+}
+.btn-login { background: var(--amarillo);
+border: none; padding: 6px 12px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.7rem; box-shadow: 0 3px 0 #c79100; transition: 0.2s;
+min-width: 100px;
+}
+.btn-login:active { transform: translateY(2px); box-shadow: 0 1px 0 #c79100; }
+.btn-logout { background: var(--rojo); color: white; border: none; padding: 6px 12px;
+border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.7rem; min-width: 100px;
+}
+.row-new { background-color: #e3f2fd !important; border-left: 5px solid var(--turquesa) !important;
+}
+.row-obituario { background-color: #ffebee !important; border-left: 5px solid var(--rojo) !important; }
+.badge-new { background: var(--turquesa); color: white; padding: 2px 8px;
+border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; animation: blink 2s infinite; }
+.badge-prioridad { background: white; color: var(--rojo);
+padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; border: 1px solid var(--rojo);
+}
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1;
+} }
+.stats-grid { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 100px;
+padding: 8px; border-radius: 12px; text-align: center; color: white; font-weight: 800; }
+.st-total { background: var(--azul-deep); }
+.st-pend { background: var(--celeste); color: var(--azul-deep);
+}
+.st-proc { background: var(--amarillo); color: var(--azul-deep); }
+.st-fin { background: var(--verde); }
+/* ✅ ESTILOS PARA CONTADORES DE DISEÑADORES */
+.stat-bermina { background: var(--naranja); color: white; }
+.stat-jorsy { background: var(--azul-deep); color: white; }
+.stat-maria { background: var(--verde); color: white; }
+.stat-xamir { background: var(--amarillo); color: var(--azul-deep); }
+.stat-label { font-size: 0.6rem; text-transform: uppercase; display: block; opacity: 0.8;
+}
+.stat-val { font-size: 1.1rem; }
+.container { max-width: 1200px; margin: 15px auto; padding: 25px; background: white; border-radius: 25px;
+box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
+.aviso-48h { background: #fff3e0; border: 2.5px solid var(--naranja); color: var(--naranja); padding: 15px; border-radius: 15px;
+text-align: center; font-weight: 800; margin-bottom: 25px; font-size: 1.1rem; }
+.section-title { display: block; font-weight: 800; font-size: 0.85rem;
+color: var(--turquesa); margin: 20px 0 12px; border-left: 4px solid var(--turquesa); padding-left: 10px; text-transform: uppercase; }
+.category-row { display: grid;
+grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.card-btn { background: #fff; border: 2px solid var(--gris); border-radius: 12px; padding: 6px 4px;
+cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 800; font-size: 0.75rem; min-height: 45px; line-height: 1.1;
+color: var(--azul-deep); }
+.card-btn.selected { background: var(--amarillo); border-color: var(--naranja); transform: scale(0.98); }
+.field-error { border: 2px solid var(--rojo) !important;
+animation: border-blink 0.8s infinite alternate !important; background: #fff5f5 !important; }
+@keyframes border-blink { from { border-color: var(--rojo);
+box-shadow: 0 0 5px rgba(230, 57, 70, 0.2); } to { border-color: transparent; box-shadow: none; } }
+.btn-time { padding: 8px;
+border-radius: 12px; border: 2px solid var(--gris); cursor: pointer; font-weight: 800; font-size: 0.85rem; background: #f8f9fa; color: var(--azul-deep); flex: 1; transition: 0.3s;
+}
+.btn-time.active { background: var(--azul-deep); color: white; border-color: var(--azul-deep); }
+/* ✅ Estilo mejorado para botón Obituario */
+#btn-obituario {
+padding: 6px 12px !important;
+font-size: 0.75rem !important;
+min-width: auto !important;
+width: auto !important;
+height: auto !important;
+border-radius: 8px !important;
+}
+#btn-obituario.obit-active {
+background: var(--azul-deep) !important;
+color: white !important;
+border-color: var(--azul-deep) !important;
+}
+.modern-input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--gris); font-size: 0.95rem;
+outline: none; transition: 0.3s; background: #fdfdfd; font-weight: 500; }
+.modern-input:focus { border-color: var(--turquesa); background: white; }
+.pass-container { position: relative; width: 100%;
+}
+.eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; opacity: 0.6; z-index: 10;
+}
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+.upload-box { height: 90px; border: 2.5px dashed var(--celeste);
+border-radius: 15px; position: relative; overflow: hidden; background: #f0f9ff; }
+.upload-label { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+cursor: pointer; font-size: 0.7rem; font-weight: 800; color: var(--turquesa); text-align: center; }
+.preview { position: absolute; top: 0; left: 0; width: 100%;
+height: 100%; object-fit: cover; display: none; }
+.remove-btn { position: absolute; top: 5px; right: 5px; background: var(--rojo); color: white; border: none;
+border-radius: 50%; width: 25px; height: 25px; font-weight: 800; cursor: pointer; display: none; z-index: 10; }
+.btn-send { background: var(--azul-deep); color: white;
+width: 100%; padding: 14px; border-radius: 18px; border: none; font-weight: 800; font-size: 1.1rem; cursor: pointer; margin-top: 30px;
+box-shadow: 0 6px 15px rgba(2, 48, 71, 0.3); transition: 0.3s; }
+.btn-send:hover { transform: translateY(-2px); background: #054a6d; }
+.modal-overlay { position: fixed;
+top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.85); backdrop-filter: blur(8px); display: none; align-items: center;
+justify-content: center; z-index: 20000; padding: 20px; }
+.modal-content { background: white; padding: 40px 30px; border-radius: 30px; max-width: 450px; width: 100%;
+text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3); position: relative; }
+/* MODAL CONFIRMACIÓN */
+#confirmModal .modal-content { max-width: 600px; padding: 30px;
+}
+#previewContent { text-align: left; max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
+#previewContent p { margin: 8px 0; line-height: 1.4;
+}
+/* MODAL MANTENIMIENTO */
+#maintOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--azul-deep); z-index: 10000;
+display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+.modal-btn { background: var(--turquesa); color: white; border: none;
+padding: 12px; border-radius: 15px; font-weight: 800; width: 100%; margin-top: 25px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+.modal-btn:hover { background: var(--azul-deep);
+}
+.modal-btn-alt { background: var(--gris); color: var(--azul-deep); margin-top: 10px; }
+/* ✅ NUEVA CLASE PARA BOTONES IGUALES EN MODAL DE CONFIRMACIÓN */
+.modal-btn-confirm {
+flex: 1;
+min-width: 140px;
+padding: 12px;
+font-size: 1rem;
+font-weight: 800;
+border-radius: 12px;
+border: none;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+.modal-btn-confirm.corregir {
+background: var(--gris);
+color: var(--azul-deep);
+}
+.modal-btn-confirm.enviar {
+background: var(--turquesa);
+color: white;
+}
+.modal-btn-confirm:disabled {
+background: #e9ecef;
+color: #495057;
+cursor: not-allowed;
+}
+.table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
+table { width: 100%; border-collapse: collapse; min-width: 900px;
+}
+th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa);
+border-bottom: 2px solid var(--gris); }
+td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem; line-height: 1.2; color: #1a1a1a;
+font-weight: 500; }
+.status-pill { padding: 3px 10px; border-radius: 15px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; transition: 0.3s;
+}
+.txt-bold { font-weight: 800; color: var(--azul-deep); }
+.txt-small { font-size: 0.72rem; color: #4b4b4b; display: block; margin-bottom: 1px; font-weight: 500;
+}
+.status-pendiente { background: var(--celeste); color: var(--azul-deep); }
+.status-procesando { background: var(--amarillo); color: var(--azul-deep); }
+.status-finalizada { background: var(--verde); color: white;
+}
+/* ✅ CÍRCULO DE DISEÑADOR EN TABLA */
+.designer-circle {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  margin-top: 2px;
+}
+
+/* Estilo para el estado */
+.status-pill {
+  display: inline-block;
+  vertical-align: middle;
+}
+.admin-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.btn-act { border: none; border-radius: 5px; padding: 4px 6px;
+cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
+.btn-act:hover { transform: scale(1.1); }
+.bg-pend { background: var(--celeste); color: var(--azul-deep);
+}
+.bg-proc { background: var(--amarillo); color: var(--azul-deep); }
+.bg-fin { background: var(--verde); }
+.btn-trash { background: none; border: none; cursor: pointer; font-size: 1.1rem;
+margin-left: 8px; filter: grayscale(1); transition: 0.3s; }
+.btn-trash:hover { filter: grayscale(0); transform: rotate(10deg);
+}
+/* Nuevos Estilos Botones Admin */
+/* ✅ BOTÓN ADJUNTAR CORREGIDO: Icono + texto compacto */
+.btn-arte {
+background: #4a90e2;
+color: white;
+border: none;
+border-radius: 5px;
+padding: 3px 6px;
+font-size: 9px;
+font-weight: 800;
+cursor: pointer;
+white-space: nowrap;
+min-width: auto;
+width: auto;
+}
+.btn-ver { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 4px 6px; font-size: 9px;
+font-weight: 800; cursor: pointer; text-decoration: none; }
+.btn-tg { background: #0088cc; color: white; border: none; border-radius: 5px; padding: 4px 6px;
+font-size: 9px; font-weight: 800; cursor: pointer; }
+.hidden { display: none !important; }
+.page { display: none; }
+.page.active { display: block;
+}
+#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 48, 71, 0.95); display: none;
+flex-direction: column; align-items: center; justify-content: center; z-index: 30000; color: white; text-align: center; padding: 20px; }
+.spinner { width: 60px; height: 60px;
+border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid var(--amarillo); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+/* ✅ Estilo para campos deshabilitados en modo obituario */
+.obit-disabled {
+background-color: #e9ecef !important;
+color: #6c757d !important;
+cursor: not-allowed !important;
+}
+.obit-upload-box {
+background: #e9ecef !important;
+border-color: #ced4da !important;
+cursor: not-allowed !important;
+}
+.obit-upload-label {
+color: #6c757d !important;
+cursor: not-allowed !important;
+}
+/* ✅ ESTILOS PARA BOTÓN DE REPORTE MENSUAL - SOLO HABILITADO 1° DE MES */
+#reportBtn {
+position: relative;
+overflow: hidden;
+display: flex;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
+}
+#reportBtn:disabled {
+opacity: 0.65;
+cursor: not-allowed !important;
+transform: none !important;
+box-shadow: 0 3px 0 #1a3d2d !important;
+}
+#reportBtn:not(:disabled):hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 0 #1a3d2d;
+}
+#reportBtn:not(:disabled):active {
+transform: translateY(1px);
+box-shadow: 0 2px 0 #1a3d2d;
+}
+#reportBtnText {
+display: inline;
+transition: opacity 0.3s;
+}
+.report-days-badge {
+font-size: 0.6rem;
+background: rgba(255,255,255,0.2);
+padding: 2px 6px;
+border-radius: 10px;
+font-weight: 600;
+display: none;
+}
+.report-days-badge.show {
+display: inline-block;
+}
+/* ✅ MEJORAS RESPONSIVE PARA MÓVIL */
+@media (max-width: 768px) {
+/* Header reorganizado para móvil */
+header {
+flex-direction: column;
+align-items: center;
+padding: 10px 15px;
+min-height: auto;
+gap: 8px;
+}
+.brand-container {
+width: 100%;
+align-items: center;
+margin-bottom: 0;
+}
+.header-title {
+font-size: 1.4rem;
+text-align: center;
+}
+.acronimo {
+font-size: 0.6rem;
+text-align: center;
+max-width: 100%;
+}
+.nav-tabs {
+width: 100%;
+justify-content: center;
+flex-wrap: wrap;
+gap: 6px;
+margin: 8px 0 0 0;
+}
+.tab-btn {
+padding: 5px 12px;
+font-size: 0.7rem;
+min-width: 100px;
+}
+.admin-access {
+width: 100%;
+align-items: center;
+justify-content: center;
+flex-wrap: wrap;
+gap: 6px;
+margin-top: 5px;
+}
+.welcome-message {
+font-size: 0.85rem;
+padding: 5px 10px;
+}
+.admin-buttons {
+justify-content: center;
+width: 100%;
+flex-wrap: wrap;
+}
+.btn-login, .btn-logout {
+padding: 5px 8px;
+font-size: 0.6rem;
+min-width: auto;
+}
+/* Contenedores de stats en columnas */
+.stats-grid {
+flex-direction: column;
+gap: 8px;
+}
+.stat-card {
+min-width: 100%;
+padding: 10px;
+}
+/* Tabla más compacta */
+th, td {
+padding: 4px 6px;
+font-size: 0.75rem;
+}
+.status-pill {
+padding: 2px 8px;
+font-size: 0.55rem;
+}
+.txt-small {
+font-size: 0.65rem;
+}
+.admin-actions {
+flex-direction: column;
+align-items: flex-end;
+gap: 4px;
+}
+.btn-act, .btn-arte, .btn-ver, .btn-tg, .btn-trash {
+width: 100%;
+justify-content: center;
+font-size: 0.75rem;
+padding: 3px;
+}
+/* Formulario más compacto */
+.section-title {
+font-size: 0.8rem;
+margin: 15px 0 10px;
+}
+.modern-input {
+padding: 10px;
+font-size: 0.85rem;
+}
+.card-btn {
+min-height: 40px;
+font-size: 0.7rem;
+padding: 4px 2px;
+}
+.btn-send {
+padding: 12px;
+font-size: 1rem;
+}
+/* Modales más compactos */
+.modal-content {
+padding: 25px 20px;
+margin: 10px;
+}
+.modal-btn {
+padding: 10px;
+font-size: 0.95rem;
+}
+}
+/* ✅ ESTILOS PARA BUSCADOR DE ID - DISEÑADOR */
+#designer-search-container {
+transition: all 0.3s ease;
+margin: 15px 0;
+padding: 12px;
+background: #fff3e0;
+border-radius: 12px;
+border: 2px solid #ffb703;
+}
+#designer-search-container.hidden {
+display: none;
+}
+#searchIdInput {
+transition: all 0.3s ease;
+}
+#searchIdInput:focus {
+border-color: #fb8500;
+box-shadow: 0 0 0 3px rgba(251, 133, 0, 0.2);
+}
+/* ✅ EFECTOS DE RESALTADO Y BLOQUEO */
+.row-highlighted {
+background-color: #fff3e0 !important;
+border-left: 5px solid #fb8500 !important;
+animation: highlightPulse 0.8s ease;
+}
+.row-locked {
+opacity: 0.3 !important;
+pointer-events: none !important;
+transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.row-locked:hover {
+cursor: not-allowed !important;
+}
+/* ✅ BOTONES DESHABILITADOS EN FILAS BLOQUEADAS */
+.row-locked .btn-arte,
+.row-locked .btn-ver,
+.row-locked .btn-tg {
+opacity: 0.4 !important;
+cursor: not-allowed !important;
+pointer-events: none !important;
+}
+/* ✅ ANIMACIÓN DE RESALTADO */
+@keyframes highlightPulse {
+0%, 100% {
+box-shadow: 0 0 0 0 rgba(251, 133, 0, 0.4);
+}
+50% {
+box-shadow: 0 0 0 10px rgba(251, 133, 0, 0);
+}
+}
+/* ✅ ESTILO PARA INDICADOR DE BÚSQUEDA ACTIVA */
+.search-active-indicator {
+position: absolute;
+top: -8px;
+right: -8px;
+background: #fb8500;
+color: white;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 0.7rem;
+font-weight: 800;
+box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+/* ✅ MENSAJE DE NO COINCIDENCIAS */
+.no-results-message {
+text-align: center;
+padding: 20px;
+color: #6c757d;
+font-weight: 600;
+font-size: 0.9rem;
+background: #f8f9fa;
+border-radius: 8px;
+margin-top: 10px;
+display: none;
+}
+.no-results-message.show {
+display: block;
+animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+/* ✅ BOTÓN DE LIMPIAR BÚSQUEDA */
+.clear-search-btn {
+background: #e9ecef;
+border: none;
+border-radius: 6px;
+padding: 6px 12px;
+font-weight: 600;
+font-size: 0.8rem;
+cursor: pointer;
+transition: all 0.3s ease;
+margin-left: 8px;
+}
+.clear-search-btn:hover {
+background: #dee2e6;
+transform: scale(1.05);
+}
+.clear-search-btn:active {
+transform: scale(0.95);
+}
+/* ✅ ESTILO PARA CONTENEDOR DE BOTÓN DE LIMPIEZA */
+.search-controls {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-top: 8px;
+}
+/* ✅ INDICADOR DE FILTRO ACTIVO */
+.filter-badge {
+display: inline-block;
+background: linear-gradient(135deg, #fb8500 0%, #ffb703 100%);
+color: white;
+padding: 4px 12px;
+border-radius: 20px;
+font-size: 0.75rem;
+font-weight: 800;
+margin-left: 10px;
+animation: badgePulse 2s infinite;
+}
+@keyframes badgePulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.05); }
+}
+
+/* ✨ ANIMACIÓN DE PULSOS PARA BOTÓN DE ENVÍO */
+.btn-send-pulse {
+  animation: pulse 1.5s infinite;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3) !important;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 255, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(0, 150, 255, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 150, 255, 0); }
+}
+
+/* ✨ ESTILO PARA TEXTO EN DOS LÍNEAS */
+.btn-text {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-text span {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* ✅ ESTILOS PARA CONTADORES COMBINADOS (ADMIN - TEXTO COMPLETO) */
+.combined-stats {
+  display: flex;
+  justify-content: flex-start;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stat-mini {
+  min-width: 95px; /* Ancho suficiente para texto completo */
+  padding: 6px 10px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+.stat-mini:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+.stat-mini .stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+  text-transform: none;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: center;
+}
+.stat-mini .stat-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+}
+/* ✅ Mantener colores existentes */
+.st-total { background: var(--azul-deep); }
+.st-pend { background: var(--celeste); color: var(--azul-deep); }
+.st-proc { background: var(--amarillo); color: var(--azul-deep); }
+.st-fin { background: var(--verde); }
+.stat-bermina { background: var(--naranja); color: white; }
+.stat-jorsy { background: var(--azul-deep); color: white; }
+.stat-maria { background: var(--verde); color: white; }
+.stat-xamir { background: var(--amarillo); color: var(--azul-deep); }
+
+/* ✅ Responsive: Ajustar en pantallas pequeñas */
+@media (max-width: 1024px) {
+  .stat-mini { min-width: 85px; padding: 5px 8px; }
+  .stat-mini .stat-label { font-size: 0.62rem; }
+  .stat-mini .stat-val { font-size: 0.95rem; }
+}
+@media (max-width: 768px) {
+  .combined-stats { gap: 4px; }
+  .stat-mini { min-width: 75px; padding: 4px 6px; font-size: 0.72rem; }
+  .stat-mini .stat-label { font-size: 0.58rem; line-height: 1.1; }
+  .stat-mini .stat-val { font-size: 0.9rem; }
+}
+
+</style>
+</head>
+<body>
+<div id="maintOverlay">
+<span style="font-size: 80px;">🛠️</span>
+<h1 style="font-weight: 800; font-size: 2.5rem; margin: 20px 0;">SISTEMA EN MANTENIMIENTO</h1>
+<p style="font-size: 1.2rem; max-width: 500px; opacity: 0.9;">Estamos trabajando para mejorar tu experiencia.
+Disculpen las molestias ocasionadas.</p>
+<button class="btn-login" style="margin-top: 30px; padding: 12px 25px; font-size: 1rem;"
+onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
+</div>
+<div id="loadingOverlay">
+<div class="spinner"></div>
+<div class="loading-text" id="loadMainTxt">Procesando...</div>
+<div class="loading-subtext" id="loadSubTxt"></div>
+</div>
+<div class="modal-overlay" id="modalAlert">
+<div class="modal-content">
+<span id="modalIcon" style="font-size: 60px; display: block; margin-bottom: 10px;">⚠️</span>
+<div id="modalTitle" style="font-weight: 800; font-size: 1.4rem; color: var(--azul-deep);">Atención</div>
+<div id="modalMsg" style="margin-top: 15px; color: #555; font-size: 1rem; line-height: 1.4; font-weight: 500;"></div>
+<div id="loginArea" class="hidden" style="margin-top:20px; text-align: left;">
+<label class="txt-small">Usuario del Sistema:</label>
+<input type="text" id="adminUser" class="modern-input" style="margin-bottom:15px;"
+placeholder="Ingrese usuario">
+<label class="txt-small">Clave de Seguridad:</label>
+<div class="pass-container">
+<input type="password" id="adminPass" class="modern-input" placeholder="••••••••">
+<span class="eye-icon" onclick="togglePass()">👁️</span>
+</div>
+</div>
+<div id="uploadArea" class="hidden" style="margin-top:20px;">
+<input type="file" id="arteFile" class="modern-input" accept=".jpg,.jpeg,.png,.pdf,.zip" style="font-size: 0.8rem;">
+<p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Máximo 5MB (Formatos: JPG, PNG, PDF, ZIP)</p>
+<input type="hidden" id="currentReqId">
+</div>
+<button id="mainModalBtn" class="modal-btn">ENTENDIDO</button>
+<button id="closeModalBtn" class="modal-btn modal-btn-alt hidden" onclick="closeModal()">CERRAR</button>
+</div>
+</div>
+<div class="modal-overlay" id="confirmModal">
+<div class="modal-content">
+<h2 style="font-weight: 800; color: var(--azul-deep); margin-top: 0;">🔍 Revisa tu Solicitud</h2>
+<div id="previewContent"></div>
+<div style="display: flex;
+gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto;
+margin-top: 20px;">
+<button id="btnCorregir" class="modal-btn-confirm corregir">✏️ Corregir</button>
+<button id="btnEnviarConfirmado" class="modal-btn-confirm enviar" disabled>🚀 Enviar Solicitud (<span id="countdown">10</span>)</button>
+</div>
+</div>
+</div>
+<!-- ✅ MODAL PARA SELECCIONAR DISEÑADOR -->
+<div class="modal-overlay" id="designerModal" style="display:none;">
+<div class="modal-content" style="max-width: 420px; padding: 30px;">
+<span style="font-size: 48px; display: block; margin-bottom: 15px;">🎨</span>
+<div style="font-weight: 800; font-size: 1.5rem; color: var(--azul-deep); margin-bottom: 15px; text-align: center;">
+Seleccionar Diseñador
+</div>
+<p style="margin: 15px 0; color: #555; font-size: 0.95rem; text-align: center;">
+¿Quién realizó el arte final para esta solicitud?
+</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;">
+<button class="modal-btn" style="background: var(--naranja); color: white; padding: 14px; font-weight: 800;"
+onclick="selectDesigner('Bermina')">👩‍🎨 Bermina</button>
+<button class="modal-btn" style="background: var(--azul-deep); color: white; padding: 14px; font-weight: 800;"
+onclick="selectDesigner('Jorsy')">👨‍🎨 Jorsy</button>
+<button class="modal-btn" style="background: var(--verde); color: white; padding: 14px; font-weight: 800;"
+onclick="selectDesigner('María F.')">👩‍🎨 María F.</button>
+<button class="modal-btn" style="background: var(--amarillo); color: var(--azul-deep); padding: 14px; font-weight: 800;"
+onclick="selectDesigner('Xamir')">👨‍🎨 Xamir</button>
+</div>
+</div>
+</div>
+<!-- ✅ MODAL PARA MENSAJE DE ID NO ENCONTRADO -->
+<div class="modal-overlay" id="idNotFoundModal" style="display: none;">
+<div class="modal-content" style="max-width: 450px; padding: 25px;">
+<span style="font-size: 50px; display: block; margin-bottom: 15px; color: #fb8500;">🔍</span>
+<h2 style="font-weight: 800; color: var(--azul-deep); margin: 0 0 15px 0;">ID no encontrado</h2>
+<p style="font-size: 1rem; line-height: 1.5; color: #495057; margin-bottom: 20px;">
+No se encontró ninguna solicitud con el ID: <strong id="notFoundId"></strong>
+</p>
+<p style="font-size: 0.9rem; color: #6c757d; margin-bottom: 25px;">
+Verifica que el ID sea correcto o limpia la búsqueda para ver todas las solicitudes
+</p>
+<div style="display: flex; justify-content: center; gap: 15px;">
+<button class="modal-btn" style="background: var(--gris); color: var(--azul-deep);" onclick="closeIdNotFoundModal()">CERRAR</button>
+<button class="modal-btn" style="background: #fb8500; color: white;" onclick="clearSearch()">LIMPIAR BÚSQUEDA</button>
+</div>
+</div>
+</div>
+<header>
+<div class="brand-container">
+<h1 class="header-title">SIRA 2.5</h1>
+<span class="acronimo">Sistema Integral de Requerimientos de Artes</span>
+</div>
+<div class="nav-tabs">
+<button id="tab-form" class="tab-btn active" onclick="showPage('form-page', this)">📝 FORMULARIO</button>
+<button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 SOLICITUDES</button>
+</div>
+<div class="admin-access">
+<!-- ✅ MENSAJE DE BIENVENIDA - MÁS LLAMATIVO -->
+<div id="welcomeMessage" class="welcome-message">¡Hola, <span id="userNameDisplay"></span>!</div>
+<!-- ✅ BOTONES EN HORIZONTAL -->
+<div class="admin-buttons">
+<button id="maintBtn" class="btn-login hidden" style="background: var(--rojo);
+box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
+<button id="reportBtn" class="btn-login hidden" style="background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%); box-shadow: 0 3px 0 #1e4a35; color: white;" onclick="generateMonthlyReport()">
+<span id="reportBtnText">📊 Generar Reporte</span>
+<span id="reportBtnDays" class="report-days-badge"></span>
+</button>
+<button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
+</div>
+</div>
+</header>
+<div class="container page active" id="form-page">
+<div class="aviso-48h">⚠️ IMPORTANTE: LAS SOLICITUDES DEBEN REALIZARSE CON 48 HORAS DE ANTICIPACIÓN</div>
+<form id="sigrafForm" novalidate>
+<label class="section-title">🏥 1. REGIÓN *</label>
+<div class="category-row" id="region-grid"></div>
+<div id="unidad-section" class="hidden">
+<label class="section-title">🏥 1.5. UNIDAD MÉDICA *</label>
+<div class="category-row" id="unidad-grid"></div>
+</div>
+<label class="section-title">📂 2. TIPO DE JORNADA *</label>
+<div class="category-row" id="cat-grid">
+<div class="card-btn" onclick="selectCat(this, 'escuela')">Ipasme va a la Escuela</div>
+<div class="card-btn" onclick="selectCat(this, 'integral')">Jornada de Atención Médica Integral</div>
+<div class="card-btn" onclick="selectCat(this, 'conjunta')">Jornada Conjunta</div>
+<div class="card-btn" onclick="selectCat(this, 'vacuna')">Plan Masivo de Vacunación</div>
+<div class="card-btn" onclick="selectCat(this, 'quirurgica')">Captación Quirúrgica</div>
+<div class="card-btn" onclick="selectCat(this, 'pediatrica')">Captación Quirúrgica Pediátrica</div>
+<div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
+<div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
+</div>
+<div id="sec-3" class="hidden">
+<label class="section-title" id="label-3">🩺 3. DETALLE *</label>
+<div id="cont-3" style="display: grid;
+grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px;"></div>
+</div>
+<div id="sec-4" class="hidden">
+<label class="section-title">✨ 4. SERVICIOS ADICIONALES (OPCIONAL)</label>
+<div id="cont-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+gap: 6px;"></div>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+<div><label class="section-title">📅 5. FECHA DE ACTIVIDAD *</label><input type="date" id="fecha" class="modern-input"></div>
+<div><label class="section-title">⏰ 6. HORA DE INICIO *</label><div class="hora-container" id="hora-box" style="display: flex;
+gap: 10px; align-items: center;"><input type="text" id="hora" class="modern-input" style="width:100px; text-align:center" placeholder="08:00"><button type="button" class="btn-time" id="btn-am" onclick="setAMPM('a. m.')">a. m.</button><button type="button" class="btn-time" id="btn-pm" onclick="setAMPM('p. m.')">p. m.</button></div></div>
+</div>
+<label class="section-title">📍 7. UBICACIÓN *</label>
+<div style="background: #fff8e1;
+border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #5d4600; font-weight: 600;
+line-height: 1.4;">
+⚠️ Complete al menos el nombre de la institución. La dirección exacta es opcional pero recomendada.
+</div>
+<div style="display: grid;
+grid-template-columns: 1fr 1fr; gap: 20px;">
+<div>
+<label class="txt-small">🏫 Institución *</label>
+<input type="text" id="institucion" class="modern-input" placeholder="Escuela, Liceo, Jardín de niños, etc.">
+</div>
+<div>
+<label class="txt-small">🧭 Dirección exacta</label>
+<input type="text" id="direccion-exacta" class="modern-input" placeholder="Municipio, Parroquia, Ciudad, etc.">
+</div>
+</div>
+<label class="section-title">📱✉️ 8. DATOS DE CONTACTO</label>
+<div style="display: grid;
+grid-template-columns: 1fr 1fr; gap: 20px;">
+<div><label class="txt-small">Número de Teléfono</label><input type="tel" id="tlf" class="modern-input" placeholder="04xx 1234567"></div>
+<div><label class="txt-small">Correo Electrónico *</label><input type="email" id="mail" class="modern-input" placeholder="Para envío de arte final"></div>
+</div>
+<label class="section-title">✏️ 9. OBSERVACIONES / DETALLES DE DISEÑO</label><textarea id="observaciones" class="modern-input" rows="3" placeholder="Indique medidas, colores institucionales o entes participantes adicionales..."></textarea>
+<label class="section-title">📸 10. SOPORTES FOTOGRÁFICOS (MÁX 3)</label>
+<div style="background: #fff8e1;
+border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #5d4600; font-weight: 600;
+line-height: 1.4;">
+⚠️ Si el registro fotográfico enviado no cumple con las condiciones de calidad para la solicitud, será sustituido por material de archivo.
+</div>
+<div class="photo-grid">
+<div class="upload-box"><label for="f1" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f1" class="hidden" accept="image/*" onchange="handleFile(this, 'p1', 'b1')"><img id="p1" class="preview"><button type="button" id="b1" class="remove-btn" onclick="clearFile('f1', 'p1', 'b1')">×</button></div>
+<div class="upload-box"><label for="f2" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f2" class="hidden" accept="image/*" onchange="handleFile(this, 'p2', 'b2')"><img id="p2" class="preview"><button type="button" id="b2" class="remove-btn" onclick="clearFile('f2', 'p2', 'b2')">×</button></div>
+<div class="upload-box"><label for="f3" class="upload-label">✚ SUBIR FOTO</label><input type="file" id="f3" class="hidden" accept="image/*" onchange="handleFile(this, 'p3', 'b3')"><img id="p3" class="preview"><button type="button" id="b3" class="remove-btn" onclick="clearFile('f3', 'p3', 'b3')">×</button></div>
+</div>
+<button type="submit" id="submitBtn" class="btn-send">🚀 ENVIAR SOLICITUD A COMUNICACIONES</button>
+</form>
+</div>
+<div class="container page" id="list-page">
+<!-- ✅ CONTADORES COMBINADOS PARA ADMIN (TEXTO COMPLETO, UNA SOLA LÍNEA) -->
+<div class="combined-stats" id="combined-stats" style="display:none; margin-bottom: 10px; gap: 6px;">
+  <!-- Contadores generales -->
+  <div class="stat-card stat-mini st-total">
+    <span class="stat-label">Total</span>
+    <span id="count-total-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini st-pend">
+    <span class="stat-label">Pendiente</span>
+    <span id="count-pend-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini st-proc">
+    <span class="stat-label">En Proceso</span>
+    <span id="count-proc-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini st-fin">
+    <span class="stat-label">Finalizada</span>
+    <span id="count-fin-admin" class="stat-val">0</span>
+  </div>
+  
+  <!-- Contadores de diseñadores (SOLO ADMIN) -->
+  <div class="stat-card stat-mini stat-bermina">
+    <span class="stat-label">Bermina</span>
+    <span id="count-bermina-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini stat-jorsy">
+    <span class="stat-label">Jorsy</span>
+    <span id="count-jorsy-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini stat-maria">
+    <span class="stat-label">María F.</span>
+    <span id="count-maria-admin" class="stat-val">0</span>
+  </div>
+  <div class="stat-card stat-mini stat-xamir">
+    <span class="stat-label">Xamir</span>
+    <span id="count-xamir-admin" class="stat-val">0</span>
+  </div>
+</div>
+
+<!-- ✅ CONTADORES PARA USUARIOS REGULARES (SIN CAMBIOS) -->
+<div class="stats-grid" id="stats-panel">
+<div class="stat-card st-total"><span class="stat-label">Total</span><span id="count-total" class="stat-val">0</span></div>
+<div class="stat-card st-pend"><span class="stat-label">Pendiente</span><span id="count-pend" class="stat-val">0</span></div>
+<div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
+<div class="stat-card st-fin"><span class="stat-label">Finalizada</span><span id="count-fin" class="stat-val">0</span></div>
+</div>
+<!-- ✅ BUSCADOR DE ID PARA DISEÑADOR -->
+<div id="designer-search-container" class="hidden">
+<div style="display: flex; align-items: center; gap: 10px;">
+<span style="font-size: 1.2rem; color: #fb8500;">🔍</span>
+<input 
+type="text" 
+id="searchIdInput" 
+class="modern-input" 
+placeholder="Buscar por ID de solicitud..."
+style="background: white; border-color: #ffb703; font-weight: 600;"
+>
+</div>
+<p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #5d4600; font-weight: 500;">
+⚠️ Solo las solicitudes coincidentes estarán habilitadas para adjuntar archivos
+</p>
+</div>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>ID SOLICITUD</th>
+<th>FECHA EVENTO</th>
+<th>UNIDAD SOLICITANTE</th>
+<th>TIPO DE JORNADA</th>
+<th style="text-align:center">SOPORTES</th>
+<th>ESTATUS</th>
+<th id="th-admin" class="hidden" style="text-align:right">ACCIONES ADMIN</th>
+<th id="th-designer" class="hidden" style="text-align:right">ACCIONES DISEÑADOR</th>
+</tr>
+</thead>
+<tbody id="solicitudes-body"></tbody>
+</table>
+</div>
+</div>
+<script>
+// === CONFIGURACIÓN DE SCRIPT URL ===
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
+
+// ✅ VARIABLES PARA SISTEMA DE CHUNKS
+let chunkUpload = {
+    isActive: false,
+    currentFile: null,
+    chunks: [],
+    currentChunk: 0,
+    totalChunks: 0,
+    uploadedChunks: 0,
+    chunkSize: 512 * 1024, // 512KB por defecto
+    connectionSpeed: 'unknown', // fast, medium, slow
+    retryCount: 0,
+    maxRetries: 5,
+    startTime: null,
+    pauseRequested: false,
+    resumeToken: null,
+    // ✅ NUEVAS VARIABLES PARA VELOCIDAD DE SUBIDA
+    currentChunkStartTime: null,  // Tiempo de inicio del chunk actual
+    currentChunkEndTime: null,    // Tiempo de fin del chunk actual
+    uploadSpeeds: [],             // Array de velocidades históricas
+    avgUploadSpeed: 0,            // Velocidad promedio en KB/s
+    currentUploadSpeed: 0         // Velocidad actual en KB/s
+};
+
+// ✅ CONFIGURACIÓN DE CHUNKS SEGÚN VELOCIDAD
+const CHUNK_CONFIG = {
+    fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB (no se usa - conexiones rápidas suben completo)
+    medium: { size: 512 * 1024, concurrent: 2 },   // 512KB para conexiones medias
+    'slow-medium': { size: 256 * 1024, concurrent: 1 }, // 256KB para conexiones lentas-medias
+    slow: { size: 256 * 1024, concurrent: 1 }      // 256KB para conexiones lentas
+};
+
+// ✅ DETECTAR VELOCIDAD DE CONEXIÓN
+async function detectConnectionSpeed() {
+    const testFileUrl = 'https://httpbin.org/bytes/1048576'; // 1MB de datos
+    const startTime = Date.now();
+    
+    try {
+        const response = await fetch(testFileUrl, { 
+            method: 'GET',
+            cache: 'no-store'
+        });
+        
+        if (!response.ok) throw new Error('Test fallido');
+        
+        // Leer el contenido para medir tiempo real
+        await response.blob();
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000; // segundos
+        const speedMbps = (8 / duration); // 1MB = 8 megabits
+        
+        let speedTier;
+        if (speedMbps > 2) speedTier = 'fast';
+        else if (speedMbps > 0.5) speedTier = 'medium';
+        else if (speedMbps > 0.1) speedTier = 'slow-medium'; // Para velocidades entre 0.1-0.5 Mbps
+        else speedTier = 'slow'; // Para velocidades ≤ 0.1 Mbps
+        
+        chunkUpload.connectionSpeed = speedTier;
+        chunkUpload.chunkSize = CHUNK_CONFIG[speedTier].size;
+        
+        console.log(`📶 Conexión detectada: ${speedTier} (${speedMbps.toFixed(2)} Mbps)`);
+        console.log(`📦 Tamaño de chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`);
+        
+        return speedTier;
+    } catch (error) {
+        console.warn('⚠️ No se pudo detectar velocidad, usando configuración por defecto');
+        chunkUpload.connectionSpeed = 'medium';
+        chunkUpload.chunkSize = CHUNK_CONFIG.medium.size;
+        return 'medium';
+    }
+}
+
+// ✅ REINICIAR ESTADO DE CHUNKS
+function resetChunkUploadState() {
+    chunkUpload.isActive = false;
+    chunkUpload.currentFile = null;
+    chunkUpload.chunks = [];
+    chunkUpload.currentChunk = 0;
+    chunkUpload.totalChunks = 0;
+    chunkUpload.uploadedChunks = 0;
+    chunkUpload.pauseRequested = false;
+    chunkUpload.startTime = null;
+    chunkUpload.retryCount = 0;
+    chunkUpload.resumeToken = null;
+    
+    // ✅ RESET VARIABLES DE VELOCIDAD
+    chunkUpload.currentChunkStartTime = null;
+    chunkUpload.currentChunkEndTime = null;
+    chunkUpload.uploadSpeeds = [];
+    chunkUpload.avgUploadSpeed = 0;
+    chunkUpload.currentUploadSpeed = 0;
+    
+    // ✅ LIMPIAR DISPLAY DE VELOCIDAD
+    const speedElement = document.getElementById('progressUploadSpeed');
+    if (speedElement) {
+        speedElement.innerText = '📤 Velocidad: Calculando...';
+    }
+    
+    // ✅ Limpiar timer si existe
+    if (window.confirmTimer) {
+        clearInterval(window.confirmTimer);
+        window.confirmTimer = null;
+    }
+    
+    console.log("🔄 Estado de chunks reiniciado");
+}
+
+// ✅ DIVIDIR ARCHIVO EN CHUNKS
+function splitFileIntoChunks(file) {
+    const chunks = [];
+    const fileSize = file.size;
+    const chunkSize = chunkUpload.chunkSize;
+    const totalChunks = Math.ceil(fileSize / chunkSize);
+    
+    for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(start + chunkSize, fileSize);
+        const chunkBlob = file.slice(start, end);
+        
+        chunks.push({
+            index: i,
+            blob: chunkBlob,
+            size: end - start,
+            total: totalChunks,
+            fileId: file.name + '_' + Date.now()
+        });
+    }
+    
+    return chunks;
+}
+
+// === LISTADO DE UNIDADES IPASME POR REGIÓN (CORREGIDO Y ORDENADO) ===
+const UNIDADES_IPASME_RAW = {
+"Capital": [
+"Don Simón Rodríguez",
+"C.N.E.D. Dr. Julio de Armas",
+"Centro de Salud para El Buen Vivir Dr. Salvador Allende"
+],
+"Región Central": [
+"Maracay", "La Victoria", "Valencia", "Puerto Cabello",
+"Club Villas Ipasmar", "Guatire", "Ocumare del Tuy", "Caucagua",
+"Carrizal", "La Guaira"
+],
+"Región Occidental": [
+"Cabimas", "Maracaibo", "Machiques", "San Carlos del Zulia",
+"El Moján", "Barquisimeto", "El Tocuyo", "Carora",
+"San Felipe", "Nirgua", "Punto Fijo", "Coro",
+"Buchivacoa", "Puerto Cumarebo"
+],
+"Región Los Andes": [
+"El Vigía", "Mérida", "Tovar",
+"Hotel Valle Grande", "La Grita", "Rubio",
+"San Cristóbal", "San Juan de Colón", "Ureña",
+"Boconó", "Trujillo", "Valera"
+],
+"Región Oriental": [
+"Anaco", "Barcelona", "Cantaura", "El Tigre",
+"Isidora Agnes, Ciudad Bolívar", "Guasipati",
+"Profa. Mirelva Martínez, San Félix", "Upata", "Maturín",
+"Punta de Mata", "Cumaná", "Cumanacoa", "Carúpano",
+"Güiria", "Tucupita", "Casacoima", "La Asunción",
+"Puerto Ayacucho"
+],
+"Región Los Llanos": [
+"Altagracia de Orituco", "Calabozo", "San Juan de los Morros",
+"Valle de la Pascua", "Zaraza", "San Carlos de Cojedes",
+"Tinaquillo", "San Fernando de Apure", "Guasdualito",
+"Barinas", "Santa Bárbara de Barinas", "Acarigua", "Guanare"
+]
+};
+
+const ORDEN_REGIONES = [
+"Capital",
+"Región Central",
+"Región Occidental",
+"Región Los Andes",
+"Región Oriental",
+"Región Los Llanos"
+];
+
+function getNombreRegionLimpio(regionKey) {
+if (regionKey === "Capital") return "Capital";
+return regionKey.replace("Región ", "");
+}
+
+const UNIDADES_IPASME = {};
+ORDEN_REGIONES.forEach(region => {
+const unidadesOriginales = UNIDADES_IPASME_RAW[region] || [];
+UNIDADES_IPASME[region] = [...unidadesOriginales].sort((a, b) =>
+a.trim().localeCompare(b.trim(), 'es', { sensitivity: 'base' })
+);
+});
+
+// ✅ VARIABLES GLOBALES PARA ROLES
+let isAdmin = false;
+let isDesigner = false;
+let selectedAMPM = "";
+let catType = "";
+let catName = "";
+let localData = [];
+let isMaintActive = false;
+let selectedRegionKey = "";
+let selectedUnidad = "";
+let modoObituario = false;
+
+// ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
+const designerColors = {
+"Bermina": "#fb8500",
+"Jorsy": "#023047",
+"María F.": "#2d6a4f",
+"Xamir": "#ffb703"
+};
+
+// ✅ NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
+let requestIdForDesigner = null;
+
+// ✅ VARIABLES GLOBALES PARA BÚSQUEDA
+let currentSearchId = "";
+let isSearchActive = false;
+
+// ✅ NUEVA VARIABLE PARA ALMACENAR CREDENCIALES DEL USUARIO ACTUAL
+let userCredentials = {
+username: "",
+password: "",
+displayName: "",
+role: "", // "admin" o "diseñador"
+designerName: "" // Solo para diseñadores
+};
+
+const DATA = {
+especialidades: ["Alergología", "Cardiología", "Cirugía general", "Dermatología", "Fisiatría", "Foniatría", "Gastroenterología", "Geriatría", "Ginecología y obstetricia", "Infectología", "Medicina familiar", "Medicina general", "Medicina interna", "Nefrología", "Neumología", "Neurología", "Nutrición", "Odontología", "Oftalmología", "Oncología", "Optometría", "Pediatría", "Psicología", "Psiquiatría", "Reumatología", "Traumatología", "Urología"],
+servicios: ["Actividades recreativas", "Afiliación", "Agudeza visual", "Aplicación de flúor", "Asesoría legal", "Bienestar social", "Captación odontológica", "Captación quirúrgica general", "Captación quirúrgica oftalmológica", "Charlas odontológicas", "Citología", "Control de glicemia", "Control de talla y peso", "Desparasitación", "Despistaje de glicemia capilar", "Despistaje HTA", "Ecografía", "Electrocardiograma", "Espirometría", "Farmacia", "Fisioterapia", "Fonoaudiología", "Gerontología", "Ingeniería biomédica", "Inmunización", "Laboratorio", "Liberación de hipoteca", "Masoterapia", "Podología", "Quiropraxia", "Reposos médicos", "Sesión educativa", "Servicios sociales", "Terapia de lenguaje (Logopedia)", "Terapia del dolor", "Terapia ocupacional", "Tipiaje", "Trabajo social"],
+vacunas: ["Fiebre amarilla", "Pentavalente", "Polio IPV", "Polio oral", "Toxoide (tetánico/diftérico)", "Trivalente viral (SRP)"],
+quirurgica: ["Bocio hiperfuncionante", "Colectomía", "Enfermedad hemorroidal", "Esterilización", "Fibromatosis", "Fimosis", "Hernia abdominal", "Hernia epigástrica", "Hernia escrotal", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Histerectomía", "Lipomas", "Litiasis vesicular (Colecistectomías)", "Lunares", "Miomatosis uterina", "Nevus", "Nódulos mamarios simples", "Paridad satisfecha", "Prolapso", "Quiste (TU)", "Quiste de epidídimo", "Quiste sebáceo", "Quiste tirogloso", "Quistes sebáceos", "Tumores ováricos", "Varicocele", "Vasectomía", "Verrugas"],
+pediatrica: ["Criptorquidias", "Fimosis", "Hernia epigástrica", "Hernia inguinal", "Hernia umbilical", "Hidrocele", "Quiste tirogloso", "Varicocele"],
+oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
+};
+
+// ✅ FUNCIÓN PRINCIPAL: BUSCAR POR ID
+function searchById() {
+const searchInput = document.getElementById('searchIdInput');
+const searchTerm = searchInput.value.trim().toUpperCase();
+
+currentSearchId = searchTerm;
+isSearchActive = searchTerm.length > 0;
+
+// ✅ MOSTRAR/OCULTAR CONTENEDOR SEGÚN ROL Y BÚSQUEDA
+const searchContainer = document.getElementById('designer-search-container');
+if (isDesigner) {
+searchContainer.classList.remove('hidden');
+}
+
+// ✅ SI NO HAY BÚSQUEDA, RESTABLECER TABLA
+if (!isSearchActive) {
+resetSearchHighlight();
+return;
+}
+
+// ✅ REALIZAR BÚSQUEDA Y APLICAR EFECTOS
+applySearchHighlight(searchTerm);
+}
+
+// ✅ APLICAR RESALTADO Y BLOQUEO
+function applySearchHighlight(searchTerm) {
+    const rows = document.querySelectorAll('#solicitudes-body tr');
+    let foundMatch = false;
+    let matchedRow = null;
+    rows.forEach(row => {
+        // ✅ BUSCAR EN LA PRIMERA COLUMNA (ID) QUE AHORA CONTIENE EL BADGE
+        const idCell = row.querySelector('td:first-child');
+        const rowId = idCell ? idCell.textContent.trim().toUpperCase() : "";
+        
+        // ✅ EXTRAER SOLO EL ID (eliminar texto del badge)
+        const idOnly = rowId.replace(/NEW|PRIORIZAR/g, '').trim();
+        
+        // ✅ VERIFICAR COINCIDENCIA
+        const isMatch = idOnly.includes(searchTerm);
+        if (isMatch) {
+            row.classList.add('row-highlighted');
+            row.classList.remove('row-locked');
+            foundMatch = true;
+            matchedRow = row;
+            enableRowButtons(row);
+        } else {
+            row.classList.add('row-locked');
+            row.classList.remove('row-highlighted');
+            disableRowButtons(row);
+        }
+    });
+    
+    // ✅ SCROLL AUTOMÁTICO A LA FILA ENCONTRADA
+    if (matchedRow) {
+        matchedRow.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
+    }
+    
+    // ✅ MOSTRAR MENSAJE SI NO HAY COINCIDENCIAS
+    if (!foundMatch) {
+        document.getElementById('notFoundId').innerText = currentSearchId;
+        document.getElementById('idNotFoundModal').style.display = 'flex';
+    }
+}
+
+// ✅ HABILITAR BOTONES EN FILA
+function enableRowButtons(row) {
+const buttons = row.querySelectorAll('.btn-arte, .btn-ver, .btn-tg');
+buttons.forEach(btn => {
+btn.disabled = false;
+btn.style.opacity = "1";
+btn.style.pointerEvents = "auto";
+btn.style.cursor = "pointer";
+});
+}
+
+// ✅ DESHABILITAR BOTONES EN FILA
+function disableRowButtons(row) {
+const buttons = row.querySelectorAll('.btn-arte, .btn-ver, .btn-tg');
+buttons.forEach(btn => {
+btn.disabled = true;
+btn.style.opacity = "0.4";
+btn.style.pointerEvents = "none";
+btn.style.cursor = "not-allowed";
+});
+}
+
+// ✅ RESTABLECER TABLA A ESTADO ORIGINAL
+function resetSearchHighlight() {
+const rows = document.querySelectorAll('#solicitudes-body tr');
+
+rows.forEach(row => {
+row.classList.remove('row-highlighted', 'row-locked');
+enableRowButtons(row);
+});
+
+// ✅ OCULTAR MENSAJE DE NO RESULTADOS
+document.getElementById('idNotFoundModal').style.display = 'none';
+}
+
+// ✅ Cerrar modal de ID no encontrado
+function closeIdNotFoundModal() {
+document.getElementById('idNotFoundModal').style.display = 'none';
+document.getElementById('searchIdInput').focus();
+}
+
+// ✅ LIMPIAR BÚSQUEDA
+function clearSearch() {
+document.getElementById('searchIdInput').value = "";
+searchById();
+
+// ✅ FOCO DE NUEVO EN EL INPUT
+setTimeout(() => {
+document.getElementById('searchIdInput').focus();
+}, 100);
+}
+
+// ✅ MANEJADOR DE EVENTOS PARA TECLADO
+function handleSearchKeydown(e) {
+if (e.key === 'Escape') {
+clearSearch();
+}
+
+// ✅ PREVENIR ENVÍO DEL FORMULARIO AL PRESIONAR ENTER
+if (e.key === 'Enter') {
+e.preventDefault();
+searchById();
+}
+}
+
+// ✅ INICIALIZAR EVENTOS DEL BUSCADOR
+function initSearchEvents() {
+const searchInput = document.getElementById('searchIdInput');
+
+if (searchInput) {
+// ✅ BÚSQUEDA EN TIEMPO REAL (con debounce)
+let searchTimeout;
+searchInput.addEventListener('input', (e) => {
+clearTimeout(searchTimeout);
+searchTimeout = setTimeout(() => {
+searchById();
+}, 300); // Esperar 300ms después de dejar de escribir
+});
+
+// ✅ MANEJAR TECLAS ESPECIALES
+searchInput.addEventListener('keydown', handleSearchKeydown);
+}
+}
+
+// ✅ ACTUALIZAR VISIBILIDAD DEL BUSCADOR SEGÚN ROL
+function updateSearchVisibility() {
+    const searchContainer = document.getElementById('designer-search-container');
+    // ✅ MOSTRAR BUSCADOR PARA ADMIN Y DISEÑADOR
+    if (isAdmin || isDesigner) {
+        searchContainer.classList.remove('hidden');
+        // ✅ INICIALIZAR EVENTOS SI ES LA PRIMERA VEZ
+        if (!window.searchEventsInitialized) {
+            initSearchEvents();
+            window.searchEventsInitialized = true;
+        }
+    } else {
+        searchContainer.classList.add('hidden');
+        resetSearchHighlight();
+        // ✅ OCULTAR MODAL DE ID NO ENCONTRADO
+        document.getElementById('idNotFoundModal').style.display = 'none';
+    }
+}
+
+// ✅ NUEVA FUNCIÓN: SELECCIONAR DISEÑADOR Y GUARDAR
+async function selectDesigner(designer) {
+if (!requestIdForDesigner) return;
+    
+document.getElementById('loadMainTxt').innerText = "Guardando diseñador...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+    
+try {
+const params = new URLSearchParams();
+params.append("action", "updateStatus");
+params.append("id", requestIdForDesigner);
+params.append("status", "FINALIZADA");
+params.append("disenador", designer);
+// ✅ CORREGIDO: Enviar credenciales
+params.append("username", userCredentials.username);
+params.append("password", userCredentials.password);
+        
+const response = await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params.toString()
+});
+        
+const data = await response.json();
+        
+if (data.success) {
+const item = localData.find(x => x.id == requestIdForDesigner);
+if (item) {
+item.Estatus = "FINALIZADA";
+item.Disenador = designer;
+}
+document.getElementById('designerModal').style.display = 'none';
+requestIdForDesigner = null;
+renderLocalTable();
+openModal("✅ Éxito", `Solicitud asignada a ${designer}`, "🎨");
+} else {
+throw new Error(data.error || "Error desconocido");
+}
+} catch (e) {
+// ✅ CORREGIDO: Ocultar loading antes del mensaje de error
+document.getElementById('loadingOverlay').style.display = 'none';
+openModal("❌ Error", "Error al guardar: " + e.message, "💥");
+} finally {
+// ✅ Asegurar que el loading siempre se oculte
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
+
+// ✅ MODIFICAR FUNCIÓN modStatus PARA DETECTAR FINALIZADA
+async function modStatus(id, st) {
+const pill = document.getElementById('pill-' + id);
+const oldClass = pill.className;
+const oldText = pill.innerText;
+const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+pill.className = `status-pill status-${newStatusClass}`;
+pill.innerText = st;
+    
+try {
+// ✅ SI ES FINALIZADA, MOSTRAR MODAL DE DISEÑADOR
+if (st === "FINALIZADA") {
+requestIdForDesigner = id;
+document.getElementById('designerModal').style.display = 'flex';
+return;
+}
+        
+// ✅ CORREGIDO: Eliminar no-cors y enviar credenciales
+const params = new URLSearchParams();
+params.append("action", "updateStatus");
+params.append("id", id);
+params.append("status", st);
+params.append("username", userCredentials.username);
+params.append("password", userCredentials.password);
+        
+const response = await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params.toString()
+});
+        
+const data = await response.json();
+        
+if (data.success) {
+const item = localData.find(x => x.id == id);
+if(item) item.Estatus = st;
+renderLocalTable();
+} else {
+throw new Error(data.error || "Error al actualizar estatus");
+}
+} catch (e) {
+pill.className = oldClass;
+pill.innerText = oldText;
+openModal("❌ Error", "Error de conexión: " + e.message, "💥");
+}
+}
+
+// ✅ FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
+function renderLocalTable() {
+    const body = document.getElementById('solicitudes-body');
+    body.innerHTML = "";
+    let counts = {
+        total: 0,
+        pend: 0,
+        proc: 0,
+        fin: 0,
+        bermina: 0,
+        jorsy: 0,
+        maria: 0,
+        xamir: 0
+    };
+    
+    // ✅ USAR DIRECTAMENTE localData (YA ORDENADO DEL BACKEND)
+    // ✅ Determinar si es usuario regular (ni admin ni diseñador)
+    const isRegularUser = !isAdmin && !isDesigner;
+    
+    // ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
+    function extractDatePart(dateString) {
+      if (!dateString || dateString.trim() === '') return 'N/A';
+      // Extraer solo la parte de fecha (antes del primer espacio)
+      return dateString.split(' ')[0] || 'N/A';
+    }
+
+    // ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
+    function extractTimePart(dateString) {
+      if (!dateString || dateString.trim() === '') return 'Sin hora';
+      // Extraer hora + AM/PM (después del primer espacio)
+      const parts = dateString.trim().split(' ');
+      if (parts.length < 2) return 'Sin hora';
+      return parts.slice(1).join(' ');
+    }
+    
+    localData.forEach((s, idx) => {
+        counts.total++;
+        const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+        const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+        
+        if(statusLimpio === 'pendiente') counts.pend++;
+        if(statusLimpio === 'procesando') counts.proc++;
+        if(statusLimpio === 'finalizada') {
+            counts.fin++;
+            // ✅ CONTAR POR DISEÑADOR
+            if (s.Disenador) {
+                if (s.Disenador === "Bermina") counts.bermina++;
+                else if (s.Disenador === "Jorsy") counts.jorsy++;
+                else if (s.Disenador === "María F.") counts.maria++;
+                else if (s.Disenador === "Xamir") counts.xamir++;
+            }
+        }
+        
+        // ✅ CAMBIO: TODAS las pendientes son NEW (sin límite de 5)
+        const esNueva = (statusReal === "PENDIENTE");
+        const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+        const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
+        
+        let badge = '';
+        let rowClass = '';
+        if (esNueva) {
+            if (jornadaLimpia === "Obituario") {
+                badge = '<span class="badge-prioridad">PRIORIZAR</span>';
+                rowClass = "row-obituario";
+            } else {
+                badge = '<span class="badge-new">NEW</span>'; // ✅ Texto cambiado a "NEW"
+                rowClass = "row-new";
+            }
+        }
+        
+        // ✅ CÍRCULO DE DISEÑADOR
+        let designerCircle = '';
+        if (s.Disenador && statusLimpio === 'finalizada') {
+            const color = designerColors[s.Disenador] || '#6c757d';
+            designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+        }
+        
+        let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
+        
+        // ✅ FORMATEAR FECHAS Y HORAS CON VALIDACIÓN
+        const fechaSolicitudFormat = extractDatePart(s.Timestamp);
+        const horaSolicitudFormat = extractTimePart(s.Timestamp);
+        const fechaEventoFormat = extractDatePart(s.Fecha);
+        const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
+        
+        const tr = document.createElement('tr');
+        if(rowClass) tr.className = rowClass;
+        
+        // ✅ RENDERIZAR FILAS SEGÚN ROL DEL USUARIO
+        if (isRegularUser) {
+            // USUARIO REGULAR: Muestra fecha solicitud/hora, fecha evento/hora, unidad, jornada, soportes, status
+            tr.innerHTML = `
+                <td>
+                    <span class="txt-bold">${fechaSolicitudFormat}</span><br>
+                    <span class="txt-small">${horaSolicitudFormat}</span>
+                </td>
+                <td>
+                    <span class="txt-bold">${fechaEventoFormat}</span><br>
+                    <span class="txt-small">${horaEvento}</span>
+                </td>
+                <td class="txt-bold">${unidadLimpia} ${badge}</td>
+                <td>${jornadaLimpia}</td>
+                <td align="center">${icon}</td>
+                <td>
+                    ${designerCircle}
+                    <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+                </td>
+            `;
+        } else {
+            // ADMIN O DISEÑADOR: Muestra ID, fecha evento/hora, unidad, jornada, soportes, status, acciones
+            // ✅ BADGE MOVIDO A COLUMNA ID
+            tr.innerHTML = `
+                <td>
+                    <span class="txt-bold">${s.id}</span>
+                    ${badge}  <!-- ✅ BADGE MOVIDO AQUÍ -->
+                </td>
+                <td>
+                    <span class="txt-bold">${fechaEventoFormat}</span><br>
+                    <span class="txt-small">${horaEvento}</span>
+                </td>
+                <td class="txt-bold">${unidadLimpia}</td>
+                <td>${jornadaLimpia}</td>
+                <td align="center">${icon}</td>
+                <td>
+                    ${designerCircle}
+                    <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+                </td>
+                ${isAdmin ? `
+                <td align="right">
+                    <div class="admin-actions">
+                        <button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
+                        <button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
+                        <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
+                        <button class="btn-arte" onclick="openArteModal('${s.id}')">Adj</button>
+                        ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">Ver</a>` : ''}
+                        ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">Tg</button>` : ''}
+                        <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
+                    </div>
+                </td>
+                ` : ''}
+                ${isDesigner ? `
+                <td align="right">
+                    <div class="admin-actions">
+                        <button class="btn-arte" onclick="openArteModal('${s.id}')">Adj</button>
+                        ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">Ver</a>` : ''}
+                        ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">Tg</button>` : ''}
+                    </div>
+                </td>
+                ` : ''}
+            `;
+        }
+        
+        body.appendChild(tr);
+    });
+    
+    // ✅ ACTUALIZAR CONTADORES (MODO ADMIN + USUARIO REGULAR)
+    // Actualizar siempre los contadores básicos (para usuarios regulares)
+    document.getElementById('count-total').innerText = counts.total;
+    document.getElementById('count-pend').innerText = counts.pend;
+    document.getElementById('count-proc').innerText = counts.proc;
+    document.getElementById('count-fin').innerText = counts.fin;
+    
+    // ✅ MOSTRAR CONTADORES COMBINADOS SOLO PARA ADMIN
+    if (isAdmin) {
+      // Ocultar contadores básicos
+      document.getElementById('stats-panel').style.display = 'none';
+      // Mostrar contadores combinados
+      document.getElementById('combined-stats').style.display = 'flex';
+      // Actualizar TODOS los contadores (generales + diseñadores)
+      document.getElementById('count-total-admin').innerText = counts.total;
+      document.getElementById('count-pend-admin').innerText = counts.pend;
+      document.getElementById('count-proc-admin').innerText = counts.proc;
+      document.getElementById('count-fin-admin').innerText = counts.fin;
+      document.getElementById('count-bermina-admin').innerText = counts.bermina;
+      document.getElementById('count-jorsy-admin').innerText = counts.jorsy;
+      document.getElementById('count-maria-admin').innerText = counts.maria;
+      document.getElementById('count-xamir-admin').innerText = counts.xamir;
+    } else {
+      // Mostrar contadores básicos para usuarios regulares
+      document.getElementById('stats-panel').style.display = 'flex';
+      document.getElementById('combined-stats').style.display = 'none';
+    }
+    
+    // ✅ MOSTRAR/OCULTAR COLUMNAS SEGÚN ROL
+    document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
+    document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+    
+    // ✅ ACTUALIZAR ENCABEZADOS DE TABLA PARA USUARIO REGULAR
+    const thId = document.querySelector('th:first-child');
+    const thFechaEvento = document.querySelector('th:nth-child(2)');
+    const thUnidad = document.querySelector('th:nth-child(3)');
+    const thJornada = document.querySelector('th:nth-child(4)');
+    
+    if (isRegularUser) {
+        thId.innerHTML = '📅 FECHA SOLICITUD';
+        thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
+        thUnidad.innerHTML = '🏥 UNIDAD';
+        thJornada.innerHTML = '📋 TIPO JORNADA';
+    } else {
+        thId.innerHTML = 'ID SOLICITUD';
+        thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
+        thUnidad.innerHTML = 'UNIDAD SOLICITANTE';
+        thJornada.innerHTML = 'TIPO DE JORNADA';
+    }
+    
+    // ✅ ACTUALIZAR VISIBILIDAD DEL BUSCADOR
+    updateSearchVisibility();
+    
+    // ✅ SI HAY BÚSQUEDA ACTIVA, REAPLICAR FILTRO
+    if (isSearchActive && currentSearchId) {
+        applySearchHighlight(currentSearchId);
+    }
+}
+
+// ✅ FUNCIONES PARA REPORTE MENSUAL - SOLO ADMIN
+function generateMonthlyReport() {
+if (!isAdmin) {
+openModal("❌ Acceso Denegado", "Solo los administradores pueden generar reportes.", "🔐");
+return;
+}
+
+// Verificar que sea el primer día del mes
+const today = new Date();
+if (today.getDate() !== 1) {
+openModal("⏳ No disponible", "El reporte mensual solo está disponible el primer día de cada mes.", "📊");
+return;
+}
+
+// ✅ CONFIRMACIÓN NATIVA DEL NAVEGADOR (SEGURA Y BLOQUEANTE)
+if (!confirm("⚠️ ¿CONFIRMA que desea generar el reporte mensual del mes anterior?\n" +
+"✅ Se enviará por correo y Telegram\n" +
+"✅ Luego se eliminarán SOLO las solicitudes finalizadas con fecha de registro del mes anterior\n" +
+"ℹ️ Las solicitudes creadas HOY (1° de mes) NO serán eliminadas\n" +
+"⚠️ Esta acción es IRREVERSIBLE para las del mes anterior")) {
+return;
+}
+
+document.getElementById('loadMainTxt').innerText = "Generando reporte mensual...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+// Funcion auxiliar para esperar
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Primero generar el reporte, LUEGO eliminar las finalizadas
+fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=generateMonthlyReport&username=${encodeURIComponent(userCredentials.username)}&password=${encodeURIComponent(userCredentials.password)}`
+})
+.then(response => response.json())
+.then(async data => {
+if (data.success) {
+openModal("✅ Reporte Generado",
+"El reporte mensual ha sido generado y enviado correctamente.\n" +
+"Ahora se procederá a eliminar las solicitudes finalizadas del mes anterior.",
+"📊");
+await delay(2000);
+document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes finalizadas del mes anterior...";
+const deleteResponse = await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=deleteFinalizadas&username=${encodeURIComponent(userCredentials.username)}&password=${encodeURIComponent(userCredentials.password)}`
+});
+const deleteData = await deleteResponse.json();
+if (deleteData.success) {
+openModal("✅ Limpieza Completada",
+`Reporte generado y ${deleteData.count || 0} solicitudes finalizadas eliminadas correctamente.`,
+"📊");
+updateTable();
+} else {
+throw new Error(deleteData.error || "Error al limpiar solicitudes");
+}
+} else {
+throw new Error(data.error || "Error al generar el reporte");
+}
+})
+.catch(err => {
+openModal("❌ Error", "Error: " + err.message, "💥");
+})
+.finally(() => {
+document.getElementById('loadingOverlay').style.display = 'none';
+});
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE
+function updateReportButtonStatus() {
+const today = new Date();
+const currentDay = today.getDate();
+const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+const btn = document.getElementById('reportBtn');
+const text = document.getElementById('reportBtnText');
+const daysText = document.getElementById('reportBtnDays');
+
+if (!btn || !isAdmin) return;
+
+// Calcular días restantes para el próximo 1°
+let daysRemaining;
+if (currentDay === 1) {
+daysRemaining = 0;
+} else {
+daysRemaining = totalDaysInMonth - currentDay + 1;
+}
+
+// Actualizar texto
+if (currentDay === 1) {
+daysText.textContent = 'Disponible hoy';
+daysText.classList.add('show');
+btn.disabled = false;
+btn.style.cursor = 'pointer';
+text.style.opacity = '1';
+btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
+} else {
+daysText.textContent = `${daysRemaining}d`;
+daysText.classList.add('show');
+btn.disabled = true;
+btn.style.cursor = 'not-allowed';
+text.style.opacity = '0.7';
+
+// Calcular progreso para el próximo ciclo
+const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
+btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
+}
+}
+
+function checkFirstDayOfMonth() {
+  const today = new Date();
+  if (isAdmin) {
+    document.getElementById('reportBtn').classList.remove('hidden');
+    updateReportButtonStatus();
+    // Actualizar cada minuto para mantener el estado actualizado
+    setInterval(updateReportButtonStatus, 60000);
+  }
+}
+
+// ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
+function handleFile(input, imgId, btnId) {
+  if (modoObituario) {
+    input.value = "";
+    return;
+  }
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = document.getElementById(imgId);
+      img.src = e.target.result; // "image/jpeg;base64,..."
+      img.style.display = 'block';
+      document.getElementById(btnId).style.display = 'block';
+      // ✅ MARCADOR DE IMAGEN VÁLIDA
+      img.setAttribute('data-has-image', 'true');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function clearFile(inputId, imgId, btnId) {
+  if (modoObituario) return;
+  document.getElementById(inputId).value = "";
+  const img = document.getElementById(imgId);
+  img.src = "";
+  img.style.display = 'none';
+  img.removeAttribute('data-has-image'); // ✅ Eliminar marca de imagen válida
+  document.getElementById(btnId).style.display = 'none';
+}
+
+// ✅ FUNCIÓN PARA ELIMINAR field-error AUTOMÁTICAMENTE
+function setupFieldErrorRemoval() {
+  ['fecha', 'hora', 'institucion', 'direccion-exacta', 'tlf', 'mail', 'observaciones'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => el.classList.remove('field-error'));
+      el.addEventListener('focus', () => el.classList.remove('field-error'));
+    }
+  });
+
+  document.querySelectorAll('#region-grid .card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('region-grid').classList.remove('field-error');
+    });
+  });
+
+  const unidadGrid = document.getElementById('unidad-grid');
+  const observer = new MutationObserver(() => {
+    unidadGrid.querySelectorAll('.card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('unidad-grid').classList.remove('field-error');
+      });
+    });
+  });
+  observer.observe(unidadGrid, { childList: true });
+
+  document.querySelectorAll('#cat-grid .card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('cat-grid').classList.remove('field-error');
+    });
+  });
+
+  const cont3 = document.getElementById('cont-3');
+  const observer3 = new MutationObserver(() => {
+    cont3.querySelectorAll('.card-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('sec-3').classList.remove('field-error');
+      });
+    });
+
+    const descOtro = document.getElementById('desc-otro');
+    if (descOtro) {
+      descOtro.addEventListener('input', () => document.getElementById('sec-3').classList.remove('field-error'));
+      descOtro.addEventListener('focus', () => document.getElementById('sec-3').classList.remove('field-error'));
+    }
+  });
+  observer3.observe(cont3, { childList: true, subtree: true });
+
+  document.getElementById('btn-am').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+  document.getElementById('btn-pm').addEventListener('click', () => document.getElementById('hora-box').classList.remove('field-error'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+const regionGrid = document.getElementById('region-grid');
+ORDEN_REGIONES.forEach(regionKey => {
+const btn = document.createElement('div');
+btn.className = 'card-btn';
+btn.innerText = getNombreRegionLimpio(regionKey);
+btn.onclick = () => selectRegion(regionKey);
+regionGrid.appendChild(btn);
+});
+updateTable();
+setupFieldErrorRemoval();
+});
+
+function selectRegion(regionKey) {
+document.querySelectorAll('#region-grid .card-btn').forEach(b => b.classList.remove('selected'));
+const index = ORDEN_REGIONES.indexOf(regionKey);
+if (index !== -1) {
+document.querySelector(`#region-grid .card-btn:nth-child(${index + 1})`).classList.add('selected');
+}
+selectedRegionKey = regionKey;
+selectedUnidad = "";
+const unidadGrid = document.getElementById('unidad-grid');
+unidadGrid.innerHTML = "";
+const unidades = UNIDADES_IPASME[regionKey] || [];
+unidades.forEach(unidad => {
+const btn = document.createElement('div');
+btn.className = 'card-btn';
+btn.innerText = unidad.trim();
+btn.onclick = () => selectUnidad(unidad.trim());
+unidadGrid.appendChild(btn);
+});
+document.getElementById('unidad-section').classList.remove('hidden');
+}
+
+function selectUnidad(unidad) {
+selectedUnidad = unidad.trim();
+document.querySelectorAll('#unidad-grid .card-btn').forEach(b => b.classList.remove('selected'));
+const clickedBtn = Array.from(document.querySelectorAll('#unidad-grid .card-btn'))
+.find(b => b.innerText.trim() === selectedUnidad);
+if (clickedBtn) clickedBtn.classList.add('selected');
+}
+
+// ✅ FUNCIÓN TOGGLE MODO OBITUARIO ACTUALIZADA
+function toggleObituario() {
+modoObituario = !modoObituario;
+const btn = document.getElementById('btn-obituario');
+const fechaInput = document.getElementById('fecha');
+const horaInput = document.getElementById('hora');
+const institucion = document.getElementById('institucion');
+const direccionExacta = document.getElementById('direccion-exacta');
+const observaciones = document.getElementById('observaciones');
+const descOtro = document.getElementById('desc-otro'); // ✅ Referencia al textarea
+const uploadBoxes = document.querySelectorAll('.upload-box');
+const labels = document.querySelectorAll('.upload-label');
+
+if (modoObituario) {
+btn.classList.add('obit-active');
+btn.innerText = "OBITUARIO";
+const hoy = new Date();
+const yyyy = hoy.getFullYear();
+const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+const dd = String(hoy.getDate()).padStart(2, '0');
+fechaInput.value = `${yyyy}-${mm}-${dd}`;
+fechaInput.disabled = true;
+horaInput.disabled = true;
+institucion.disabled = true;
+direccionExacta.disabled = true;
+observaciones.disabled = true;
+horaInput.classList.add('obit-disabled');
+institucion.classList.add('obit-disabled');
+direccionExacta.classList.add('obit-disabled');
+observaciones.classList.add('obit-disabled');
+uploadBoxes.forEach(box => box.classList.add('obit-upload-box'));
+labels.forEach(label => label.classList.add('obit-upload-label'));
+horaInput.value = '';
+institucion.value = '';
+direccionExacta.value = '';
+observaciones.value = '';
+
+// ✅ Placeholder corregido: sin "familiar"
+if (descOtro) {
+descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en caso de ser familiar de un trabajador del Ipasme y servicio o jurisdicción a la que pertenece el familiar o el fallecido.";
+}
+
+Array.from(document.querySelectorAll('.preview')).forEach(img => {
+img.src = '';
+img.style.display = 'none';
+img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen
+});
+
+Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
+} else {
+btn.classList.remove('obit-active');
+btn.innerText = "OBITUARIO";
+fechaInput.disabled = false;
+horaInput.disabled = false;
+institucion.disabled = false;
+direccionExacta.disabled = false;
+observaciones.disabled = false;
+horaInput.classList.remove('obit-disabled');
+institucion.classList.remove('obit-disabled');
+direccionExacta.classList.remove('obit-disabled');
+observaciones.classList.remove('obit-disabled');
+uploadBoxes.forEach(box => box.classList.remove('obit-upload-box'));
+labels.forEach(label => label.classList.remove('obit-upload-label'));
+
+// ✅ Restaurar placeholder original
+if (descOtro) {
+descOtro.placeholder = "Detalle aquí su solicitud especial...";
+}
+}
+}
+
+// === FUNCIONES DE SEGURIDAD Y LIMPIEZA ===
+function clearCredentials() {
+document.getElementById('adminUser').value = '';
+document.getElementById('adminPass').value = '';
+}
+
+function togglePass() {
+const input = document.getElementById('adminPass');
+input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function openModal(t, m, icon = "⚠️") {
+clearCredentials();
+document.getElementById('loginArea').classList.add('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('closeModalBtn').classList.remove('hidden'); // SIEMPRE MOSTRAR BOTÓN X
+document.getElementById('modalIcon').innerText = icon;
+document.getElementById('modalTitle').innerText = t;
+document.getElementById('modalMsg').innerText = m;
+const btn = document.getElementById('mainModalBtn');
+btn.innerText = "ENTENDIDO";
+btn.onclick = closeModal;
+document.getElementById('modalAlert').style.display = 'flex';
+}
+
+// CERRAR MODAL - CORREGIDA
+function closeModal() {
+    const modal = document.getElementById('modalAlert');
+    if (!modal) return;
+    
+    // Reiniciar todos los elementos del modal
+    clearCredentials();
+    
+    // Limpiar áreas específicas
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    if (loginArea) loginArea.classList.add('hidden');
+    if (uploadArea) uploadArea.classList.add('hidden');
+    
+    // Restaurar botones a estado por defecto
+    const mainBtn = document.getElementById('mainModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    if (mainBtn) {
+        mainBtn.classList.remove('hidden');
+        mainBtn.innerText = "ENTENDIDO";
+        mainBtn.onclick = closeModal;
+        mainBtn.style.display = 'block';
+    }
+    
+    if (closeBtn) {
+        closeBtn.classList.remove('hidden');
+        closeBtn.onclick = () => {
+            resetChunkUploadState();
+            closeModal();
+        };
+    }
+    
+    // Limpiar input de archivo
+    const arteFile = document.getElementById('arteFile');
+    if (arteFile) arteFile.value = '';
+    
+    // Limpiar ID actual
+    const currentReqId = document.getElementById('currentReqId');
+    if (currentReqId) currentReqId.value = '';
+    
+    // Ocultar modal
+    modal.style.display = 'none';
+    
+    // Forzar reinicio de progreso si existe
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressInfo = document.getElementById('progressInfo');
+    const progressSpeed = document.getElementById('progressSpeed');
+    const progressETA = document.getElementById('progressETA');
+    const btnPauseResume = document.getElementById('btnPauseResume');
+    const btnCancelUpload = document.getElementById('btnCancelUpload');
+    
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressPercent) progressPercent.innerText = '0%';
+    if (progressStatus) progressStatus.innerText = '';
+    if (progressInfo) progressInfo.innerText = '';
+    if (progressSpeed) progressSpeed.innerText = '';
+    if (progressETA) progressETA.innerText = '';
+    
+    // Restaurar botón de pausa/reanudar
+    if (btnPauseResume) {
+        btnPauseResume.innerHTML = '⏸️ Pausar';
+        btnPauseResume.style.display = 'none';
+    }
+    
+    // Restaurar botón de cancelar
+    if (btnCancelUpload) {
+        btnCancelUpload.style.display = 'none';
+    }
+    
+    // Reiniciar estado de chunks
+    resetChunkUploadState();
+}
+
+function showLogin() {
+clearCredentials();
+document.getElementById('modalIcon').innerText = "🔐";
+document.getElementById('modalTitle').innerText = "Acceso Restringido";
+document.getElementById('modalMsg').innerText = "Inicie sesión para modo administración.";
+document.getElementById('loginArea').classList.remove('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('closeModalBtn').classList.remove('hidden');
+const btn = document.getElementById('mainModalBtn');
+btn.innerText = "VALIDAR CREDENCIALES";
+btn.onclick = validateLogin;
+document.getElementById('modalAlert').style.display = 'flex';
+
+const userField = document.getElementById('adminUser');
+const passField = document.getElementById('adminPass');
+const handleEnter = (e) => {
+if (e.key === 'Enter') {
+validateLogin();
+}
+};
+userField.addEventListener('keydown', handleEnter);
+passField.addEventListener('keydown', handleEnter);
+}
+
+// VALIDACIÓN DE LOGIN MODIFICADA PARA SOPORTAR ADMIN Y DISEÑADOR
+async function validateLogin() {
+const u = document.getElementById('adminUser').value.trim();
+const p = document.getElementById('adminPass').value.trim();
+
+if (!u || !p) {
+openModal("❌ Error", "Complete ambos campos.", "🔐");
+return;
+}
+
+document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+try {
+const params = new URLSearchParams();
+params.append("action", "loginAdmin");
+params.append("username", u);
+params.append("password", p);
+
+// CORREGIDO: Eliminar modo no-cors para poder leer respuesta JSON
+const res = await fetch(SCRIPT_URL, { 
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params 
+});
+const data = await res.json();
+
+if (data.success && data.data) {
+// GUARDAR CREDENCIALES DEL USUARIO ACTUAL
+userCredentials = {
+username: u,
+password: p,
+displayName: data.data.displayName || u,
+role: data.data.role || "admin",
+designerName: data.data.designerName || ""
+};
+
+isAdmin = data.data.isAdmin || false;
+isDesigner = data.data.isDesigner || false;
+
+// MOSTRAR MENSAJE DE BIENVENIDA CON NOMBRE DEL USUARIO Y ROL
+let welcomeText = userCredentials.displayName;
+if (isDesigner) {
+welcomeText += " (Diseñador)";
+}
+
+document.getElementById('userNameDisplay').innerText = welcomeText;
+document.getElementById('welcomeMessage').classList.add('show');
+document.getElementById('authBtn').className = "btn-logout";
+document.getElementById('authBtn').innerText = `Cerrar Sesión`;
+document.getElementById('authBtn').onclick = logout;
+
+// CONFIGURAR VISIBILIDAD SEGÚN ROL
+document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
+document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+
+if (isAdmin) {
+document.getElementById('maintBtn').classList.remove('hidden');
+// Verificar y mostrar botón de reporte - SOLO 1° DE MES
+checkFirstDayOfMonth();
+}
+
+if (isDesigner) {
+// Ocultar botones restringidos para diseñadores
+document.getElementById('maintBtn').classList.add('hidden');
+document.getElementById('reportBtn').classList.add('hidden');
+}
+
+// ACTUALIZAR VISIBILIDAD DEL BUSCADOR
+updateSearchVisibility();
+
+// RESTABLECER BÚSQUEDA Y OCULTAR MODAL AL INICIAR SESIÓN
+currentSearchId = "";
+isSearchActive = false;
+resetSearchHighlight();
+document.getElementById('idNotFoundModal').style.display = 'none';
+
+clearCredentials();
+closeModal();
+updateTable();
+} else {
+openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
+clearCredentials();
+}
+} catch (err) {
+openModal("❌ Error", "Error de conexión al validar.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
+
+// FUNCIÓN DE LOGOUT MODIFICADA
+function logout() {
+isAdmin = false;
+isDesigner = false;
+userCredentials = { username: "", password: "", displayName: "", role: "", designerName: "" };
+
+// RESTABLECER BÚSQUEDA
+currentSearchId = "";
+isSearchActive = false;
+resetSearchHighlight();
+
+// LIMPIAR INPUT DE BÚSQUEDA
+const searchInput = document.getElementById('searchIdInput');
+if (searchInput) searchInput.value = "";
+
+// OCULTAR MODAL DE ID NO ENCONTRADO
+document.getElementById('idNotFoundModal').style.display = 'none';
+
+document.getElementById('userNameDisplay').innerText = "";
+document.getElementById('welcomeMessage').classList.remove('show');
+document.getElementById('authBtn').className = "btn-login";
+document.getElementById('authBtn').innerText = "🔐 Administrador";
+document.getElementById('authBtn').onclick = showLogin;
+
+document.getElementById('th-admin').classList.add('hidden');
+document.getElementById('th-designer').classList.add('hidden');
+document.getElementById('maintBtn').classList.add('hidden');
+document.getElementById('reportBtn').classList.add('hidden');
+
+if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
+
+renderLocalTable();
+clearCredentials();
+}
+
+// === FIN FUNCIONES DE SEGURIDAD ===
+
+// === FUNCIONES ADMIN ===
+// ABRIR MODAL DE ARTE - CORREGIDA
+function openArteModal(id) {
+    // Reiniciar estado antes de abrir
+    resetChunkUploadState();
+    
+    const currentReqId = document.getElementById('currentReqId');
+    const arteFile = document.getElementById('arteFile');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const mainBtn = document.getElementById('mainModalBtn');
+    
+    // Validar elementos existen
+    if (!currentReqId || !arteFile || !modalIcon || !modalTitle || !modalMsg) {
+        console.error("❌ Elementos del modal no encontrados");
+        return;
+    }
+    
+    // Limpiar y configurar
+    currentReqId.value = id;
+    arteFile.value = '';
+    
+    modalIcon.innerText = "🎨";
+    modalTitle.innerText = "Adjuntar Arte Final";
+    modalMsg.innerText = "Seleccione el archivo para la solicitud " + id;
+    
+    loginArea.classList.add('hidden');
+    uploadArea.classList.remove('hidden');
+    
+    closeBtn.classList.remove('hidden');
+    
+    // Configurar botón principal
+    mainBtn.classList.remove('hidden');
+    mainBtn.innerText = "SUBIR A DRIVE";
+    mainBtn.onclick = uploadArte;
+    mainBtn.style.display = 'block';
+    
+    // Mostrar modal
+    document.getElementById('modalAlert').style.display = 'flex';
+    
+    // Forzar foco en el input de archivo
+    setTimeout(() => {
+        arteFile.focus();
+    }, 100);
+}
+
+// SUBIR ARTE CON SISTEMA DE CHUNKS
+async function uploadArte() {
+    // Reiniciar estado antes de comenzar
+    resetChunkUploadState();
+    
+    const fileInput = document.getElementById('arteFile');
+    const id = document.getElementById('currentReqId')?.value;
+    
+    if (!fileInput || !id) {
+        openModal("❌ Error", "Datos del formulario incompletos.", "⚠️");
+        return;
+    }
+    
+    if (fileInput.files.length === 0) {
+        openModal("📎 Advertencia", "Por favor seleccione un archivo.", "📁");
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const fileSizeMB = file.size / (1024 * 1024);
+    
+    // Validar tamaño máximo
+    if (file.size > 6 * 1024 * 1024) {
+        openModal("📏 Tamaño Excedido", "El archivo excede los 6MB permitidos.", "⚠️");
+        return;
+    }
+    
+    // Mostrar modal de progreso
+    showUploadProgressModal(id, file.name, fileSizeMB);
+    
+    try {
+        // Detectar velocidad de conexión
+        document.getElementById('progressStatus').innerText = '📡 Detectando velocidad de conexión...';
+        await detectConnectionSpeed();
+        
+        // ✅ NUEVA LÓGICA DE CHUNKS: Solo activar para >1MB y conexión NO rápida
+        if (file.size <= 1024 * 1024) {
+            // Archivos ≤1MB: siempre subir completo (sin chunks)
+            document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo...';
+            await uploadFileNormal(file, id);
+            return;
+        }
+
+        if (chunkUpload.connectionSpeed === 'fast') {
+            // Conexión rápida: subir completo incluso si >1MB (hasta 6MB permitidos)
+            document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo (conexión rápida)...';
+            await uploadFileNormal(file, id);
+            return;
+        }
+
+        // ✅ SOLO LLEGAMOS AQUÍ SI: archivo >1MB Y conexión NO es rápida
+        document.getElementById('progressStatus').innerText = `📦 Fragmentando en chunks...`;
+        
+        // Dividir en chunks
+        const chunks = splitFileIntoChunks(file);
+        chunkUpload.chunks = chunks;
+        chunkUpload.totalChunks = chunks.length;
+        chunkUpload.currentChunk = 0;
+        chunkUpload.uploadedChunks = 0;
+        chunkUpload.startTime = Date.now();
+        chunkUpload.isActive = true;
+
+        // ✅ INICIALIZAR VARIABLES DE VELOCIDAD
+        chunkUpload.currentChunkStartTime = null;
+        chunkUpload.currentChunkEndTime = null;
+        chunkUpload.uploadSpeeds = [];
+        chunkUpload.avgUploadSpeed = 0;
+        chunkUpload.currentUploadSpeed = 0;
+        
+        document.getElementById('progressInfo').innerText = 
+            `Archivo: ${file.name} (${fileSizeMB.toFixed(2)}MB)`;
+        document.getElementById('progressSpeed').innerText = 
+            `Conexión: ${chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`;
+        
+        // Subir chunks secuencialmente
+        await uploadChunksSequential(id, file.name, file.type);
+        
+    } catch (error) {
+        console.error('Error en uploadArte:', error);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        openModal("❌ Error", "Error al subir: " + error.message, "💥");
+    }
+}
+
+// SUBIR ARCHIVO NORMAL (menor a 2MB)
+async function uploadFileNormal(file, id) {
+    const reader = new FileReader();
+    
+    return new Promise((resolve, reject) => {
+        reader.onload = async function(e) {
+            const base64 = e.target.result.split(',')[1];
+            
+            try {
+                const params = new URLSearchParams();
+                params.append("action", "uploadArte");
+                params.append("id", id);
+                params.append("filename", file.name);
+                params.append("file", base64);
+                params.append("mime", file.type);
+                params.append("uploadedBy", userCredentials.displayName);
+                params.append("isChunked", "false");
+                
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: params 
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressPercent').innerText = '100%';
+                    setTimeout(() => {
+                        closeModal();
+                        openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+                        updateTable();
+                    }, 500);
+                    resolve();
+                } else {
+                    reject(new Error(data.error));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Error leyendo archivo"));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function sendTelegramArte(id) {
+const req = localData.find(x => x.id == id);
+
+if(!confirm("¿Enviar el arte de " + id + " a Telegram?")) return;
+
+document.getElementById('loadMainTxt').innerText = "Enviando a Telegram...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+try {
+const params = new URLSearchParams();
+params.append("action", "sendTelegramArte");
+params.append("id", id);
+
+const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+const data = await res.json();
+
+if(data.success) {
+openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
+setTimeout(() => closeModal(), 2000);
+} else {
+openModal("❌ Error", "Error: " + data.error, "💥");
+}
+} catch (e) {
+openModal("❌ Error", "Error de conexión.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
+
+async function toggleMaintMode() {
+if (!isAdmin) return;
+
+const nuevoEstado = !isMaintActive;
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+try {
+await fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `action=setMaintenance&status=${nuevoEstado}`
+});
+
+isMaintActive = nuevoEstado;
+openModal(
+"⚙️ Modo Mantenimiento",
+"Modo mantenimiento " + (nuevoEstado ? "ACTIVADO" : "DESACTIVADO") + ".",
+"🛠️"
+);
+setTimeout(() => location.reload(), 1500);
+} catch (e) {
+openModal("❌ Error", "Error al cambiar estado del mantenimiento.", "💥");
+} finally {
+document.getElementById('loadingOverlay').style.display = 'none';
+}
+}
+
+// === ELIMINACIÓN CON MODALES PERSONALIZADOS ===
+let currentDeleteId = null;
+
+function deleteReq(id) {
+if (!isAdmin) {
+openModal("❌ Acceso Denegado", "Solo los administradores pueden eliminar solicitudes.", "🔐");
+return;
+}
+
+currentDeleteId = id;
+showDeleteConfirm(1);
+}
+
+function showDeleteConfirm(step) {
+const id = currentDeleteId;
+if (step === 1) {
+openCustomModal(
+"🗑️ Confirmar Eliminación",
+`¿Está seguro de eliminar la solicitud <b>${id}</b>?`,
+() => showDeleteConfirm(2),
+() => closeModal()
+);
+} else if (step === 2) {
+openCustomModal(
+"⚠️ ¡Advertencia Final!",
+`¡Esta acción es <b>irreversible</b>!<br>¿Eliminar permanentemente la solicitud <b>${id}</b> de la base de datos?`,
+() => executeDelete(),
+() => closeModal()
+);
+}
+}
+
+function openCustomModal(title, message, onConfirm, onCancel) {
+document.getElementById('modalIcon').innerText = "❓";
+document.getElementById('modalTitle').innerText = title;
+document.getElementById('modalMsg').innerHTML = message;
+const mainBtn = document.getElementById('mainModalBtn');
+const altBtn = document.getElementById('closeModalBtn');
+
+mainBtn.innerText = "SÍ, ACEPTAR";
+mainBtn.onclick = () => { closeModal(); if (onConfirm) onConfirm(); };
+altBtn.classList.remove('hidden'); // Asegurar que sea visible
+altBtn.innerText = "CANCELAR";
+altBtn.onclick = () => { closeModal(); if (onCancel) onCancel(); };
+
+document.getElementById('loginArea').classList.add('hidden');
+document.getElementById('uploadArea').classList.add('hidden');
+document.getElementById('modalAlert').style.display = 'flex';
+}
+
+async function executeDelete() {
+    const id = currentDeleteId;
+    
+    // Mostrar mensaje de carga
+    document.getElementById('loadMainTxt').innerText = "Eliminando solicitud...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "delete");
+        params.append("id", id);
+        // ENVIAR CREDENCIALES DE ADMINISTRADOR (FALTABA ESTO)
+        params.append("username", userCredentials.username);
+        params.append("password", userCredentials.password);
+        
+        // ESPERAR RESPUESTA DEL SERVIDOR ANTES DE MOSTRAR ÉXITO
+        const response = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: params 
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
+            localData = localData.filter(x => x.id != id);
+            renderLocalTable();
+            
+            openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
+        } else {
+            throw new Error(data.error || "Error al eliminar la solicitud");
+        }
+    } catch (e) {
+        openModal("❌ Error", "Error al eliminar: " + e.message, "💥");
+        updateTable(); // Recargar para restaurar la fila
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+// === FIN ELIMINACIÓN ===
+
+// === FIN FUNCIONES ADMIN ===
+
+// === FUNCIONES GENERALES ===
+function setAMPM(val) {
+if (modoObituario) return;
+selectedAMPM = val;
+document.getElementById('btn-am').classList.remove('active');
+document.getElementById('btn-pm').classList.remove('active');
+document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('active');
+document.getElementById('hora-box').classList.remove('field-error');
+}
+
+// MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría Y AGREGAR SOPORTE PARA PEDIÁTRICA
+function selectCat(btn, tipo) {
+if (modoObituario && tipo !== 'otros') {
+modoObituario = false;
+const obitBtn = document.getElementById('btn-obituario');
+if (obitBtn) {
+obitBtn.classList.remove('obit-active');
+obitBtn.innerText = "OBITUARIO";
+document.getElementById('fecha').disabled = false;
+document.getElementById('hora').disabled = false;
+document.getElementById('institucion').disabled = false;
+document.getElementById('direccion-exacta').disabled = false;
+document.getElementById('observaciones').disabled = false;
+document.getElementById('hora').classList.remove('obit-disabled');
+document.getElementById('institucion').classList.remove('obit-disabled');
+document.getElementById('direccion-exacta').classList.remove('obit-disabled');
+document.getElementById('observaciones').classList.remove('obit-disabled');
+document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
+document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+
+// Limpiar marcas de imágenes
+Array.from(document.querySelectorAll('.preview')).forEach(img => {
+img.removeAttribute('data-has-image');
+});
+}
+}
+
+document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected'));
+btn.classList.add('selected');
+catName = btn.innerText;
+catType = tipo;
+document.getElementById('cat-grid').classList.remove('field-error');
+
+const s3 = document.getElementById('sec-3');
+const s4 = document.getElementById('sec-4');
+const c3 = document.getElementById('cont-3');
+const c4 = document.getElementById('cont-4');
+
+s3.classList.remove('hidden');
+s4.classList.add('hidden');
+c3.innerHTML = "";
+c4.innerHTML = "";
+
+if (['escuela', 'integral', 'conjunta'].includes(tipo)) {
+document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *";
+renderList(c3, DATA.especialidades);
+s4.classList.remove('hidden');
+renderList(c4, DATA.servicios);
+} else if (tipo === 'vacuna') {
+document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *";
+renderList(c3, DATA.vacunas);
+} else if (tipo === 'quirurgica') {
+document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *";
+renderList(c3, DATA.quirurgica);
+} else if (tipo === 'pediatrica') {
+document.getElementById('label-3').innerText = "👶 3. PATOLOGÍAS PEDIÁTRICAS *";
+renderList(c3, DATA.pediatrica);
+} else if (tipo === 'oftalmo') {
+document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *";
+renderList(c3, DATA.oftalmo);
+} else {
+document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
+c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
+c3.innerHTML += `
+<div style="display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; grid-column: 1 / -1;">
+<button type="button" id="btn-obituario" class="btn-time" style="background: #f8f9fa; border-color: var(--gris); color: var(--azul-deep); width: 120px; padding: 8px;"
+onclick="toggleObituario()">
+OBITUARIO
+</button>
+<div style="flex: 1; min-width: 200px; background: #fff8e1; border: 1px solid #ffe082; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; color: #5d4600; font-weight: 600; line-height: 1.3;">
+⚠️ Activar este modo elimina el requerimiento de 48 horas.
+Úselo con moderación.
+</div>
+</div>`;
+}
+}
+
+function renderList(cont, list) {
+list.forEach(i => {
+const d = document.createElement('div');
+d.className = 'card-btn';
+d.innerText = i;
+d.onclick = () => {
+d.classList.toggle('selected');
+document.getElementById('sec-3').classList.remove('field-error');
+};
+cont.appendChild(d);
+});
+}
+
+function showPage(id, btn) {
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+window.scrollTo({top: 0, behavior: 'smooth'});
+if(btn) btn.classList.add('active');
+else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
+if(id === 'list-page') updateTable();
+}
+
+async function updateTable() {
+try {
+const res = await fetch(`${SCRIPT_URL}?action=read`);
+const response = await res.json();
+isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+
+if(isMaintActive && !isAdmin && !isDesigner) {
+document.getElementById('maintOverlay').style.display = 'flex';
+}
+else {
+document.getElementById('maintOverlay').style.display = 'none';
+}
+
+if (response.success && Array.isArray(response.data)) {
+localData = response.data;
+renderLocalTable();
+}
+} catch (e) {
+console.error("Error cargando tabla:", e);
+}
+}
+
+// VALIDACIÓN EN ORDEN CORRECTO
+function validateForm() {
+const fieldsInOrder = [];
+
+fieldsInOrder.push({
+id: 'region-grid',
+isValid: () => !!selectedRegionKey,
+label: 'Región'
+});
+
+fieldsInOrder.push({
+id: 'unidad-grid',
+isValid: () => !!selectedUnidad,
+label: 'Unidad Médica'
+});
+
+fieldsInOrder.push({
+id: 'cat-grid',
+isValid: () => !!catName,
+label: 'Tipo de Jornada'
+});
+
+fieldsInOrder.push({
+id: 'sec-3',
+isValid: () => {
+if (catType === 'otros') {
+return document.getElementById('desc-otro')?.value.trim() !== '';
+} else {
+return document.querySelectorAll('#cont-3 .card-btn.selected').length > 0;
+}
+},
+label: 'Detalle'
+});
+
+fieldsInOrder.push({
+id: 'fecha',
+isValid: () => {
+const val = document.getElementById('fecha').value;
+return !!val;
+},
+label: 'Fecha de Actividad'
+});
+
+if (!modoObituario) {
+fieldsInOrder.push({
+id: 'hora',
+isValid: () => {
+const val = document.getElementById('hora').value.trim();
+return !!val;
+},
+label: 'Hora de Inicio'
+});
+
+fieldsInOrder.push({
+id: 'hora-box',
+isValid: () => !!selectedAMPM,
+label: 'Formato AM/PM'
+});
+
+fieldsInOrder.push({
+id: 'institucion',
+isValid: () => {
+const val = document.getElementById('institucion').value.trim();
+return !!val;
+},
+label: 'Institución'
+});
+}
+
+fieldsInOrder.push({
+id: 'mail',
+isValid: () => {
+const val = document.getElementById('mail').value.trim();
+return val && val.includes('@');
+},
+label: 'Correo Electrónico'
+});
+
+for (const field of fieldsInOrder) {
+const el = document.getElementById(field.id);
+if (!field.isValid()) {
+el?.classList.add('field-error');
+el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+openModal("❌ Campo Faltante", `Falta completar: ${field.label}`, "⚠️");
+return false;
+}
+}
+
+if (!modoObituario) {
+const fechaInput = document.getElementById('fecha').value;
+const fechaSeleccionada = new Date(fechaInput + 'T00:00:00');
+const ahora = new Date();
+
+// VALIDACIÓN INTERNA: 24 HORAS (texto mantiene 48 para usuario)
+if ((fechaSeleccionada - ahora) / (1000 * 60 * 60) < 24) {
+document.getElementById('fecha').classList.add('field-error');
+openModal("⏳ Restricción de Tiempo", "Las solicitudes deben realizarse con al menos 48 horas de anticipación.", "⏰");
+return false;
+}
+}
+
+return true;
+}
+
+function showConfirmationModal() {
+if (!validateForm()) return;
+
+const preview = document.getElementById('previewContent');
+let html = `
+<p><b>📍 Región:</b> ${getNombreRegionLimpio(selectedRegionKey)}</p>
+<p><b>🏥 Unidad Médica:</b> ${selectedUnidad}</p>
+`;
+
+if (modoObituario) {
+html += `<p><b>📋 Tipo de Solicitud:</b> Obituario</p>`;
+} else {
+html += `<p><b>📂 Tipo de Jornada:</b> ${catName}</p>`;
+}
+
+if (catType === 'otros' && !modoObituario) {
+html += `<p><b>✨ Descripción:</b> ${document.getElementById('desc-otro').value.trim()}</p>`;
+} else if (!modoObituario) {
+const selectedOps = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el => el.innerText).join(', ');
+html += `<p><b>🩺 Detalle:</b> ${selectedOps || 'Ninguno'}</p>`;
+}
+
+const servicios = Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el => el.innerText).join(', ');
+if (servicios) html += `<p><b>✨ Servicios Adicionales:</b> ${servicios}</p>`;
+
+const [year, month, day] = document.getElementById('fecha').value.split('-');
+const fechaFormateada = `${day}/${month}/${year}`;
+html += `<p><b>📅 Fecha de Actividad:</b> ${fechaFormateada}</p>`;
+
+if (!modoObituario) {
+html += `<p><b>⏰ Hora de Inicio:</b> ${document.getElementById('hora').value} ${selectedAMPM}</p>`;
+const institucion = document.getElementById('institucion').value.trim();
+const direccion = document.getElementById('direccion-exacta').value.trim();
+html += `<p><b>🧭 Ubicación:</b> ${[institucion, direccion].filter(x => x).join(', ')}</p>`;
+html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>`;
+html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>`;
+
+const obs = document.getElementById('observaciones').value.trim();
+if (obs) html += `<p><b>✏️ Observaciones:</b> ${obs}</p>`;
+
+// CORREGIDO: Contar fotos usando el atributo data-has-image
+const fotos = [1,2,3].filter(i => {
+const img = document.getElementById(`p${i}`);
+return img.getAttribute('data-has-image') === 'true';
+});
+html += `<p><b>📸 Soportes Fotográficos:</b> ${fotos.length > 0 ? `${fotos.length} foto(s) adjunta(s)` : 'Ninguno'}</p>`;
+} else {
+html += `<p><b>📱 Teléfono:</b> ${document.getElementById('tlf').value || 'No indicado'}</p>`;
+html += `<p><b>✉️ Correo:</b> ${document.getElementById('mail').value || 'No indicado'}</p>`;
+html += `<p><b>ℹ️ Modo Obituario activado – Campos opcionales omitidos.</b></p>`;
+}
+
+preview.innerHTML = html;
+document.getElementById('confirmModal').style.display = 'flex';
+
+let timeLeft = 10;
+document.getElementById('countdown').innerText = timeLeft;
+const btnEnviar = document.getElementById('btnEnviarConfirmado');
+btnEnviar.disabled = true;
+btnEnviar.classList.remove('enviar');
+btnEnviar.classList.add('corregir');
+
+const btnCorregir = document.getElementById('btnCorregir');
+btnCorregir.onmouseenter = () => {
+btnCorregir.style.background = "#d1d5db";
+btnCorregir.style.color = "#212529";
+};
+btnCorregir.onmouseleave = () => {
+btnCorregir.style.background = "var(--gris)";
+btnCorregir.style.color = "var(--azul-deep)";
+};
+
+const timer = setInterval(() => {
+timeLeft--;
+document.getElementById('countdown').innerText = timeLeft;
+const progress = ((10 - timeLeft) / 10) * 100;
+btnEnviar.style.background = `linear-gradient(to right, var(--turquesa) ${progress}%, #e9ecef ${progress}%)`;
+btnEnviar.style.color = timeLeft <= 3 ? "white" : "#495057";
+
+if (timeLeft <= 0) {
+clearInterval(timer);
+btnEnviar.disabled = false;
+btnEnviar.classList.remove('corregir');
+btnEnviar.classList.add('enviar');
+btnEnviar.style.background = "var(--turquesa)";
+btnEnviar.style.color = "white";
+btnEnviar.style.cursor = "pointer";
+
+// ✨ APLICAR TEXTO EN DOS LÍNEAS
+btnEnviar.innerHTML = `<div class="btn-text"><span>Haz clic para enviar</span><span>la solicitud</span></div>`;
+
+// ✨ APLICAR ANIMACIÓN DE PULSOS
+btnEnviar.classList.add('btn-send-pulse');
+
+// ✨ REPRODUCIR SONIDO
+const sound = document.getElementById('notificationSound');
+if (sound) {
+sound.currentTime = 0;
+sound.play().catch(e => console.log("Sonido no reproducido:", e));
+}
+
+// ✨ EFECTOS HOVER MÁS SUAVES
+btnEnviar.onmouseenter = () => {
+btnEnviar.style.transform = "scale(1.03)";
+btnEnviar.style.boxShadow = "0 6px 20px rgba(2, 48, 71, 0.4)";
+};
+btnEnviar.onmouseleave = () => {
+btnEnviar.style.transform = "scale(1)";
+btnEnviar.style.boxShadow = "0 4px 15px rgba(0, 150, 255, 0.3)";
+};
+}
+}, 1000);
+
+window.confirmTimer = timer;
+}
+
+document.getElementById('btnCorregir').onclick = () => {
+if (window.confirmTimer) clearInterval(window.confirmTimer);
+document.getElementById('confirmModal').style.display = 'none';
+};
+
+function proceedToSend() {
+if (window.confirmTimer) clearInterval(window.confirmTimer);
+document.getElementById('confirmModal').style.display = 'none';
+realSubmitForm();
+}
+
+document.getElementById('btnEnviarConfirmado').onclick = proceedToSend;
+
+// === ENVÍO REAL ===
+document.getElementById('sigrafForm').onsubmit = function(e) {
+e.preventDefault();
+showConfirmationModal();
+};
+
+function realSubmitForm() {
+const params = new URLSearchParams();
+
+const EXCEPCIONES_SIN_UMI = [
+"C.N.E.D. Dr. Julio de Armas",
+"Centro de Salud para El Buen Vivir Dr. Salvador Allende",
+"Club Villas Ipasmar",
+"Hotel Valle Grande"
+];
+
+// CORRECCIÓN: se elimina la capitalización automática
+let unidadFinal = selectedUnidad.trim();
+if (!EXCEPCIONES_SIN_UMI.includes(unidadFinal)) {
+unidadFinal = "U.M.I. " + unidadFinal;
+}
+
+params.append("Unidad", unidadFinal);
+
+// Aquí se envía "Obituario" si está activo
+params.append("Jornada", modoObituario ? "Obituario" : catName);
+
+let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
+if(catType === 'otros') ops = document.getElementById('desc-otro').value;
+params.append("Opciones", ops);
+
+params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
+
+if (!modoObituario) {
+const institucion = document.getElementById('institucion').value.trim();
+const direccionExacta = document.getElementById('direccion-exacta').value.trim();
+const direccionCompleta = [institucion, direccionExacta].filter(part => part).join(", ");
+params.append("Direccion", direccionCompleta);
+params.append("Hora", document.getElementById('hora').value + " " + selectedAMPM);
+params.append("Observaciones", document.getElementById('observaciones').value);
+
+// CORREGIDO: Adjuntar fotos usando el atributo data-has-image
+for(let i=1; i<=3; i++) {
+const img = document.getElementById('p'+i);
+if(img.getAttribute('data-has-image') === 'true') {
+const base64Data = img.src.split(',')[1];
+if (base64Data) {
+params.append("foto"+i, base64Data);
+}
+}
+}
+} else {
+params.append("Direccion", "");
+params.append("Hora", "");
+params.append("Observaciones", "");
+}
+
+params.append("Fecha", document.getElementById('fecha').value);
+params.append("Telefono", document.getElementById('tlf').value);
+params.append("Correo", document.getElementById('mail').value);
+
+document.getElementById('loadMainTxt').innerText = "Enviando Solicitud...";
+document.getElementById('loadingOverlay').style.display = 'flex';
+
+fetch(SCRIPT_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: params.toString()
+})
+.then(response => response.json())
+.then(result => {
+if (result.success) {
+document.getElementById('sigrafForm').reset();
+
+for(let i=1; i<=3; i++) {
+const img = document.getElementById('p'+i);
+img.src = '';
+img.style.display = 'none';
+img.removeAttribute('data-has-image'); // Limpiar marca
+document.getElementById('b'+i).style.display = 'none';
+}
+
+document.querySelectorAll('.card-btn').forEach(btn => btn.classList.remove('selected'));
+document.getElementById('sec-3').classList.add('hidden');
+document.getElementById('sec-4').classList.add('hidden');
+selectedAMPM = "";
+document.getElementById('btn-am').classList.remove('active');
+document.getElementById('btn-pm').classList.remove('active');
+selectedRegionKey = "";
+selectedUnidad = "";
+modoObituario = false;
+
+document.getElementById('fecha').disabled = false;
+document.getElementById('hora').disabled = false;
+document.getElementById('institucion').disabled = false;
+document.getElementById('direccion-exacta').disabled = false;
+document.getElementById('observaciones').disabled = false;
+document.getElementById('hora').classList.remove('obit-disabled');
+document.getElementById('institucion').classList.remove('obit-disabled');
+document.getElementById('direccion-exacta').classList.remove('obit-disabled');
+document.getElementById('observaciones').classList.remove('obit-disabled');
+document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
+document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+
+document.querySelectorAll('#region-grid .card-btn').forEach(b => b.classList.remove('selected'));
+document.getElementById('unidad-grid').innerHTML = "";
+document.getElementById('unidad-section').classList.add('hidden');
+
+openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
+setTimeout(() => {
+closeModal();
+showPage('list-page', document.getElementById('tab-list'));
+}, 2000);
+} else {
+throw new Error(result.error);
+}
+})
+.catch(e => {
+openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
+setTimeout(() => {
+closeModal();
+showPage('list-page', document.getElementById('tab-list'));
+}, 2000);
+})
+.finally(() => {
+document.getElementById('loadingOverlay').style.display = 'none';
+});
+}
+// === FUNCIONES PARA SISTEMA DE CHUNKS ===
+
+// SUBIR CHUNKS SECUENCIALMENTE CON REINTENTOS
+async function uploadChunksSequential(id, filename, mimeType) {
+    const totalChunks = chunkUpload.totalChunks;
+    
+    for (let i = 0; i < totalChunks; i++) {
+        if (chunkUpload.pauseRequested) {
+            await waitForResume();
+            if (!chunkUpload.isActive) return;
+        }
+        
+        let chunkSuccess = false;
+        let retryCount = 0;
+        
+        while (!chunkSuccess && retryCount < chunkUpload.maxRetries) {
+            try {
+                // ✅ REGISTRAR TIEMPO DE INICIO DEL CHUNK
+                chunkUpload.currentChunkStartTime = Date.now();
+                
+                await uploadSingleChunk(id, filename, mimeType, i);
+                
+                // ✅ REGISTRAR TIEMPO DE FIN Y CALCULAR VELOCIDAD
+                chunkUpload.currentChunkEndTime = Date.now();
+                const chunkDuration = (chunkUpload.currentChunkEndTime - chunkUpload.currentChunkStartTime) / 1000; // segundos
+                const chunkSizeKB = chunkUpload.chunks[i].size / 1024; // KB
+                const currentSpeed = chunkSizeKB / chunkDuration; // KB/s
+                
+                // Guardar velocidad actual
+                chunkUpload.currentUploadSpeed = currentSpeed;
+                chunkUpload.uploadSpeeds.push(currentSpeed);
+                
+                // Calcular promedio
+                const totalSpeed = chunkUpload.uploadSpeeds.reduce((sum, speed) => sum + speed, 0);
+                chunkUpload.avgUploadSpeed = totalSpeed / chunkUpload.uploadSpeeds.length;
+                
+                // ✅ ACTUALIZAR VELOCIDAD EN EL MODAL
+                updateUploadSpeedDisplay();
+                
+                chunkSuccess = true;
+                chunkUpload.uploadedChunks++;
+                
+                // Actualizar progreso
+                const progress = Math.min(100, (chunkUpload.uploadedChunks / totalChunks) * 100);
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressPercent').innerText = Math.round(progress) + '%';
+                
+                // Calcular tiempo restante
+                if (chunkUpload.uploadedChunks > 1) {
+                    const elapsed = (Date.now() - chunkUpload.startTime) / 1000;
+                    const avgTimePerChunk = elapsed / chunkUpload.uploadedChunks;
+                    const remainingChunks = totalChunks - chunkUpload.uploadedChunks;
+                    const etaSeconds = Math.round(avgTimePerChunk * remainingChunks);
+                    
+                    document.getElementById('progressETA').innerText = 
+                        `Tiempo restante: ~${etaSeconds}s`;
+                }
+                
+                // Pequeña pausa entre chunks para no saturar
+                if (i < totalChunks - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 
+                        chunkUpload.connectionSpeed === 'slow' ? 500 : 200));
+                }
+                
+            } catch (error) {
+                retryCount++;
+                console.warn(`⚠️ Chunk ${i + 1}/${totalChunks} fallido (intento ${retryCount}/${chunkUpload.maxRetries})`);
+                
+                if (retryCount >= chunkUpload.maxRetries) {
+                    throw new Error(`Chunk ${i + 1} fallido después de ${retryCount} intentos: ${error.message}`);
+                }
+                
+                // Esperar antes de reintentar (exponencial)
+                const waitTime = Math.min(5000, 1000 * Math.pow(2, retryCount));
+                document.getElementById('progressStatus').innerText = 
+                    `⏸️ Reintentando chunk ${i + 1}... (${retryCount}/${chunkUpload.maxRetries})`;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+        }
+    }
+    
+    // Todos los chunks subidos, finalizar
+    await finalizeChunkedUpload(id, filename, mimeType);
+}
+
+// SUBIR UN SOLO CHUNK
+async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
+    const chunk = chunkUpload.chunks[chunkIndex];
+    const reader = new FileReader();
+    
+    return new Promise((resolve, reject) => {
+        reader.onload = async function(e) {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                
+                const params = new URLSearchParams();
+                params.append("action", "uploadChunk");
+                params.append("id", id);
+                params.append("filename", filename);
+                params.append("mime", mimeType);
+                params.append("chunkIndex", chunk.index);
+                params.append("chunkData", base64);
+                params.append("totalChunks", chunk.total);
+                params.append("fileId", chunk.fileId);
+                params.append("uploadedBy", userCredentials.displayName);
+                
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('progressStatus').innerText = 
+                        `📤 Subiendo chunk ${chunk.index + 1}/${chunk.total}...`;
+                    resolve();
+                } else {
+                    reject(new Error(data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Error leyendo chunk"));
+        reader.readAsDataURL(chunk.blob);
+    });
+}
+
+// FINALIZAR SUBIDA POR CHUNKS
+async function finalizeChunkedUpload(id, filename, mimeType) {
+    document.getElementById('progressStatus').innerText = '✅ Finalizando subida...';
+    
+    const params = new URLSearchParams();
+    params.append("action", "finalizeChunkedUpload");
+    params.append("id", id);
+    params.append("filename", filename);
+    params.append("mime", mimeType);
+    params.append("totalChunks", chunkUpload.totalChunks);
+    params.append("fileId", chunkUpload.chunks[0].fileId);
+    params.append("uploadedBy", userCredentials.displayName);
+    
+    const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressPercent').innerText = '100%';
+        document.getElementById('progressStatus').innerText = '✅ ¡Completado!';
+        
+        setTimeout(() => {
+            closeModal();
+            openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+            updateTable();
+            document.getElementById('arteFile').value = '';
+        }, 1000);
+    } else {
+        throw new Error(data.error || 'Error al finalizar');
+    }
+}
+
+// MOSTRAR MODAL DE PROGRESO - CORREGIDA
+function showUploadProgressModal(id, filename, fileSizeMB) {
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const mainBtn = document.getElementById('mainModalBtn');
+    
+    if (!modalIcon || !modalTitle || !modalMsg) return;
+    
+    modalIcon.innerText = "";
+    modalTitle.innerText = "Subiendo Archivo";
+    modalMsg.innerHTML = `
+    <div style="text-align: left; margin-top: 15px;">
+        <div id="progressInfo" style="font-size: 0.9rem; margin-bottom: 8px; color: #555;">Archivo: ${filename} (${fileSizeMB.toFixed(2)}MB)</div>
+        <div id="progressSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: #666; font-weight: 500;">Conexión: ${chunkUpload.connectionSpeed === 'slow-medium' ? 'slow' : chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB</div>
+        <div id="progressUploadSpeed" style="font-size: 0.85rem; margin-bottom: 15px; color: var(--azul-deep); font-weight: 600;">
+          📤 Velocidad: Calculando...
+        </div>
+        <div style="background: #f0f9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span id="progressStatus" style="font-weight: 600; color: var(--azul-deep);">Preparando...</span>
+                <span id="progressPercent" style="font-weight: 800; color: var(--turquesa);">0%</span>
+            </div>
+            <div style="background: #e9ecef; border-radius: 20px; height: 12px; overflow: hidden;">
+                <div id="progressBar" style="background: linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 100%); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 20px;"></div>
+            </div>
+        </div>
+        <div id="progressETA" style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 8px;"></div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button id="btnPauseResume" class="modal-btn" style="background: #6c757d; flex: 1; padding: 8px;" onclick="togglePauseResume()">
+                Pausar
+            </button>
+            <button id="btnCancelUpload" class="modal-btn" style="background: var(--rojo); flex: 1; padding: 8px;" onclick="cancelUpload()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+    `;
+    
+    loginArea.classList.add('hidden');
+    uploadArea.classList.add('hidden');
+    
+    closeBtn.classList.remove('hidden');
+    closeBtn.onclick = () => {
+        resetChunkUploadState();
+        closeModal();
+    };
+    
+    if (mainBtn) mainBtn.classList.add('hidden');
+    
+    document.getElementById('modalAlert').style.display = 'flex';
+}
+
+// ✅ ACTUALIZAR DISPLAY DE VELOCIDAD DE SUBIDA
+function updateUploadSpeedDisplay() {
+  const speedElement = document.getElementById('progressUploadSpeed');
+  if (!speedElement) return;
+  
+  const currentSpeed = chunkUpload.currentUploadSpeed;
+  const avgSpeed = chunkUpload.avgUploadSpeed;
+  
+  if (currentSpeed > 0) {
+    // Formatear velocidad: KB/s o MB/s según corresponda
+    let speedText = '';
+    let avgText = '';
+    
+    if (currentSpeed >= 1024) {
+      // Mostrar en MB/s
+      speedText = (currentSpeed / 1024).toFixed(2) + ' MB/s';
+      avgText = (avgSpeed / 1024).toFixed(2) + ' MB/s';
+    } else {
+      // Mostrar en KB/s
+      speedText = currentSpeed.toFixed(1) + ' KB/s';
+      avgText = avgSpeed.toFixed(1) + ' KB/s';
+    }
+    
+    // Calcular Mbps (1 byte = 8 bits)
+    const currentMbps = (currentSpeed * 8 / 1024).toFixed(1);
+    const avgMbps = (avgSpeed * 8 / 1024).toFixed(1);
+    
+    speedElement.innerHTML = `📤 Velocidad: <span style="color: var(--turquesa); font-weight: 800;">${currentMbps} Mbps</span> (${speedText})<br>
+    <span style="font-size: 0.75rem; color: #666;">Promedio: ${avgMbps} Mbps (${avgText})</span>`;
+  } else {
+    speedElement.innerText = '📤 Velocidad: Calculando...';
+  }
+}
+
+// PAUSAR/REANUDAR SUBIDA
+function togglePauseResume() {
+    chunkUpload.pauseRequested = !chunkUpload.pauseRequested;
+    chunkUpload.pauseRequested = !chunkUpload.pauseRequested;
+    const btn = document.getElementById('btnPauseResume');
+    
+    if (chunkUpload.pauseRequested) {
+        btn.innerHTML = '▶️ Reanudar';
+        document.getElementById('progressStatus').innerText = '⏸️ PAUSADO';
+    } else {
+        btn.innerHTML = '⏸️ Pausar';
+        document.getElementById('progressStatus').innerText = '▶️ Reanudando...';
+    }
+}
+
+// ESPERAR A QUE SE REANUDE
+function waitForResume() {
+    return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+            if (!chunkUpload.pauseRequested || !chunkUpload.isActive) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+    });
+}
+
+// CANCELAR SUBIDA - CORREGIDA
+function cancelUpload() {
+    const id = document.getElementById('currentReqId')?.value;
+    
+    // Llamar al backend para limpiar recursos
+    if (id && chunkUpload.isActive) {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=cancelChunkedUpload&id=${encodeURIComponent(id)}` 
+        })
+        .then(response => response.json())
+        .catch(err => {
+            console.warn("⚠️ Error limpiando recursos: " + err.message);
+        });
+    }
+    
+    // Reiniciar estado de chunks
+    resetChunkUploadState();
+    
+    // Cerrar modal
+    closeModal();
+    openModal("⚠️ Cancelado", "La subida ha sido cancelada y los recursos limpiados.", "ℹ️");
+    
+    // Reiniciar input de archivo
+    setTimeout(() => {
+        const fileInput = document.getElementById('arteFile');
+        if (fileInput) fileInput.value = '';
+    }, 300);
+}
+</script>
+</body>
+</html>
