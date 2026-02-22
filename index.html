@@ -951,75 +951,215 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
 // === CONFIGURACIÓN DE SCRIPT URL ===
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
 
-// ✅ VARIABLES PARA SISTEMA DE CHUNKS
+// ✅ VARIABLES PARA SISTEMA DE CHUNKS MEJORADO
 let chunkUpload = {
+    // Estado
     isActive: false,
+    isPaused: false,
+    isCancelled: false,
+    
+    // Archivo y chunks
     currentFile: null,
+    fileSize: 0,
+    fileName: '',
+    mimeType: '',
     chunks: [],
-    currentChunk: 0,
     totalChunks: 0,
     uploadedChunks: 0,
-    chunkSize: 512 * 1024, // 512KB por defecto
-    connectionSpeed: 'unknown', // fast, medium, slow
-    retryCount: 0,
-    maxRetries: 5,
+    currentChunkIndex: 0,
+    
+    // Configuración dinámica
+    currentChunkSize: 512 * 1024,  // Tamaño inicial (se ajusta dinámicamente)
+    maxConcurrent: 1,
+    connectionTier: 'unknown',
+    
+    // Medición de velocidad en tiempo real
     startTime: null,
+    lastUpdateTime: null,
+    totalBytesUploaded: 0,
+    
+    // Historial de velocidades para promedio móvil
+    speedHistory: [],
+    currentSpeed: 0,        // Velocidad instantánea (KB/s)
+    averageSpeed: 0,        // Velocidad promedio (KB/s)
+    smoothedSpeed: 0,       // Velocidad suavizada (KB/s)
+    
+    // Progreso granular (bytes reales, no chunks)
+    bytesUploadedCurrentChunk: 0,
+    totalBytesCommitted: 0,  // Bytes confirmados como subidos
+    
+    // Reintentos
+    retryCount: 0,
+    maxRetries: 3,
+    chunkRetries: {},  // Track de reintentos por chunk
+    
+    // Temporizadores
+    progressTimer: null,
+    speedUpdateTimer: null,
+    
+    // Token de cancelación
+    abortController: null,
+    
+    // Variables legacy para compatibilidad
     pauseRequested: false,
     resumeToken: null,
-    // ✅ NUEVAS VARIABLES PARA VELOCIDAD DE SUBIDA
-    currentChunkStartTime: null,  // Tiempo de inicio del chunk actual
-    currentChunkEndTime: null,    // Tiempo de fin del chunk actual
-    uploadSpeeds: [],             // Array de velocidades históricas
-    avgUploadSpeed: 0,            // Velocidad promedio en KB/s
-    currentUploadSpeed: 0         // Velocidad actual en KB/s
+    currentChunkStartTime: null,
+    currentChunkEndTime: null,
+    uploadSpeeds: [],
+    avgUploadSpeed: 0,
+    currentUploadSpeed: 0,
+    connectionSpeed: 'unknown',
+    chunkSize: 512 * 1024,
+    currentChunk: 0
 };
 
-// ✅ CONFIGURACIÓN DE CHUNKS SEGÚN VELOCIDAD
+// ✅ CONFIGURACIÓN AVANZADA DE CHUNKS CON ADAPTACIÓN DINÁMICA
 const CHUNK_CONFIG = {
+    // Umbrales de velocidad en KB/s (medidos empíricamente)
+    THRESHOLDS: {
+        ULTRA_FAST: 2048,    // > 2 MB/s - Subida completa
+        FAST: 512,           // 512 KB/s - 1 MB - 2 MB chunks
+        MEDIUM: 128,         // 128-512 KB/s - 512 KB chunks
+        SLOW: 32,            // 32-128 KB/s - 256 KB chunks
+        VERY_SLOW: 0         // < 32 KB/s - 128 KB chunks
+    },
+    
+    // Tamaños de chunks según velocidad
+    SIZES: {
+        ULTRA_FAST: Infinity, // No usar chunks
+        FAST: 2 * 1024 * 1024,      // 2 MB
+        MEDIUM: 512 * 1024,         // 512 KB
+        SLOW: 256 * 1024,           // 256 KB
+        VERY_SLOW: 128 * 1024       // 128 KB
+    },
+    
+    // Configuraciones de concurrencia
+    CONCURRENT: {
+        ULTRA_FAST: 1,  // Secuencial (conexión rápida no necesita paralelismo)
+        FAST: 2,        // 2 conexiones paralelas
+        MEDIUM: 1,      // 1 conexión (estable)
+        SLOW: 1,        // 1 conexión (evitar saturación)
+        VERY_SLOW: 1    // 1 conexión (máxima estabilidad)
+    },
+    
+    // Intervalos de actualización de UI (ms)
+    UPDATE_INTERVAL: 100,  // Actualizar cada 100ms para fluidez
+    
+    // Muestras para promedio móvil
+    SPEED_SAMPLES: 5,  // Usar últimas 5 mediciones para promedio
+    
+    // Configuración legacy para compatibilidad
     fast: { size: 1024 * 1024, concurrent: 3 },    // 1MB (no se usa - conexiones rápidas suben completo)
-    medium: { size: 512 * 1024, concurrent: 2 },   // 512KB para conexiones medias
+    medium: { size: 512 * 1024, concurrent: 2 },   //512KB para conexiones medias
     'slow-medium': { size: 256 * 1024, concurrent: 1 }, // 256KB para conexiones lentas-medias
     slow: { size: 256 * 1024, concurrent: 1 }      // 256KB para conexiones lentas
 };
 
-// ✅ DETECTAR VELOCIDAD DE CONEXIÓN
+// ============================================================
+// FUNCIÓN 1: DETECCIÓN PRECISA DE VELOCIDAD DE CONEXIÓN
+// ============================================================
 async function detectConnectionSpeed() {
-    const testFileUrl = 'https://httpbin.org/bytes/1048576'; // 1MB de datos
-    const startTime = Date.now();
+    console.log("🔍 Iniciando detección de velocidad de conexión...");
     
-    try {
-        const response = await fetch(testFileUrl, { 
-            method: 'GET',
-            cache: 'no-store'
-        });
-        
-        if (!response.ok) throw new Error('Test fallido');
-        
-        // Leer el contenido para medir tiempo real
-        await response.blob();
-        const endTime = Date.now();
-        const duration = (endTime - startTime) / 1000; // segundos
-        const speedMbps = (8 / duration); // 1MB = 8 megabits
-        
-        let speedTier;
-        if (speedMbps > 2) speedTier = 'fast';
-        else if (speedMbps > 0.5) speedTier = 'medium';
-        else if (speedMbps > 0.1) speedTier = 'slow-medium'; // Para velocidades entre 0.1-0.5 Mbps
-        else speedTier = 'slow'; // Para velocidades ≤ 0.1 Mbps
-        
-        chunkUpload.connectionSpeed = speedTier;
-        chunkUpload.chunkSize = CHUNK_CONFIG[speedTier].size;
-        
-        console.log(`📶 Conexión detectada: ${speedTier} (${speedMbps.toFixed(2)} Mbps)`);
-        console.log(`📦 Tamaño de chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`);
-        
-        return speedTier;
-    } catch (error) {
-        console.warn('⚠️ No se pudo detectar velocidad, usando configuración por defecto');
-        chunkUpload.connectionSpeed = 'medium';
-        chunkUpload.chunkSize = CHUNK_CONFIG.medium.size;
-        return 'medium';
+    const testSizes = [50 * 1024, 100 * 1024]; // 50KB y 100KB para muestras
+    const speeds = [];
+    
+    // Realizar múltiples pruebas para precisión
+    for (let size of testSizes) {
+        try {
+            // Generar datos aleatorios para evitar caché
+            const testData = new Uint8Array(size);
+            for (let i = 0; i < size; i++) {
+                testData[i] = Math.floor(Math.random() * 256);
+            }
+            
+            const blob = new Blob([testData]);
+            const startTime = performance.now();
+            
+            // Simular subida real (usar el mismo endpoint o uno de prueba)
+            const formData = new FormData();
+            formData.append('ping', blob);
+            formData.append('action', 'ping');
+            
+            // Timeout de 5 segundos para la prueba
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal,
+                // No enviar credenciales en ping para velocidad
+                credentials: 'omit'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            const endTime = performance.now();
+            const duration = (endTime - startTime) / 1000; // segundos
+            const speedKBps = (size / 1024) / duration;   // KB/s
+            
+            speeds.push(speedKBps);
+            console.log(`📊 Prueba con ${size/1024}KB: ${speedKBps.toFixed(2)} KB/s`);
+            
+        } catch (e) {
+            console.warn(`⚠️ Prueba fallida: ${e.message}`);
+        }
     }
+    
+    // Calcular velocidad promedio de las pruebas exitosas
+    let avgSpeed = 0;
+    if (speeds.length > 0) {
+        avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+    } else {
+        // Si todas fallan, usar un valor conservador
+        avgSpeed = 128; // 128 KB/s por defecto
+    }
+    
+    // Determinar tier de conexión
+    let tier, chunkSize, concurrent;
+    
+    if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.ULTRA_FAST) {
+        tier = 'ULTRA_FAST';
+        chunkSize = CHUNK_CONFIG.SIZES.ULTRA_FAST;
+        concurrent = CHUNK_CONFIG.CONCURRENT.ULTRA_FAST;
+    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.FAST) {
+        tier = 'FAST';
+        chunkSize = CHUNK_CONFIG.SIZES.FAST;
+        concurrent = CHUNK_CONFIG.CONCURRENT.FAST;
+    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.MEDIUM) {
+        tier = 'MEDIUM';
+        chunkSize = CHUNK_CONFIG.SIZES.MEDIUM;
+        concurrent = CHUNK_CONFIG.CONCURRENT.MEDIUM;
+    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.SLOW) {
+        tier = 'SLOW';
+        chunkSize = CHUNK_CONFIG.SIZES.SLOW;
+        concurrent = CHUNK_CONFIG.CONCURRENT.SLOW;
+    } else {
+        tier = 'VERY_SLOW';
+        chunkSize = CHUNK_CONFIG.SIZES.VERY_SLOW;
+        concurrent = CHUNK_CONFIG.CONCURRENT.VERY_SLOW;
+    }
+    
+    // Guardar configuración
+    chunkUpload.connectionTier = tier;
+    chunkUpload.currentChunkSize = chunkSize;
+    chunkUpload.maxConcurrent = concurrent;
+    
+    // Para compatibilidad con código existente
+    chunkUpload.connectionSpeed = tier.toLowerCase().replace('_', '-');
+    chunkUpload.chunkSize = chunkSize;
+    
+    console.log(`🌐 Velocidad detectada: ${avgSpeed.toFixed(2)} KB/s (${(avgSpeed*8).toFixed(2)} Kbps)`);
+    console.log(`🏷️ Tier: ${tier} | Chunk: ${chunkSize === Infinity ? 'Completo' : (chunkSize/1024).toFixed(0) + 'KB'} | Concurrente: ${concurrent}`);
+    
+    return {
+        speed: avgSpeed,
+        tier: tier,
+        chunkSize: chunkSize,
+        concurrent: concurrent,
+        shouldUseChunks: chunkSize !== Infinity
+    };
 }
 
 // ✅ REINICIAR ESTADO DE CHUNKS
@@ -1057,31 +1197,297 @@ function resetChunkUploadState() {
     console.log("🔄 Estado de chunks reiniciado");
 }
 
-// ✅ DIVIDIR ARCHIVO EN CHUNKS
+// ============================================================
+// FUNCIÓN 2: DIVISIÓN INTELIGENTE DE ARCHIVO EN CHUNKS
+// ============================================================
+
 function splitFileIntoChunks(file) {
     const chunks = [];
     const fileSize = file.size;
-    const chunkSize = chunkUpload.chunkSize;
+    
+    // Si la conexión es ultra-rápida y el archivo es menor a 6MB, no usar chunks
+    if (chunkUpload.connectionTier === 'ULTRA_FAST' && fileSize <= 6 * 1024 * 1024) {
+        console.log("🚀 Conexión ultra-rápida detectada, subiendo archivo completo");
+        return [{
+            index: 0,
+            blob: file,
+            size: fileSize,
+            total: 1,
+            fileId: file.name + '_' + Date.now(),
+            startByte: 0,
+            endByte: fileSize
+        }];
+    }
+    
+    // Para archivos muy pequeños (< 256KB), subir completo siempre
+    if (fileSize <= 256 * 1024) {
+        chunkUpload.currentChunkSize = fileSize;
+        return [{
+            index: 0,
+            blob: file,
+            size: fileSize,
+            total: 1,
+            fileId: file.name + '_' + Date.now(),
+            startByte: 0,
+            endByte: fileSize
+        }];
+    }
+    
+    // Ajustar tamaño de chunk si el archivo es muy grande
+    let chunkSize = chunkUpload.currentChunkSize;
+    const maxChunks = 50; // Evitar demasiados chunks
+    
+    if (fileSize / chunkSize > maxChunks) {
+        chunkSize = Math.ceil(fileSize / maxChunks);
+        // Redondear a múltiplo de 64KB para eficiencia
+        chunkSize = Math.ceil(chunkSize / (64 * 1024)) * (64 * 1024);
+        chunkUpload.currentChunkSize = chunkSize;
+    }
+    
     const totalChunks = Math.ceil(fileSize / chunkSize);
+    const fileId = file.name + '_' + Date.now();
     
     for (let i = 0; i < totalChunks; i++) {
         const start = i * chunkSize;
         const end = Math.min(start + chunkSize, fileSize);
-        const chunkBlob = file.slice(start, end);
         
         chunks.push({
             index: i,
-            blob: chunkBlob,
+            blob: file.slice(start, end),
             size: end - start,
             total: totalChunks,
-            fileId: file.name + '_' + Date.now()
+            fileId: fileId,
+            startByte: start,
+            endByte: end
         });
     }
     
+    console.log(`📦 Archivo dividido en ${totalChunks} chunks de ~${(chunkSize/1024).toFixed(0)}KB cada uno`);
     return chunks;
 }
 
-// === LISTADO DE UNIDADES IPASME POR REGIÓN (CORREGIDO Y ORDENADO) ===
+// ============================================================
+// FUNCIÓN 3: ACTUALIZACIÓN DE VELOCIDAD EN TIEMPO REAL
+// ============================================================
+
+function updateSpeedMetrics(bytesUploaded, isComplete = false) {
+    const now = performance.now();
+    
+    if (!chunkUpload.lastUpdateTime) {
+        chunkUpload.lastUpdateTime = now;
+        return;
+    }
+    
+    const timeDelta = (now - chunkUpload.lastUpdateTime) / 1000; // segundos
+    
+    if (timeDelta > 0) {
+        // Velocidad instantánea (KB/s)
+        const instantSpeed = (bytesUploaded / 1024) / timeDelta;
+        
+        // Actualizar historial (promedio móvil)
+        chunkUpload.speedHistory.push(instantSpeed);
+        if (chunkUpload.speedHistory.length > CHUNK_CONFIG.SPEED_SAMPLES) {
+            chunkUpload.speedHistory.shift();
+        }
+        
+        // Calcular promedio
+        chunkUpload.averageSpeed = chunkUpload.speedHistory.reduce((a, b) => a + b, 0) 
+                                   / chunkUpload.speedHistory.length;
+        
+        // Suavizado exponencial para evitar fluctuaciones bruscas
+        const alpha = 0.3; // Factor de suavizado
+        chunkUpload.smoothedSpeed = (alpha * instantSpeed) + 
+                                    ((1 - alpha) * (chunkUpload.smoothedSpeed || instantSpeed));
+        
+        chunkUpload.currentSpeed = instantSpeed;
+        chunkUpload.lastUpdateTime = now;
+        
+        // Actualizar UI
+        updateSpeedDisplay();
+    }
+}
+
+function updateSpeedDisplay() {
+    const speedElement = document.getElementById('progressUploadSpeed');
+    const etaElement = document.getElementById('progressETA');
+    
+    if (!speedElement) return;
+    
+    // Formatear velocidad
+    let speedText, unit;
+    const speed = chunkUpload.smoothedSpeed || chunkUpload.averageSpeed || 0;
+    
+    if (speed >= 1024) {
+        speedText = (speed / 1024).toFixed(2);
+        unit = 'MB/s';
+    } else {
+        speedText = speed.toFixed(1);
+        unit = 'KB/s';
+    }
+    
+    // Calcular Mbps (megabits por segundo)
+    const mbps = (speed * 8 / 1024).toFixed(1);
+    
+    // Determinar emoji según velocidad
+    let emoji = '🐌';
+    if (speed >= 1024) emoji = '🚀';
+    else if (speed >= 512) emoji = '⚡';
+    else if (speed >= 128) emoji = '📶';
+    else if (speed >= 32) emoji = '🐢';
+    
+    speedElement.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+            <span style="font-size: 1.2rem;">${emoji}</span>
+            <div>
+                <div style="font-weight: 800; color: var(--turquesa); font-size: 1.1rem;">
+                    ${speedText} ${unit}
+                </div>
+                <div style="font-size: 0.75rem; color: #666;">
+                    ${mbps} Mbps | ${chunkUpload.connectionTier.replace('_', ' ')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Calcular ETA
+    if (etaElement && speed > 0) {
+        const remainingBytes = chunkUpload.fileSize - chunkUpload.totalBytesCommitted;
+        const remainingKB = remainingBytes / 1024;
+        const etaSeconds = Math.ceil(remainingKB / speed);
+        
+        let etaText;
+        if (etaSeconds < 60) {
+            etaText = `${etaSeconds}s`;
+        } else if (etaSeconds < 3600) {
+            etaText = `${Math.floor(etaSeconds / 60)}m ${etaSeconds % 60}s`;
+        } else {
+            etaText = `${Math.floor(etaSeconds / 3600)}h ${Math.floor((etaSeconds % 3600) / 60)}m`;
+        }
+        
+        etaElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 6px; justify-content: center; margin-top: 8px;">
+                <span>⏱️</span>
+                <span style="font-weight: 600;">Tiempo restante: ~${etaText}</span>
+                <span style="font-size: 0.75rem; color: #888;">
+                    (${((chunkUpload.totalBytesCommitted / chunkUpload.fileSize) * 100).toFixed(1)}%)
+                </span>
+            </div>
+        `;
+    }
+}
+
+// ============================================================
+// FUNCIÓN 4: SUBIR CHUNK INDIVIDUAL CON MEDICIÓN REAL
+// ============================================================
+
+async function uploadSingleChunkWithProgress(id, filename, mimeType, chunk) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            try {
+                const base64 = e.target.result.split(',')[1];
+                const chunkSizeKB = chunk.size / 1024;
+                
+                // Preparar datos
+                const params = new URLSearchParams();
+                params.append("action", "uploadChunk");
+                params.append("id", id);
+                params.append("filename", filename);
+                params.append("mime", mimeType);
+                params.append("chunkIndex", chunk.index);
+                params.append("chunkData", base64);
+                params.append("totalChunks", chunk.total);
+                params.append("fileId", chunk.fileId);
+                params.append("uploadedBy", userCredentials.displayName);
+                params.append("startByte", chunk.startByte);
+                params.append("endByte", chunk.endByte);
+                
+                // Crear XMLHttpRequest para tracking de progreso real
+                const xhr = new XMLHttpRequest();
+                const startTime = performance.now();
+                
+                // Configurar tracking de progreso
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        // Bytes reales subidos de este chunk
+                        const bytesUploaded = event.loaded;
+                        chunkUpload.bytesUploadedCurrentChunk = bytesUploaded;
+                        
+                        // Actualizar métricas en tiempo real
+                        const totalUploaded = chunkUpload.totalBytesCommitted + bytesUploaded;
+                        updateSpeedMetrics(bytesUploaded);
+                        
+                        // Actualizar progreso granular
+                        updateGranularProgress(totalUploaded);
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const endTime = performance.now();
+                        const duration = (endTime - startTime) / 1000;
+                        const actualSpeed = chunkSizeKB / duration;
+                        
+                        console.log(`✅ Chunk ${chunk.index + 1}/${chunk.total} completado en ${duration.toFixed(2)}s (${actualSpeed.toFixed(2)} KB/s)`);
+                        
+                        // Confirmar bytes subidos
+                        chunkUpload.totalBytesCommitted += chunk.size;
+                        chunkUpload.bytesUploadedCurrentChunk = 0;
+                        
+                        // Actualizar velocidad final del chunk
+                        updateSpeedMetrics(chunk.size, true);
+                        
+                        resolve(xhr.response);
+                    } else {
+                        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+                    }
+                };
+                
+                xhr.onerror = () => reject(new Error("Error de red"));
+                xhr.ontimeout = () => reject(new Error("Timeout"));
+                
+                // Enviar
+                xhr.open('POST', SCRIPT_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(params.toString());
+                
+            } catch (err) {
+                reject(err);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error("Error leyendo chunk"));
+        reader.readAsDataURL(chunk.blob);
+    });
+}
+
+// ============================================================
+// FUNCIÓN 5: ACTUALIZACIÓN DE PROGRESO GRANULAR
+// ============================================================
+
+function updateGranularProgress(bytesUploaded) {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    
+    if (!progressBar || !progressPercent) return;
+    
+    const percentage = Math.min(100, (bytesUploaded / chunkUpload.fileSize) * 100);
+    
+    progressBar.style.width = percentage + '%';
+    progressPercent.innerText = percentage.toFixed(1) + '%';
+    
+    // Actualizar texto de estado
+    if (progressStatus) {
+        const chunkInfo = chunkUpload.totalChunks > 1 
+            ? ` (Chunk ${chunkUpload.currentChunkIndex + 1}/${chunkUpload.totalChunks})`
+            : '';
+        progressStatus.innerText = `📤 Subiendo${chunkInfo}...`;
+    }
+}
+
+
 const UNIDADES_IPASME_RAW = {
 "Capital": [
 "Don Simón Rodríguez",
