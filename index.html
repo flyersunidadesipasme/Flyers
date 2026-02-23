@@ -16,6 +16,7 @@
 --azul-deep: #023047;
 --amarillo: #ffb703; --naranja: #fb8500; --rojo: #e63946;
 --verde: #2d6a4f; --gris: #edf2f4;
+--panel-width: 380px;
 }
 * { font-family: 'Georama', sans-serif;
 box-sizing: border-box; font-weight: 500; }
@@ -240,7 +241,16 @@ font-weight: 500; }
   display: inline-block;
   vertical-align: middle;
 }
-.admin-actions { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.admin-actions { 
+    display: flex; 
+    gap: 6px; 
+    justify-content: flex-end; 
+    align-items: center; /* Centra verticalmente */
+    white-space: nowrap; /* Evita que el texto salte de línea */
+    font-size: 0.75rem; 
+    color: #fb8500; /* Color naranja para el texto de acción */
+    font-weight: 700;
+}
 .btn-act { border: none; border-radius: 5px; padding: 4px 6px;
 cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
 .btn-act:hover { transform: scale(1.1); }
@@ -678,6 +688,472 @@ animation: badgePulse 2s infinite;
   .stat-mini .stat-val { font-size: 0.9rem; }
 }
 
+/* ✅ PANEL LATERAL DERECHO - ESTILOS COMPLETOS */
+.side-panel {
+position: fixed;
+top: 0;
+right: 0;
+width: var(--panel-width);
+height: 100vh;
+background: white;
+box-shadow: -8px 0 40px rgba(0,0,0,0.2);
+z-index: 1000;
+transform: translateX(100%);
+transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+display: flex;
+flex-direction: column;
+border-left: 5px solid var(--turquesa);
+}
+
+.side-panel.active {
+transform: translateX(0);
+}
+
+.side-panel-header {
+background: var(--azul-deep);
+color: white;
+padding: 15px 20px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+border-bottom: 4px solid var(--amarillo);
+position: relative;
+}
+
+.side-panel-title {
+font-weight: 800;
+font-size: 1.1rem;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.side-panel-close {
+background: rgba(255,255,255,0.15);
+border: none;
+color: white;
+width: 36px;
+height: 36px;
+border-radius: 50%;
+font-size: 1.4rem;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.2s;
+}
+
+.side-panel-close:hover {
+background: rgba(255,255,255,0.3);
+transform: rotate(90deg);
+}
+
+.side-panel-content {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+display: flex;
+flex-direction: column;
+gap: 18px;
+}
+
+/* Sección de solicitud seleccionada */
+.selected-request-section {
+background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+border-radius: 16px;
+padding: 18px;
+border: 2px solid var(--celeste);
+position: relative;
+}
+
+.selected-request-header {
+font-weight: 800;
+color: var(--azul-deep);
+font-size: 0.8rem;
+margin-bottom: 12px;
+display: flex;
+align-items: center;
+gap: 8px;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.selected-request-id {
+font-size: 1.2rem;
+font-weight: 800;
+color: var(--turquesa);
+word-break: break-all;
+line-height: 1.3;
+}
+
+.selected-request-info {
+font-size: 0.8rem;
+color: #495057;
+margin-top: 10px;
+line-height: 1.5;
+}
+
+.no-selection {
+text-align: center;
+color: #adb5bd;
+padding: 25px 15px;
+}
+
+.no-selection-icon {
+font-size: 3rem;
+margin-bottom: 12px;
+opacity: 0.6;
+}
+
+/* Vista previa de archivo - IMAGEN COMPLETA A ESCALA */
+.file-preview-section {
+background: #f8f9fa;
+border-radius: 16px;
+padding: 18px;
+border: 2px dashed var(--celeste);
+}
+
+.file-preview-header {
+font-weight: 800;
+color: var(--azul-deep);
+font-size: 0.8rem;
+margin-bottom: 12px;
+display: flex;
+align-items: center;
+gap: 8px;
+text-transform: uppercase;
+}
+
+.file-preview-container {
+width: 100%;
+height: 200px;
+background: white;
+border-radius: 12px;
+overflow: hidden;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 2px solid var(--gris);
+position: relative;
+}
+
+.file-preview-image-full {
+max-width: 100%;
+max-height: 100%;
+width: auto;
+height: auto;
+object-fit: contain;
+cursor: pointer;
+transition: transform 0.3s;
+}
+
+.file-preview-image-full:hover {
+transform: scale(1.05);
+}
+
+.file-preview-placeholder {
+text-align: center;
+color: #adb5bd;
+font-size: 0.85rem;
+padding: 20px;
+}
+
+.file-preview-placeholder-icon {
+font-size: 2.5rem;
+margin-bottom: 8px;
+opacity: 0.5;
+}
+
+.file-preview-info {
+font-size: 0.75rem;
+color: #6c757d;
+margin-top: 10px;
+text-align: center;
+}
+
+/* Botones del panel */
+.panel-section-title {
+font-size: 0.7rem;
+font-weight: 800;
+text-transform: uppercase;
+color: var(--turquesa);
+letter-spacing: 0.8px;
+margin-bottom: 10px;
+padding-left: 5px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.panel-actions {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.panel-btn {
+width: 100%;
+padding: 12px 15px;
+border: none;
+border-radius: 10px;
+font-weight: 700;
+font-size: 0.85rem;
+cursor: pointer;
+transition: all 0.25s ease;
+display: flex;
+align-items: center;
+gap: 10px;
+text-align: left;
+position: relative;
+}
+
+.panel-btn:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+transform: none !important;
+}
+
+.panel-btn:not(:disabled):hover {
+transform: translateX(5px);
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.panel-btn-primary { background: var(--turquesa); color: white; }
+.panel-btn-success { background: var(--verde); color: white; }
+.panel-btn-warning { background: var(--amarillo); color: var(--azul-deep); }
+.panel-btn-danger { background: var(--rojo); color: white; }
+.panel-btn-info { background: var(--celeste); color: var(--azul-deep); }
+.panel-btn-secondary { background: #e9ecef; color: var(--azul-deep); }
+
+/* ✅ CORRECCIÓN: Colores correctos para botones de estatus en panel */
+.panel-btn-pendiente { 
+    background: var(--celeste); 
+    color: var(--azul-deep); 
+}
+.panel-btn-procesando { 
+    background: var(--amarillo); 
+    color: var(--azul-deep); 
+}
+.panel-btn-finalizada { 
+    background: var(--verde); 
+    color: white; 
+}
+
+.btn-status-indicator {
+position: absolute;
+right: 12px;
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: rgba(255,255,255,0.4);
+}
+
+.btn-status-indicator.active {
+background: white;
+box-shadow: 0 0 8px rgba(255,255,255,0.6);
+}
+
+#indPend.active { background: var(--celeste) !important; box-shadow: 0 0 8px var(--celeste) !important; }
+#indProc.active { background: var(--amarillo) !important; box-shadow: 0 0 8px var(--amarillo) !important; }
+#indFin.active { background: var(--verde) !important; box-shadow: 0 0 8px var(--verde) !important; }
+
+/* Asignación de diseñador */
+.designer-assign-section {
+background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+border-radius: 16px;
+padding: 18px;
+border: 2px solid var(--naranja);
+}
+
+.designer-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-top: 12px;
+}
+
+.designer-btn {
+padding: 12px 8px;
+border: 2px solid transparent;
+border-radius: 10px;
+font-weight: 700;
+font-size: 0.8rem;
+cursor: pointer;
+transition: all 0.2s;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+background: white;
+box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.designer-btn:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+}
+
+.designer-btn.selected {
+border-color: var(--naranja);
+background: var(--amarillo);
+box-shadow: 0 0 0 3px rgba(251, 133, 0, 0.25), 0 4px 12px rgba(251, 133, 0, 0.3);
+transform: scale(1.02);
+}
+
+.designer-avatar {
+width: 36px;
+height: 36px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.3rem;
+box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Footer del panel */
+.panel-footer {
+padding: 20px;
+background: #f8f9fa;
+border-top: 3px solid var(--gris);
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+/* Footer compacto */
+.panel-footer.compact {
+padding: 15px;
+}
+
+.panel-footer-row {
+display: flex;
+gap: 8px;
+margin-bottom: 8px;
+}
+
+.panel-btn.compact-btn {
+padding: 8px 10px;
+font-size: 0.75rem;
+min-height: 36px;
+}
+
+.panel-btn.compact-btn .btn-text {
+font-size: 0.7rem;
+}
+
+.panel-footer-divider {
+height: 2px;
+background: linear-gradient(90deg, transparent, var(--celeste), transparent);
+margin: 5px 0;
+}
+
+/* Indicador visual de fila seleccionada en tabla */
+.row-selected-panel {
+background-color: #fff8e1 !important;
+border-left: 5px solid var(--naranja) !important;
+box-shadow: inset 0 0 20px rgba(251, 133, 0, 0.1);
+position: relative;
+}
+
+.row-selected-panel::before {
+content: '▶';
+position: absolute;
+left: -3px;
+top: 50%;
+transform: translateY(-50%);
+color: var(--naranja);
+font-size: 0.8rem;
+}
+
+/* Overlay para cerrar panel al hacer click fuera */
+.panel-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.3);
+z-index: 999;
+opacity: 0;
+visibility: hidden;
+transition: all 0.3s;
+backdrop-filter: blur(2px);
+}
+
+.panel-overlay.active {
+opacity: 1;
+visibility: visible;
+}
+
+/* Responsive panel */
+@media (max-width: 768px) {
+.side-panel {
+width: 100%;
+border-left: none;
+border-top: 5px solid var(--turquesa);
+transform: translateY(100%);
+}
+
+.side-panel.active {
+transform: translateY(0);
+}
+}
+
+/* Animación de entrada para secciones del panel */
+@keyframes slideInRight {
+from { opacity: 0; transform: translateX(20px); }
+to { opacity: 1; transform: translateX(0); }
+}
+
+.side-panel-content > * {
+animation: slideInRight 0.4s ease forwards;
+}
+
+.side-panel-content > *:nth-child(1) { animation-delay: 0.05s; }
+.side-panel-content > *:nth-child(2) { animation-delay: 0.1s; }
+.side-panel-content > *:nth-child(3) { animation-delay: 0.15s; }
+.side-panel-content > *:nth-child(4) { animation-delay: 0.2s; }
+.side-panel-content > *:nth-child(5) { animation-delay: 0.25s; }
+.side-panel-content > *:nth-child(6) { animation-delay: 0.3s; }
+}
+
+/* Botón de reporte en panel - igual al del header */
+.panel-btn.report-btn {
+position: relative;
+overflow: hidden;
+background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%);
+box-shadow: 0 3px 0 #1e4a35;
+width: 100%;
+}
+
+.panel-btn.report-btn:disabled {
+opacity: 0.65;
+cursor: not-allowed !important;
+transform: none !important;
+box-shadow: 0 3px 0 #1a3d2d !important;
+}
+
+.panel-btn.report-btn:not(:disabled):hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 0 #1e4a35;
+}
+
+.panel-btn.report-btn:not(:disabled):active {
+transform: translateY(1px);
+box-shadow: 0 2px 0 #1e4a35;
+}
+
+/* Responsive ajustes */
+@media (max-width: 768px) {
+.panel-footer-row {
+flex-direction: row;
+}
+.panel-btn.compact-btn {
+font-size: 0.7rem;
+padding: 6px 8px;
+}
+}
 </style>
 </head>
 <body>
@@ -694,6 +1170,126 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <div class="loading-text" id="loadMainTxt">Procesando...</div>
 <div class="loading-subtext" id="loadSubTxt"></div>
 </div>
+
+<!-- ✅ OVERLAY PARA CERRAR PANEL AL HACER CLICK FUERA -->
+<div id="panelOverlay" class="panel-overlay" onclick="closeSidePanel()"></div>
+
+<!-- ✅ PANEL LATERAL DERECHO -->
+<div id="sidePanel" class="side-panel">
+<div class="side-panel-header">
+<div class="side-panel-title">
+<span id="panelRoleIcon">⚙️</span>
+<span id="panelRoleText">Panel de Control</span>
+</div>
+<button class="side-panel-close" onclick="closeSidePanel()" title="Cerrar panel">×</button>
+</div>
+
+<div class="side-panel-content">
+<!-- Selección de Solicitud -->
+<div class="selected-request-section">
+<div class="selected-request-header">📋 Solicitud Seleccionada</div>
+<div id="selectedRequestContent">
+<div class="no-selection">
+<div class="no-selection-icon">📭</div>
+<div>Selecciona una solicitud<br>de la tabla para activar<br>las acciones</div>
+</div>
+</div>
+</div>
+
+<!-- Vista Previa de Archivo - IMAGEN COMPLETA A ESCALA -->
+<div class="file-preview-section">
+<div class="file-preview-header">🎨 Archivo Adjunto</div>
+<div class="file-preview-container" id="filePreviewContainer">
+<div class="file-preview-placeholder">
+<div class="file-preview-placeholder-icon">📎</div>
+<div>No hay archivo adjunto</div>
+</div>
+</div>
+<div class="file-preview-info" id="filePreviewInfo"></div>
+</div>
+
+<!-- Acciones de Estado -->
+<div class="panel-actions" id="statusActions">
+<div class="panel-section-title">🔄 Cambiar Estado</div>
+<button class="panel-btn panel-btn-pendiente" id="btnStatusPend" onclick="changeStatus('PENDIENTE')" disabled>
+⏳ Pendiente
+<span class="btn-status-indicator" id="indPend"></span>
+</button>
+<button class="panel-btn panel-btn-procesando" id="btnStatusProc" onclick="changeStatus('PROCESANDO')" disabled>
+⚙️ Procesando
+<span class="btn-status-indicator" id="indProc"></span>
+</button>
+<button class="panel-btn panel-btn-finalizada" id="btnStatusFin" onclick="changeStatus('FINALIZADA')" disabled>
+✅ Finalizada
+<span class="btn-status-indicator" id="indFin"></span>
+</button>
+</div>
+
+<!-- Asignación de Diseñador (Solo Admin) -->
+<div class="designer-assign-section hidden" id="designerAssignSection">
+<div class="panel-section-title">👨‍🎨 Asignar Diseñador</div>
+<div class="designer-grid" id="designerGrid">
+<button class="designer-btn" onclick="assignDesigner('Bermina')" disabled>
+<span class="designer-avatar" style="background: #fb8500;">👩</span>
+<span>Bermina</span>
+</button>
+<button class="designer-btn" onclick="assignDesigner('Jorsy')" disabled>
+<span class="designer-avatar" style="background: #023047; color: white;">👨</span>
+<span>Jorsy</span>
+</button>
+<button class="designer-btn" onclick="assignDesigner('María F.')" disabled>
+<span class="designer-avatar" style="background: #2d6a4f;">👩</span>
+<span>María F.</span>
+</button>
+<button class="designer-btn" onclick="assignDesigner('Xamir')" disabled>
+<span class="designer-avatar" style="background: #ffb703;">👨</span>
+<span>Xamir</span>
+</button>
+</div>
+</div>
+
+<!-- Acciones de Archivo -->
+<div class="panel-actions" id="fileActions">
+<div class="panel-section-title">📁 Acciones de Archivo</div>
+<button class="panel-btn panel-btn-info" id="btnAdjuntar" onclick="panelAdjuntarArte()" disabled>
+📤 Adjuntar Arte
+</button>
+<button class="panel-btn panel-btn-secondary" id="btnVerArte" onclick="panelVerArte()" disabled>
+👁️ Ver Arte
+</button>
+<button class="panel-btn panel-btn-primary" id="btnEnviarTG" onclick="panelEnviarTelegram()" disabled>
+✈️ Enviar a Telegram
+</button>
+</div>
+
+<!-- Acciones Especiales (Solo Admin) -->
+<div class="panel-actions hidden" id="adminActions">
+<div class="panel-section-title">⚠️ Acciones Especiales</div>
+<button class="panel-btn panel-btn-danger" id="btnEliminar" onclick="panelEliminar()" disabled>
+🗑️ Eliminar Solicitud
+</button>
+</div>
+</div>
+
+<!-- Footer con botones siempre visibles -->
+<div class="panel-footer compact">
+<div class="panel-footer-divider"></div>
+<div class="panel-section-title" style="font-size: 0.65rem; margin-bottom: 8px;">🔐 Sistema</div>
+<div class="panel-footer-row">
+<button class="panel-btn panel-btn-secondary compact-btn" id="btnMaint" onclick="toggleMaintMode()">
+🛠️ Mantenimiento
+</button>
+<button class="panel-btn panel-btn-danger compact-btn" onclick="logout()">
+🚪 Cerrar Sesión
+</button>
+</div>
+<button class="panel-btn panel-btn-success compact-btn report-btn" id="btnReportPanel" onclick="generateMonthlyReport()" disabled>
+<span id="reportBtnTextPanel">📊 Reporte</span>
+<span id="reportBtnDaysPanel" class="report-days-badge"></span>
+</button>
+</div>
+</div>
+
 <div class="modal-overlay" id="modalAlert">
 <div class="modal-content">
 <span id="modalIcon" style="font-size: 60px; display: block; margin-bottom: 10px;">⚠️</span>
@@ -722,36 +1318,13 @@ placeholder="Ingrese usuario">
 <div class="modal-content">
 <h2 style="font-weight: 800; color: var(--azul-deep); margin-top: 0;">🔍 Revisa tu Solicitud</h2>
 <div id="previewContent"></div>
-<div style="display: flex;
-gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto;
-margin-top: 20px;">
+<div style="display: flex; gap: 12px; justify-content: center; width: 100%; max-width: 500px; margin: 0 auto; margin-top: 20px;">
 <button id="btnCorregir" class="modal-btn-confirm corregir">✏️ Corregir</button>
 <button id="btnEnviarConfirmado" class="modal-btn-confirm enviar" disabled>🚀 Enviar Solicitud (<span id="countdown">10</span>)</button>
 </div>
 </div>
 </div>
-<!-- ✅ MODAL PARA SELECCIONAR DISEÑADOR -->
-<div class="modal-overlay" id="designerModal" style="display:none;">
-<div class="modal-content" style="max-width: 420px; padding: 30px;">
-<span style="font-size: 48px; display: block; margin-bottom: 15px;">🎨</span>
-<div style="font-weight: 800; font-size: 1.5rem; color: var(--azul-deep); margin-bottom: 15px; text-align: center;">
-Seleccionar Diseñador
-</div>
-<p style="margin: 15px 0; color: #555; font-size: 0.95rem; text-align: center;">
-¿Quién realizó el arte final para esta solicitud?
-</p>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;">
-<button class="modal-btn" style="background: var(--naranja); color: white; padding: 14px; font-weight: 800;"
-onclick="selectDesigner('Bermina')">👩‍🎨 Bermina</button>
-<button class="modal-btn" style="background: var(--azul-deep); color: white; padding: 14px; font-weight: 800;"
-onclick="selectDesigner('Jorsy')">👨‍🎨 Jorsy</button>
-<button class="modal-btn" style="background: var(--verde); color: white; padding: 14px; font-weight: 800;"
-onclick="selectDesigner('María F.')">👩‍🎨 María F.</button>
-<button class="modal-btn" style="background: var(--amarillo); color: var(--azul-deep); padding: 14px; font-weight: 800;"
-onclick="selectDesigner('Xamir')">👨‍🎨 Xamir</button>
-</div>
-</div>
-</div>
+<!-- ✅ MODAL PARA SELECCIONAR DISEÑADOR - ELIMINADO (AHORA EN PANEL) -->
 <!-- ✅ MODAL PARA MENSAJE DE ID NO ENCONTRADO -->
 <div class="modal-overlay" id="idNotFoundModal" style="display: none;">
 <div class="modal-content" style="max-width: 450px; padding: 25px;">
@@ -781,21 +1354,14 @@ Verifica que el ID sea correcto o limpia la búsqueda para ver todas las solicit
 <div class="admin-access">
 <!-- ✅ MENSAJE DE BIENVENIDA - MÁS LLAMATIVO -->
 <div id="welcomeMessage" class="welcome-message">¡Hola, <span id="userNameDisplay"></span>!</div>
-<!-- ✅ BOTONES EN HORIZONTAL -->
-<div class="admin-buttons">
-<button id="maintBtn" class="btn-login hidden" style="background: var(--rojo);
-box-shadow: 0 3px 0 #9b1c24; color: white;" onclick="toggleMaintMode()">⚙️ Mantenimiento</button>
-<button id="reportBtn" class="btn-login hidden" style="background: linear-gradient(to right, #2d6a4f 0%, #1e4a35 0%); box-shadow: 0 3px 0 #1e4a35; color: white;" onclick="generateMonthlyReport()">
-<span id="reportBtnText">📊 Generar Reporte</span>
-<span id="reportBtnDays" class="report-days-badge"></span>
-</button>
+<!-- Solo botón de login/logout -->
 <button id="authBtn" class="btn-login" onclick="showLogin()">🔐 Administrador</button>
-</div>
 </div>
 </header>
 <div class="container page active" id="form-page">
 <div class="aviso-48h">⚠️ IMPORTANTE: LAS SOLICITUDES DEBEN REALIZARSE CON 48 HORAS DE ANTICIPACIÓN</div>
 <form id="sigrafForm" novalidate>
+<!-- ... -->
 <label class="section-title">🏥 1. REGIÓN *</label>
 <div class="category-row" id="region-grid"></div>
 <div id="unidad-section" class="hidden">
@@ -950,6 +1516,11 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
 <script>
 // === CONFIGURACIÓN DE SCRIPT URL ===
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
+
+// ✅ VARIABLES GLOBALES DEL PANEL
+let selectedRequestId = null;
+let selectedRequestData = null;
+let isPanelOpen = false;
 
 // ✅ VARIABLES PARA SISTEMA DE CHUNKS MEJORADO
 let chunkUpload = {
@@ -1550,6 +2121,7 @@ a.trim().localeCompare(b.trim(), 'es', { sensitivity: 'base' })
 });
 
 // ✅ VARIABLES GLOBALES PARA ROLES
+let isLoggingIn = false;
 let isAdmin = false;
 let isDesigner = false;
 let selectedAMPM = "";
@@ -1570,7 +2142,8 @@ const designerColors = {
 };
 
 // ✅ NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
-let requestIdForDesigner = null;
+// VARIABLE ELIMINADA - Ya no se usa modal de diseñador, se usa el panel lateral
+// let requestIdForDesigner = null; // ELIMINADO
 
 // ✅ VARIABLES GLOBALES PARA BÚSQUEDA
 let currentSearchId = "";
@@ -1764,99 +2337,66 @@ function updateSearchVisibility() {
     }
 }
 
-// ✅ NUEVA FUNCIÓN: SELECCIONAR DISEÑADOR Y GUARDAR
-async function selectDesigner(designer) {
-if (!requestIdForDesigner) return;
-    
-document.getElementById('loadMainTxt').innerText = "Guardando diseñador...";
-document.getElementById('loadingOverlay').style.display = 'flex';
-    
-try {
-const params = new URLSearchParams();
-params.append("action", "updateStatus");
-params.append("id", requestIdForDesigner);
-params.append("status", "FINALIZADA");
-params.append("disenador", designer);
-// ✅ CORREGIDO: Enviar credenciales
-params.append("username", userCredentials.username);
-params.append("password", userCredentials.password);
-        
-const response = await fetch(SCRIPT_URL, {
-method: 'POST',
-headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-body: params.toString()
-});
-        
-const data = await response.json();
-        
-if (data.success) {
-const item = localData.find(x => x.id == requestIdForDesigner);
-if (item) {
-item.Estatus = "FINALIZADA";
-item.Disenador = designer;
-}
-document.getElementById('designerModal').style.display = 'none';
-requestIdForDesigner = null;
-renderLocalTable();
-openModal("✅ Éxito", `Solicitud asignada a ${designer}`, "🎨");
-} else {
-throw new Error(data.error || "Error desconocido");
-}
-} catch (e) {
-// ✅ CORREGIDO: Ocultar loading antes del mensaje de error
-document.getElementById('loadingOverlay').style.display = 'none';
-openModal("❌ Error", "Error al guardar: " + e.message, "💥");
-} finally {
-// ✅ Asegurar que el loading siempre se oculte
-document.getElementById('loadingOverlay').style.display = 'none';
-}
-}
-
-// ✅ MODIFICAR FUNCIÓN modStatus PARA DETECTAR FINALIZADA
+// ✅ MODIFICAR FUNCIÓN modStatus PARA DETECTAR FINALIZADA Y USAR PANEL
 async function modStatus(id, st) {
-const pill = document.getElementById('pill-' + id);
-const oldClass = pill.className;
-const oldText = pill.innerText;
-const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
-pill.className = `status-pill status-${newStatusClass}`;
-pill.innerText = st;
+    const pill = document.getElementById('pill-' + id);
+    const oldClass = pill.className;
+    const oldText = pill.innerText;
+    const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+    pill.className = `status-pill status-${newStatusClass}`;
+    pill.innerText = st;
     
-try {
-// ✅ SI ES FINALIZADA, MOSTRAR MODAL DE DISEÑADOR
-if (st === "FINALIZADA") {
-requestIdForDesigner = id;
-document.getElementById('designerModal').style.display = 'flex';
-return;
-}
+    try {
+        // ✅ SI ES FINALIZADA Y NO HAY DISEÑADOR ASIGNADO, MOSTRAR ALERTA EN PANEL
+        if (st === "FINALIZADA") {
+            const item = localData.find(x => x.id == id);
+            if (!item?.Disenador) {
+                // Abrir panel y mostrar mensaje
+                selectRequest(id);
+                openModal("⚠️ Atención", "Debes asignar un diseñador antes de finalizar la solicitud. Usa el panel lateral.", "👨‍🎨");
+                // Revertir cambio visual
+                pill.className = oldClass;
+                pill.innerText = oldText;
+                return;
+            }
+        }
         
-// ✅ CORREGIDO: Eliminar no-cors y enviar credenciales
-const params = new URLSearchParams();
-params.append("action", "updateStatus");
-params.append("id", id);
-params.append("status", st);
-params.append("username", userCredentials.username);
-params.append("password", userCredentials.password);
+        const params = new URLSearchParams();
+        params.append("action", "updateStatus");
+        params.append("id", id);
+        params.append("status", st);
+        params.append("username", userCredentials.username);
+        params.append("password", userCredentials.password);
         
-const response = await fetch(SCRIPT_URL, {
-method: 'POST',
-headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-body: params.toString()
-});
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
         
-const data = await response.json();
+        // ✅ VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("Respuesta no válida del servidor:", text);
+            throw new Error("Respuesta inválida del servidor");
+        }
         
-if (data.success) {
-const item = localData.find(x => x.id == id);
-if(item) item.Estatus = st;
-renderLocalTable();
-} else {
-throw new Error(data.error || "Error al actualizar estatus");
-}
-} catch (e) {
-pill.className = oldClass;
-pill.innerText = oldText;
-openModal("❌ Error", "Error de conexión: " + e.message, "💥");
-}
+        if (data.success) {
+            const item = localData.find(x => x.id == id);
+            if(item) item.Estatus = st;
+            renderLocalTable();
+        } else {
+            throw new Error(data.error || "Error al actualizar estatus");
+        }
+    } catch (e) {
+        pill.className = oldClass;
+        pill.innerText = oldText;
+        console.error("Error completo:", e);
+        openModal("❌ Error", "Error de conexión: " + e.message, "💥");
+    }
 }
 
 // ✅ FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
@@ -1929,9 +2469,9 @@ function renderLocalTable() {
             }
         }
         
-        // ✅ CÍRCULO DE DISEÑADOR
+        // ✅ CÍRCULO DE DISEÑADOR - AHORA VISIBLE EN CUALQUIER ESTADO
         let designerCircle = '';
-        if (s.Disenador && statusLimpio === 'finalizada') {
+        if (s.Disenador) {
             const color = designerColors[s.Disenador] || '#6c757d';
             designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
         }
@@ -1946,6 +2486,11 @@ function renderLocalTable() {
         
         const tr = document.createElement('tr');
         if(rowClass) tr.className = rowClass;
+        
+        // ✅ AGREGAR CLASE DE SELECCIÓN SI ESTÁ SELECCIONADA
+        if (selectedRequestId === s.id) {
+            tr.classList.add('row-selected-panel');
+        }
         
         // ✅ RENDERIZAR FILAS SEGÚN ROL DEL USUARIO
         if (isRegularUser) {
@@ -1966,10 +2511,15 @@ function renderLocalTable() {
                     ${designerCircle}
                     <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
                 </td>
+                <td></td>
             `;
         } else {
             // ADMIN O DISEÑADOR: Muestra ID, fecha evento/hora, unidad, jornada, soportes, status, acciones
             // ✅ BADGE MOVIDO A COLUMNA ID
+            
+            // 1. Definir el clip solo si hay ArteFinal
+            const clipIcon = s.ArteFinal ? '<span style="color: var(--verde); font-size: 1.1rem; margin-right: 4px;">📎</span>' : '';
+            
             tr.innerHTML = `
                 <td>
                     <span class="txt-bold">${s.id}</span>
@@ -1986,29 +2536,20 @@ function renderLocalTable() {
                     ${designerCircle}
                     <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
                 </td>
-                ${isAdmin ? `
-                <td align="right">
-                    <div class="admin-actions">
-                        <button class="btn-act bg-pend" onclick="modStatus('${s.id}','PENDIENTE')">P</button>
-                        <button class="btn-act bg-proc" onclick="modStatus('${s.id}','PROCESANDO')">PR</button>
-                        <button class="btn-act bg-fin" onclick="modStatus('${s.id}','FINALIZADA')">F</button>
-                        <button class="btn-arte" onclick="openArteModal('${s.id}')">Adj</button>
-                        ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">Ver</a>` : ''}
-                        ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">Tg</button>` : ''}
-                        <button class="btn-trash" onclick="deleteReq('${s.id}')">🗑️</button>
-                    </div>
+                <!-- ÚLTIMA COLUMNA: Clip (condicional) + Mensaje de mano -->
+                <td align="right" class="admin-actions">
+                    ${clipIcon}
+                    <span>👆 Click para seleccionar</span>
                 </td>
-                ` : ''}
-                ${isDesigner ? `
-                <td align="right">
-                    <div class="admin-actions">
-                        <button class="btn-arte" onclick="openArteModal('${s.id}')">Adj</button>
-                        ${s.ArteFinal ? `<a href="${s.ArteFinal}" target="_blank" class="btn-ver">Ver</a>` : ''}
-                        ${s.ArteFinal ? `<button class="btn-tg" onclick="sendTelegramArte('${s.id}')">Tg</button>` : ''}
-                    </div>
-                </td>
-                ` : ''}
             `;
+            
+            // ✅ AGREGAR EVENTO DE CLICK PARA SELECCIONAR (SOLO ADMIN Y DISEÑADOR)
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', function(e) {
+                // No seleccionar si se hizo click en un botón o enlace
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                selectRequest(s.id);
+            });
         }
         
         body.appendChild(tr);
@@ -2046,22 +2587,38 @@ function renderLocalTable() {
     document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
     document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
     
-    // ✅ ACTUALIZAR ENCABEZADOS DE TABLA PARA USUARIO REGULAR
+    // ✅ ACTUALIZAR ENCABEZADOS DE TABLA
     const thId = document.querySelector('th:first-child');
     const thFechaEvento = document.querySelector('th:nth-child(2)');
     const thUnidad = document.querySelector('th:nth-child(3)');
     const thJornada = document.querySelector('th:nth-child(4)');
-    
+    // Seleccionamos el encabezado visible (Admin o Diseñador)
+    const thActions = isAdmin ? document.getElementById('th-admin') : document.getElementById('th-designer');
+
     if (isRegularUser) {
         thId.innerHTML = '📅 FECHA SOLICITUD';
         thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
         thUnidad.innerHTML = '🏥 UNIDAD';
         thJornada.innerHTML = '📋 TIPO JORNADA';
+        // Ocultar encabezados de acciones si es usuario regular
+        document.getElementById('th-admin').classList.add('hidden');
+        document.getElementById('th-designer').classList.add('hidden');
     } else {
         thId.innerHTML = 'ID SOLICITUD';
         thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
         thUnidad.innerHTML = 'UNIDAD SOLICITANTE';
         thJornada.innerHTML = 'TIPO DE JORNADA';
+        
+        // ✅ CAMBIO: Texto dinámico según el rol
+        if (isAdmin) {
+            thActions.innerHTML = 'ACCIONES ADMIN';
+            thActions.classList.remove('hidden');
+            document.getElementById('th-designer').classList.add('hidden');
+        } else if (isDesigner) {
+            thActions.innerHTML = 'ACCIONES DISEÑO';
+            thActions.classList.remove('hidden');
+            document.getElementById('th-admin').classList.add('hidden');
+        }
     }
     
     // ✅ ACTUALIZAR VISIBILIDAD DEL BUSCADOR
@@ -2071,6 +2628,384 @@ function renderLocalTable() {
     if (isSearchActive && currentSearchId) {
         applySearchHighlight(currentSearchId);
     }
+    
+    // ✅ ACTUALIZAR PANEL SI ESTÁ ABIERTO
+    if (isPanelOpen && selectedRequestId) {
+        updatePanelContent();
+    }
+}
+
+// ✅ FUNCIONES DEL PANEL LATERAL
+function openSidePanel() {
+    const panel = document.getElementById('sidePanel');
+    const overlay = document.getElementById('panelOverlay');
+    
+    panel.classList.add('active');
+    overlay.classList.add('active');
+    isPanelOpen = true;
+    
+    // Actualizar contenido
+    updatePanelContent();
+}
+
+function closeSidePanel() {
+    const panel = document.getElementById('sidePanel');
+    const overlay = document.getElementById('panelOverlay');
+    
+    panel.classList.remove('active');
+    overlay.classList.remove('active');
+    isPanelOpen = false;
+    
+    // Deseleccionar fila visualmente (pero mantener selectedRequestId para referencia)
+    document.querySelectorAll('.row-selected-panel').forEach(row => {
+        row.classList.remove('row-selected-panel');
+    });
+}
+
+function selectRequest(id) {
+    // Si ya está seleccionada, no hacer nada
+    if (selectedRequestId === id && isPanelOpen) return;
+    
+    // Actualizar selección
+    selectedRequestId = id;
+    selectedRequestData = localData.find(x => x.id == id);
+    
+    // Abrir panel automáticamente
+    openSidePanel();
+    
+    // Actualizar tabla para mostrar selección visual
+    renderLocalTable();
+}
+
+function updatePanelContent() {
+    const container = document.getElementById('selectedRequestContent');
+    const hasSelection = selectedRequestId && selectedRequestData;
+    if (!hasSelection) {
+        container.innerHTML = `
+        <div class="no-selection">
+            <div class="no-selection-icon">📭</div>
+            <div>Selecciona una solicitud<br>de la tabla para activar<br>las acciones</div>
+        </div>
+        `;
+        disableAllPanelButtons();
+        updateFilePreview(null);
+        return;
+    }
+
+    // Mostrar info de solicitud
+    const esObituario = (selectedRequestData.Jornada || "").toLowerCase().includes("obituario");
+    const badge = esObituario ? '<span class="badge-prioridad">PRIORIZAR</span>' :
+        (selectedRequestData.Estatus === 'PENDIENTE' ? '<span class="badge-new">NEW</span>' : '');
+    container.innerHTML = `
+    <div class="selected-request-id">${selectedRequestId} ${badge}</div>
+    <div class="selected-request-info">
+        <strong>${selectedRequestData.Unidad}</strong><br>
+        ${selectedRequestData.Jornada}<br>
+        📅 ${selectedRequestData.Fecha} ${selectedRequestData.Hora ? '| ' + selectedRequestData.Hora : ''}
+    </div>
+    `;
+
+    // Actualizar indicadores de estado (luces)
+    const currentStatus = (selectedRequestData.Estatus || "").toUpperCase();
+    document.getElementById('indPend').classList.toggle('active', currentStatus === 'PENDIENTE');
+    document.getElementById('indProc').classList.toggle('active', currentStatus === 'PROCESANDO');
+    document.getElementById('indFin').classList.toggle('active', currentStatus === 'FINALIZADA');
+
+    // ✅ CORRECCIÓN: Habilitar botones según permisos (Esto activa los botones de estado)
+    enablePanelButtons();
+
+    // Referencias a elementos sensibles
+    const designerSection = document.getElementById('designerAssignSection');
+    const adminActionsSection = document.getElementById('adminActions');
+    const statusActionsSection = document.getElementById('statusActions');
+    const btnMaint = document.getElementById('btnMaint');
+    const btnReportPanel = document.getElementById('btnReportPanel');
+
+    // ✅ LÓGICA DE VISIBILIDAD POR ROL
+    if (isAdmin) {
+        // ADMIN: Acceso total (Estatus, Diseñadores, Mantenimiento, Reporte)
+        designerSection.classList.remove('hidden');
+        adminActionsSection.classList.remove('hidden');
+        statusActionsSection.classList.remove('hidden');
+        
+        if(btnMaint) btnMaint.style.display = 'flex';
+        if(btnReportPanel) btnReportPanel.style.display = 'flex';
+
+        // Habilitar botones de asignación y eliminación
+        document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = false);
+        document.getElementById('btnEliminar').disabled = false;
+
+        // Marcar diseñador seleccionado visualmente
+        if (selectedRequestData?.Disenador) {
+            document.querySelectorAll('.designer-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent.includes(selectedRequestData.Disenador));
+            });
+        } else {
+            document.querySelectorAll('.designer-btn').forEach(btn => btn.classList.remove('selected'));
+        }
+
+    } else if (isDesigner) {
+        // DISEÑADOR: Solo Archivo. OCULTAR Estatus, Mantenimiento y Reporte.
+        designerSection.classList.add('hidden');
+        adminActionsSection.classList.add('hidden');
+        statusActionsSection.classList.add('hidden'); // Ocultar botones de estado
+        
+        if(btnMaint) btnMaint.style.display = 'none'; // Ocultar Mantenimiento
+        if(btnReportPanel) btnReportPanel.style.display = 'none'; // Ocultar Reporte
+        
+        document.getElementById('btnEliminar').disabled = true;
+
+    } else {
+        // USUARIO REGULAR: Sin acceso a panel de gestión
+        designerSection.classList.add('hidden');
+        adminActionsSection.classList.add('hidden');
+        statusActionsSection.classList.add('hidden');
+        
+        if(btnMaint) btnMaint.style.display = 'none';
+        if(btnReportPanel) btnReportPanel.style.display = 'none';
+        
+        document.getElementById('btnEliminar').disabled = true;
+    }
+
+    // Actualizar vista previa de archivo
+    updateFilePreview(selectedRequestData.ArteFinal);
+
+    // ✅ HABILITAR ACCIONES DE ARCHIVO (Común para Admin y Diseñador)
+    // (Nota: enablePanelButtons ya habilita estos botones, pero esto asegura el estado de Telegram/Ver)
+    const hasArt = !!selectedRequestData?.ArteFinal;
+    document.getElementById('btnAdjuntar').disabled = !(isAdmin || isDesigner);
+    document.getElementById('btnVerArte').disabled = !hasArt;
+    document.getElementById('btnEnviarTG').disabled = !hasArt;
+}
+
+function updateFilePreview(arteUrl) {
+    const container = document.getElementById('filePreviewContainer');
+    const info = document.getElementById('filePreviewInfo');
+    
+    if (!arteUrl) {
+        container.innerHTML = `
+        <div class="file-preview-placeholder">
+        <div class="file-preview-placeholder-icon">📎</div>
+        <div>No hay archivo adjunto</div>
+        </div>
+        `;
+        info.innerHTML = '';
+        document.getElementById('btnVerArte').disabled = true;
+        document.getElementById('btnEnviarTG').disabled = true;
+        return;
+    }
+    
+    // Extraer ID de archivo de Google Drive
+    const fileIdMatch = arteUrl.match(/\/file\/d\/([-\w]{25,})/) || arteUrl.match(/[-\w]{25,}/);
+    if (!fileIdMatch) {
+        container.innerHTML = `
+        <div class="file-preview-placeholder">
+        <div class="file-preview-placeholder-icon">❓</div>
+        <div>No se puede previsualizar</div>
+        </div>
+        `;
+        return;
+    }
+    
+    const fileId = fileIdMatch[1];
+    // Usar thumbnail de Google Drive - IMAGEN COMPLETA A ESCALA REDUCIDA
+    const thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+    
+    container.innerHTML = `
+    <img src="${thumbnailUrl}" class="file-preview-image-full" onclick="window.open('${arteUrl}', '_blank')" title="Click para ver en tamaño completo">
+    `;
+    
+    info.innerHTML = '💾 Archivo adjunto disponible';
+    
+    document.getElementById('btnVerArte').disabled = false;
+    document.getElementById('btnEnviarTG').disabled = false;
+}
+
+function disableAllPanelButtons() {
+    const buttons = document.querySelectorAll('.panel-btn:not(#btnMaint):not(#btnReport)');
+    buttons.forEach(btn => btn.disabled = true);
+    document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = true);
+}
+
+function enablePanelButtons() {
+    // Botones de estado (Admin y Diseñador pueden cambiar estado)
+    document.getElementById('btnStatusPend').disabled = false;
+    document.getElementById('btnStatusProc').disabled = false;
+    document.getElementById('btnStatusFin').disabled = false;
+    
+    // Botones de archivo
+    document.getElementById('btnAdjuntar').disabled = false;
+    document.getElementById('btnVerArte').disabled = !selectedRequestData?.ArteFinal;
+    document.getElementById('btnEnviarTG').disabled = !selectedRequestData?.ArteFinal;
+    
+    // Botones especiales de Admin
+    if (isAdmin) {
+        document.getElementById('btnEliminar').disabled = false;
+        document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = false);
+    }
+}
+
+// ✅ ACCIONES DEL PANEL
+async function changeStatus(newStatus) {
+    if (!selectedRequestId) return;
+    
+    // Si es finalizada y no hay diseñador asignado (solo admin), mostrar alerta
+    if (newStatus === 'FINALIZADA' && isAdmin && !selectedRequestData?.Disenador) {
+        openModal("⚠️ Atención", "Debes asignar un diseñador antes de finalizar la solicitud.", "👨‍🎨");
+        return;
+    }
+    
+    document.getElementById('loadMainTxt').innerText = "Actualizando estado...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "updateStatus");
+        params.append("id", selectedRequestId);
+        params.append("status", newStatus);
+        params.append("username", userCredentials.username);
+        params.append("password", userCredentials.password);
+        
+        // Si es finalizada y ya tiene diseñador, enviarlo
+        if (newStatus === 'FINALIZADA' && selectedRequestData?.Disenador) {
+            params.append("disenador", selectedRequestData.Disenador);
+        }
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Actualizar datos locales
+            const item = localData.find(x => x.id == selectedRequestId);
+            if (item) {
+                item.Estatus = newStatus;
+                if (newStatus === 'FINALIZADA' && selectedRequestData?.Disenador) {
+                    item.Disenador = selectedRequestData.Disenador;
+                }
+                selectedRequestData = item;
+            }
+            
+            // Actualizar panel y tabla
+            updatePanelContent();
+            renderLocalTable();
+            
+            openModal("✅ Éxito", `Estado actualizado a ${newStatus}`, "🔄");
+        } else {
+            throw new Error(data.error || "Error al actualizar estado");
+        }
+    } catch (e) {
+        console.error("Error completo:", e);
+        openModal("❌ Error", e.message, "💥");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+async function assignDesigner(designerName) {
+    if (!isAdmin || !selectedRequestId) return;
+    
+    document.getElementById('loadMainTxt').innerText = "Asignando diseñador...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "assignDesigner");
+        params.append("id", selectedRequestId);
+        params.append("disenador", designerName);
+        params.append("username", userCredentials.username);
+        params.append("password", userCredentials.password);
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        // ✅ VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("Respuesta no válida del servidor:", text);
+            throw new Error("Respuesta inválida del servidor");
+        }
+        
+        if (data.success) {
+            // Actualizar datos locales
+            const item = localData.find(x => x.id == selectedRequestId);
+            if (item) {
+                item.Disenador = designerName;
+                selectedRequestData = item;
+            }
+            
+            // Actualizar UI
+            document.querySelectorAll('.designer-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent.includes(designerName)) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            renderLocalTable();
+            openModal("✅ Éxito", `Diseñador ${designerName} asignado`, "👨‍🎨");
+        } else {
+            throw new Error(data.error || "Error al asignar diseñador");
+        }
+    } catch (e) {
+        console.error("Error completo:", e);
+        openModal("❌ Error", e.message, "💥");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+function panelAdjuntarArte() {
+    if (!selectedRequestId) return;
+    openArteModal(selectedRequestId);
+}
+
+function panelVerArte() {
+    if (!selectedRequestData?.ArteFinal) return;
+    window.open(selectedRequestData.ArteFinal, '_blank');
+}
+
+async function panelEnviarTelegram() {
+    if (!selectedRequestId || !selectedRequestData?.ArteFinal) return;
+    
+    if(!confirm("¿Enviar el arte de " + selectedRequestId + " a Telegram?")) return;
+    
+    document.getElementById('loadMainTxt').innerText = "Enviando a Telegram...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "sendTelegramArte");
+        params.append("id", selectedRequestId);
+        
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+        const data = await res.json();
+        
+        if(data.success) {
+            openModal("✈️ Telegram", "¡Enviado a Telegram en alta calidad!", "📲");
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (e) {
+        openModal("❌ Error", e.message, "💥");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+function panelEliminar() {
+    if (!isAdmin || !selectedRequestId) return;
+    deleteReq(selectedRequestId);
 }
 
 // ✅ FUNCIONES PARA REPORTE MENSUAL - SOLO ADMIN
@@ -2143,54 +3078,77 @@ document.getElementById('loadingOverlay').style.display = 'none';
 });
 }
 
-// ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE
+// ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE (HEADER Y PANEL)
 function updateReportButtonStatus() {
 const today = new Date();
 const currentDay = today.getDate();
 const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-const btn = document.getElementById('reportBtn');
-const text = document.getElementById('reportBtnText');
-const daysText = document.getElementById('reportBtnDays');
+const btnHeader = document.getElementById('reportBtn');
+const btnPanel = document.getElementById('btnReportPanel');
+const textHeader = document.getElementById('reportBtnText');
+const textPanel = document.getElementById('reportBtnTextPanel');
+const daysHeader = document.getElementById('reportBtnDays');
+const daysPanel = document.getElementById('reportBtnDaysPanel');
 
-if (!btn || !isAdmin) return;
-
-// Calcular días restantes para el próximo 1°
+// Calcular días restantes
 let daysRemaining;
+let isAvailable = currentDay === 1;
+
 if (currentDay === 1) {
 daysRemaining = 0;
 } else {
 daysRemaining = totalDaysInMonth - currentDay + 1;
 }
 
-// Actualizar texto
-if (currentDay === 1) {
-daysText.textContent = 'Disponible hoy';
-daysText.classList.add('show');
+// Función auxiliar para actualizar un botón
+function updateBtn(btn, text, daysBadge, isPanel) {
+if (!btn) return;
+
+if (isAvailable) {
+daysBadge.textContent = 'Hoy';
+daysBadge.classList.add('show');
 btn.disabled = false;
 btn.style.cursor = 'pointer';
 text.style.opacity = '1';
 btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
 } else {
-daysText.textContent = `${daysRemaining}d`;
-daysText.classList.add('show');
+daysBadge.textContent = `${daysRemaining}d`;
+daysBadge.classList.add('show');
 btn.disabled = true;
 btn.style.cursor = 'not-allowed';
 text.style.opacity = '0.7';
 
-// Calcular progreso para el próximo ciclo
+// Calcular progreso
 const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
 btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
 }
 }
 
+// Actualizar ambos botones (si existen)
+updateBtn(btnHeader, textHeader, daysHeader, false);
+updateBtn(btnPanel, textPanel, daysPanel, true);
+}
+
 function checkFirstDayOfMonth() {
-  const today = new Date();
-  if (isAdmin) {
-    document.getElementById('reportBtn').classList.remove('hidden');
-    updateReportButtonStatus();
-    // Actualizar cada minuto para mantener el estado actualizado
-    setInterval(updateReportButtonStatus, 60000);
-  }
+if (isAdmin) {
+// Mostrar/ocultar botón de header (legacy, ahora siempre oculto en header)
+const reportBtnHeader = document.getElementById('reportBtn');
+const reportBtnPanel = document.getElementById('btnReportPanel');
+const maintBtn = document.getElementById('maintBtn');
+
+// Ocultar botones del header
+if (reportBtnHeader) reportBtnHeader.classList.add('hidden');
+if (maintBtn) maintBtn.classList.add('hidden');
+
+// Mostrar botón en panel
+if (reportBtnPanel) reportBtnPanel.classList.remove('hidden');
+
+updateReportButtonStatus();
+
+// Actualizar cada minuto
+if (window.reportInterval) clearInterval(window.reportInterval);
+window.reportInterval = setInterval(updateReportButtonStatus, 60000);
+}
 }
 
 // ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
@@ -2363,7 +3321,7 @@ descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en ca
 Array.from(document.querySelectorAll('.preview')).forEach(img => {
 img.src = '';
 img.style.display = 'none';
-img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen
+img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen válida
 });
 
 Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
@@ -2516,93 +3474,108 @@ passField.addEventListener('keydown', handleEnter);
 
 // VALIDACIÓN DE LOGIN MODIFICADA PARA SOPORTAR ADMIN Y DISEÑADOR
 async function validateLogin() {
-const u = document.getElementById('adminUser').value.trim();
-const p = document.getElementById('adminPass').value.trim();
+    // ✅ PREVENIR DOBLE CLIC
+    if (isLoggingIn) return;
+    isLoggingIn = true;
 
-if (!u || !p) {
-openModal("❌ Error", "Complete ambos campos.", "🔐");
-return;
-}
+    const u = document.getElementById('adminUser').value.trim();
+    const p = document.getElementById('adminPass').value.trim();
+    
+    // Deshabilitar botón visualmente
+    const btn = document.getElementById('mainModalBtn');
+    const originalBtnText = btn.innerText;
+    btn.disabled = true;
+    btn.style.opacity = "0.7";
+    btn.innerText = "Verificando...";
 
-document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
-document.getElementById('loadingOverlay').style.display = 'flex';
+    if (!u || !p) {
+        openModal("❌ Error", "Complete ambos campos.", "🔐");
+        isLoggingIn = false;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.innerText = originalBtnText;
+        return;
+    }
 
-try {
-const params = new URLSearchParams();
-params.append("action", "loginAdmin");
-params.append("username", u);
-params.append("password", p);
+    document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
+    document.getElementById('loadingOverlay').style.display = 'flex';
 
-// CORREGIDO: Eliminar modo no-cors para poder leer respuesta JSON
-const res = await fetch(SCRIPT_URL, { 
-method: 'POST',
-headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-body: params 
-});
-const data = await res.json();
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "loginAdmin");
+        params.append("username", u);
+        params.append("password", p);
 
-if (data.success && data.data) {
-// GUARDAR CREDENCIALES DEL USUARIO ACTUAL
-userCredentials = {
-username: u,
-password: p,
-displayName: data.data.displayName || u,
-role: data.data.role || "admin",
-designerName: data.data.designerName || ""
-};
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
 
-isAdmin = data.data.isAdmin || false;
-isDesigner = data.data.isDesigner || false;
+        // ✅ VALIDAR QUE LA RESPUESTA SEA TEXTO ANTES DE PARSEAR
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("Respuesta no es JSON válido:", text);
+            throw new Error("Respuesta inválida del servidor");
+        }
 
-// MOSTRAR MENSAJE DE BIENVENIDA CON NOMBRE DEL USUARIO Y ROL
-let welcomeText = userCredentials.displayName;
-if (isDesigner) {
-welcomeText += " (Diseñador)";
-}
+        if (data.success && data.data) {
+            userCredentials = {
+                username: u,
+                password: p,
+                displayName: data.data.displayName || u,
+                role: data.data.role || "admin",
+                designerName: data.data.designerName || ""
+            };
+            isAdmin = data.data.isAdmin || false;
+            isDesigner = data.data.isDesigner || false;
 
-document.getElementById('userNameDisplay').innerText = welcomeText;
-document.getElementById('welcomeMessage').classList.add('show');
-document.getElementById('authBtn').className = "btn-logout";
-document.getElementById('authBtn').innerText = `Cerrar Sesión`;
-document.getElementById('authBtn').onclick = logout;
+            let welcomeText = userCredentials.displayName;
+            if (isDesigner) welcomeText += " (Diseñador)";
+            
+            document.getElementById('userNameDisplay').innerText = welcomeText;
+            document.getElementById('welcomeMessage').classList.add('show');
+            document.getElementById('authBtn').className = "btn-logout";
+            document.getElementById('authBtn').innerText = `Cerrar Sesión`;
+            document.getElementById('authBtn').onclick = logout;
 
-// CONFIGURAR VISIBILIDAD SEGÚN ROL
-document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
-document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+            document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
+            document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+            
+            if (isAdmin) {
+                document.getElementById('maintBtn').classList.remove('hidden');
+                checkFirstDayOfMonth();
+            }
+            if (isDesigner) {
+                document.getElementById('maintBtn').classList.add('hidden');
+                document.getElementById('reportBtn').classList.add('hidden');
+            }
 
-if (isAdmin) {
-document.getElementById('maintBtn').classList.remove('hidden');
-// Verificar y mostrar botón de reporte - SOLO 1° DE MES
-checkFirstDayOfMonth();
-}
-
-if (isDesigner) {
-// Ocultar botones restringidos para diseñadores
-document.getElementById('maintBtn').classList.add('hidden');
-document.getElementById('reportBtn').classList.add('hidden');
-}
-
-// ACTUALIZAR VISIBILIDAD DEL BUSCADOR
-updateSearchVisibility();
-
-// RESTABLECER BÚSQUEDA Y OCULTAR MODAL AL INICIAR SESIÓN
-currentSearchId = "";
-isSearchActive = false;
-resetSearchHighlight();
-document.getElementById('idNotFoundModal').style.display = 'none';
-
-clearCredentials();
-closeModal();
-updateTable();
-} else {
-openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
-clearCredentials();
-}
-} catch (err) {
-openModal("❌ Error", "Error de conexión al validar.", "💥");
-} finally {
-document.getElementById('loadingOverlay').style.display = 'none';
-}
+            updateSearchVisibility();
+            currentSearchId = "";
+            isSearchActive = false;
+            resetSearchHighlight();
+            document.getElementById('idNotFoundModal').style.display = 'none';
+            clearCredentials();
+            closeModal();
+            updateTable();
+        } else {
+            openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
+            clearCredentials();
+        }
+    } catch (err) {
+        console.error("Error completo login:", err);
+        openModal("❌ Error", "Error de conexión al validar.", "💥");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        isLoggingIn = false;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.innerText = originalBtnText;
+    }
 }
 
 // FUNCIÓN DE LOGOUT MODIFICADA
@@ -2610,6 +3583,13 @@ function logout() {
 isAdmin = false;
 isDesigner = false;
 userCredentials = { username: "", password: "", displayName: "", role: "", designerName: "" };
+
+// Cerrar panel si está abierto
+if (isPanelOpen) closeSidePanel();
+
+// Limpiar selección
+selectedRequestId = null;
+selectedRequestData = null;
 
 // RESTABLECER BÚSQUEDA
 currentSearchId = "";
@@ -2639,8 +3619,6 @@ if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex'
 renderLocalTable();
 clearCredentials();
 }
-
-// === FIN FUNCIONES DE SEGURIDAD ===
 
 // === FUNCIONES ADMIN ===
 // ABRIR MODAL DE ARTE - CORREGIDA
@@ -2955,6 +3933,14 @@ async function executeDelete() {
         if (data.success) {
             // SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
             localData = localData.filter(x => x.id != id);
+            
+            // Si la eliminada es la seleccionada, cerrar panel
+            if (selectedRequestId === id) {
+                closeSidePanel();
+                selectedRequestId = null;
+                selectedRequestData = null;
+            }
+            
             renderLocalTable();
             
             openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
