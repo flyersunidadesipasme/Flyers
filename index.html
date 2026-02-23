@@ -209,48 +209,102 @@ background: #e9ecef;
 color: #495057;
 cursor: not-allowed;
 }
-.table-container { width: 100%; overflow-x: auto; margin-top: 5px; }
-table { width: 100%; border-collapse: collapse; min-width: 900px;
+/* ✅ TABLA: DISEÑO LIMPIO Y ESPACIADO */
+.table-container {
+width: 100%;
+overflow-x: auto;
+margin-top: 10px;
+border-radius: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-th { background: #f8f9fa; padding: 8px 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: var(--turquesa);
-border-bottom: 2px solid var(--gris); }
-td { padding: 6px 10px; border-bottom: 1px solid var(--gris); font-size: 0.82rem; line-height: 1.2; color: #1a1a1a;
-font-weight: 500; }
-.status-pill { padding: 3px 10px; border-radius: 15px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; transition: 0.3s;
+table {
+width: 100%;
+border-collapse: separate; /* ✅ MEJOR QUE COLLAPSE PARA BORDES REDONDEADOS */
+border-spacing: 0;
+min-width: 1000px; /* ✅ MÁS ANCHO PARA EVITAR AMONTONAMIENTO */
+background: white;
 }
-.txt-bold { font-weight: 800; color: var(--azul-deep); }
-.txt-small { font-size: 0.72rem; color: #4b4b4b; display: block; margin-bottom: 1px; font-weight: 500;
+th {
+background: #f1f5f9;
+padding: 12px 15px; /* ✅ MÁS ESPACIO VERTICAL */
+text-align: left;
+font-size: 0.7rem;
+text-transform: uppercase;
+font-weight: 800;
+color: var(--turquesa);
+border-bottom: 2px solid var(--celeste);
+white-space: nowrap; /* ✅ EVITA QUE LOS TÍTULOS SE ROMPAN */
+}
+td {
+padding: 14px 15px; /* ✅ FILAS MÁS ALTAS Y LEGIBLES */
+border-bottom: 1px solid #edf2f4;
+font-size: 0.85rem;
+line-height: 1.4;
+color: #334155;
+font-weight: 500;
+vertical-align: middle;
+}
+td.admin-actions-cell {
+    vertical-align: middle;
+    padding: 14px 15px; /* Mismo padding que las otras celdas */
+    text-align: right;
+    border-bottom: 1px solid #edf2f4; /* Asegura el borde */
+}
+
+.admin-actions-content {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: #fb8500;
+    font-weight: 700;
+}
+
+.admin-actions-content span:first-child {
+    display: inline-block;
+    line-height: 1;
+    font-size: 1.3rem;
+    vertical-align: middle;
+}
+
+.admin-actions-content span:last-child {
+    display: inline-block;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+/* ✅ CÍRCULO DE DISEÑADOR EN TABLA */
+.designer-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+    margin-top: 2px;
+}
+
+/* ✅ STATUS PILL */
+.status-pill {
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    transition: 0.3s;
+    display: inline-block;
+    vertical-align: middle;
 }
 .status-pendiente { background: var(--celeste); color: var(--azul-deep); }
 .status-procesando { background: var(--amarillo); color: var(--azul-deep); }
-.status-finalizada { background: var(--verde); color: white;
-}
-/* ✅ CÍRCULO DE DISEÑADOR EN TABLA */
-.designer-circle {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 5px;
-  vertical-align: middle;
-  margin-top: 2px;
-}
+.status-finalizada { background: var(--verde); color: white; }
 
-/* Estilo para el estado */
-.status-pill {
-  display: inline-block;
-  vertical-align: middle;
-}
-.admin-actions { 
-    display: flex; 
-    gap: 6px; 
-    justify-content: flex-end; 
-    align-items: center; /* Centra verticalmente */
-    white-space: nowrap; /* Evita que el texto salte de línea */
-    font-size: 0.75rem; 
-    color: #fb8500; /* Color naranja para el texto de acción */
-    font-weight: 700;
-}
+/* ✅ UTILIDADES DE TEXTO */
+.txt-bold { font-weight: 800; color: var(--azul-deep); }
+.txt-small { font-size: 0.72rem; color: #4b4b4b; display: block; margin-bottom: 1px; font-weight: 500; }
+
 .btn-act { border: none; border-radius: 5px; padding: 4px 6px;
 cursor: pointer; font-size: 9px; color: white; font-weight: 800; transition: 0.2s; }
 .btn-act:hover { transform: scale(1.1); }
@@ -2133,6 +2187,30 @@ let selectedRegionKey = "";
 let selectedUnidad = "";
 let modoObituario = false;
 
+// ✅ OPTIMIZACIONES DE RENDIMIENTO - CACHE Y VIRTUALIZACIÓN
+const DATA_CACHE = {
+    data: null,
+    timestamp: 0,
+    ttl: 60000, // CAMBIADO: de 5000 a 60000 (60 segundos)
+    isLoading: false,
+    pendingPromise: null
+};
+
+const VIRTUAL_SCROLL = {
+    enabled: true,
+    pageSize: 50,
+    currentPage: 1,
+    totalPages: 1,
+    allData: [],
+    renderedData: []
+};
+
+let DATA_INDEX = {
+    byId: new Map(),
+    byStatus: new Map(),
+    byDesigner: new Map()
+};
+
 // ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
 const designerColors = {
 "Bermina": "#fb8500",
@@ -2169,26 +2247,57 @@ oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "
 
 // ✅ FUNCIÓN PRINCIPAL: BUSCAR POR ID
 function searchById() {
-const searchInput = document.getElementById('searchIdInput');
-const searchTerm = searchInput.value.trim().toUpperCase();
-
-currentSearchId = searchTerm;
-isSearchActive = searchTerm.length > 0;
-
-// ✅ MOSTRAR/OCULTAR CONTENEDOR SEGÚN ROL Y BÚSQUEDA
-const searchContainer = document.getElementById('designer-search-container');
-if (isDesigner) {
-searchContainer.classList.remove('hidden');
-}
-
-// ✅ SI NO HAY BÚSQUEDA, RESTABLECER TABLA
-if (!isSearchActive) {
-resetSearchHighlight();
-return;
-}
-
-// ✅ REALIZAR BÚSQUEDA Y APLICAR EFECTOS
-applySearchHighlight(searchTerm);
+    const searchInput = document.getElementById('searchIdInput');
+    const searchTerm = searchInput.value.trim().toUpperCase();
+    
+    currentSearchId = searchTerm;
+    isSearchActive = searchTerm.length > 0;
+    
+    const searchContainer = document.getElementById('designer-search-container');
+    if (isDesigner || isAdmin) {
+        searchContainer.classList.remove('hidden');
+    }
+    
+    if (!isSearchActive) {
+        resetSearchHighlight();
+        renderPage(1);
+        return;
+    }
+    
+    const matchedEntry = DATA_INDEX.byId.get(searchTerm);
+    
+    if (matchedEntry) {
+        const body = document.getElementById('solicitudes-body');
+        body.innerHTML = '';
+        const tr = createRowElement(matchedEntry.item, matchedEntry.index);
+        tr.classList.add('row-highlighted');
+        body.appendChild(tr);
+        
+        updateCounters({
+            total: 1, 
+            pend: matchedEntry.item.Estatus === 'PENDIENTE' ? 1 : 0,
+            proc: matchedEntry.item.Estatus === 'PROCESANDO' ? 1 : 0,
+            fin: matchedEntry.item.Estatus === 'FINALIZADA' ? 1 : 0,
+            bermina: matchedEntry.item.Disenador === 'Bermina' ? 1 : 0,
+            jorsy: matchedEntry.item.Disenador === 'Jorsy' ? 1 : 0,
+            maria: matchedEntry.item.Disenador === 'María F.' ? 1 : 0,
+            xamir: matchedEntry.item.Disenador === 'Xamir' ? 1 : 0
+        });
+        
+        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        document.getElementById('notFoundId').innerText = currentSearchId;
+        document.getElementById('idNotFoundModal').style.display = 'flex';
+        
+        const body = document.getElementById('solicitudes-body');
+        body.innerHTML = `
+            <tr>
+                <td colspan="8" class="no-results-message show">
+                    No se encontraron resultados para "${searchTerm}"
+                </td>
+            </tr>
+        `;
+    }
 }
 
 // ✅ APLICAR RESALTADO Y BLOQUEO
@@ -2395,11 +2504,270 @@ async function modStatus(id, st) {
         pill.className = oldClass;
         pill.innerText = oldText;
         console.error("Error completo:", e);
-        openModal("❌ Error", "Error de conexión: " + e.message, "💥");
+        openModal("", "Error de conexión: " + e.message, "");
     }
 }
 
-// ✅ FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
+function renderLocalTableOptimized() {
+    const body = document.getElementById('solicitudes-body');
+    // Mostrar spinner ligero
+    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#888;">Cargando filas...</td></tr>`;
+
+    requestAnimationFrame(() => {
+        VIRTUAL_SCROLL.allData = localData;
+        VIRTUAL_SCROLL.currentPage = 1;
+        VIRTUAL_SCROLL.totalPages = Math.ceil(localData.length / VIRTUAL_SCROLL.pageSize);
+        renderPage(1);
+    });
+}
+
+// NUEVA FUNCIÓN: SOLO CALCULA ESTADÍSTICAS SIN BLOQUEAR
+function calculateStatsInBackground() {
+    let counts = {
+        total: 0, pend: 0, proc: 0, fin: 0,
+        bermina: 0, jorsy: 0, maria: 0, xamir: 0
+    };
+
+    // Iteramos los datos para contar
+    localData.forEach(s => {
+        counts.total++;
+        const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+        const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+        
+        if(statusLimpio === 'pendiente') counts.pend++;
+        else if(statusLimpio === 'procesando') counts.proc++;
+        else if(statusLimpio === 'finalizada') {
+            counts.fin++;
+            if (s.Disenador) {
+                if (s.Disenador === "Bermina") counts.bermina++;
+                else if (s.Disenador === "Jorsy") counts.jorsy++;
+                else if (s.Disenador === "María F.") counts.maria++;
+                else if (s.Disenador === "Xamir") counts.xamir++;
+            }
+        }
+    });
+
+    // Actualizamos la UI con los resultados
+    updateCounters(counts);
+    console.log(" Estadísticas actualizadas en segundo plano");
+}
+
+// ACTUALIZAR CONTADORES (YA NO CALCULA, SOLO PINTA)
+function updateCounters(stats) {
+    if (!stats) return;
+
+    // Contadores básicos
+    document.getElementById('count-total').innerText = stats.total || 0;
+    document.getElementById('count-pend').innerText = stats.pend || 0;
+    document.getElementById('count-proc').innerText = stats.proc || 0;
+    document.getElementById('count-fin').innerText = stats.fin || 0;
+
+    // Contadores Admin
+    document.getElementById('count-total-admin').innerText = stats.total || 0;
+    document.getElementById('count-pend-admin').innerText = stats.pend || 0;
+    document.getElementById('count-proc-admin').innerText = stats.proc || 0;
+    document.getElementById('count-fin-admin').innerText = stats.fin || 0;
+    document.getElementById('count-bermina-admin').innerText = stats.bermina || 0;
+    document.getElementById('count-jorsy-admin').innerText = stats.jorsy || 0;
+    document.getElementById('count-maria-admin').innerText = stats.maria || 0;
+    document.getElementById('count-xamir-admin').innerText = stats.xamir || 0;
+
+    // Visibilidad según rol
+    if (isAdmin) {
+        document.getElementById('stats-panel').style.display = 'none';
+        document.getElementById('combined-stats').style.display = 'flex';
+    } else {
+        document.getElementById('stats-panel').style.display = 'flex';
+        document.getElementById('combined-stats').style.display = 'none';
+    }
+    
+    // Actualizar Headers
+    updateSearchVisibility();
+    if (isSearchActive && currentSearchId) applySearchHighlight(currentSearchId);
+    if (isPanelOpen && selectedRequestId) updatePanelContent();
+    
+    // ✅ MOSTRAR/OCULTAR COLUMNAS SEGÚN ROL
+    document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
+    document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+}
+
+function renderPage(pageNum) {
+    const body = document.getElementById('solicitudes-body');
+    const start = (pageNum - 1) * VIRTUAL_SCROLL.pageSize;
+    const end = Math.min(start + VIRTUAL_SCROLL.pageSize, VIRTUAL_SCROLL.allData.length);
+    const pageData = VIRTUAL_SCROLL.allData.slice(start, end);
+    
+    const fragment = document.createDocumentFragment();
+    
+    pageData.forEach((s, idx) => {
+        const tr = createRowElement(s, start + idx);
+        fragment.appendChild(tr);
+    });
+    
+    if (pageNum === 1) {
+        body.innerHTML = '';
+    } else {
+        body.lastElementChild?.remove();
+    }
+    
+    body.appendChild(fragment);
+    
+    if (pageNum < VIRTUAL_SCROLL.totalPages) {
+        const remaining = VIRTUAL_SCROLL.allData.length - end;
+        const loadMoreRow = document.createElement('tr');
+        loadMoreRow.innerHTML = `
+            <td colspan="7" style="text-align: center; padding: 20px;">
+                <button onclick="loadMoreRows()" 
+                        style="padding: 10px 30px; background: #219ebc; color: white; 
+                               border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Cargar más (${remaining} restantes)
+                </button>
+            </td>
+        `;
+        body.appendChild(loadMoreRow);
+    }
+}
+
+function loadMoreRows() {
+    VIRTUAL_SCROLL.currentPage++;
+    renderPage(VIRTUAL_SCROLL.currentPage);
+}
+
+function createRowElement(s, idx) {
+    const tr = document.createElement('tr');
+    
+    const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+    const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+    const esNueva = (statusReal === "PENDIENTE");
+    const esObituario = (s.Jornada || "").toLowerCase().includes("obituario");
+    const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+    const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
+    
+    if (esNueva) {
+        tr.className = esObituario ? "row-obituario" : "row-new";
+    }
+    if (selectedRequestId === s.id) {
+        tr.classList.add('row-selected-panel');
+    }
+    
+    let badge = '';
+    if (esNueva) {
+        badge = esObituario 
+            ? '<span class="badge-prioridad">PRIORIZAR</span>'
+            : '<span class="badge-new">NEW</span>';
+    }
+    
+    let designerCircle = '';
+    if (s.Disenador) {
+        const color = designerColors[s.Disenador] || '#6c757d';
+        designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+    }
+    
+    const icon = (s.Soportes && s.Soportes.includes("SÍ")) 
+        ? `📷 (${s.Soportes.match(/\d+/) || 1})` 
+        : "🙈";
+    
+    const fechaEventoFormat = extractDatePart(s.Fecha);
+    const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
+    const isRegularUser = !isAdmin && !isDesigner;
+    
+    if (isRegularUser) {
+        const fechaSolicitudFormat = extractDatePart(s.Timestamp);
+        const horaSolicitudFormat = extractTimePart(s.Timestamp);
+        
+        tr.innerHTML = `
+            <td>
+                <span class="txt-bold">${fechaSolicitudFormat}</span><br>
+                <span class="txt-small">${horaSolicitudFormat}</span>
+            </td>
+            <td>
+                <span class="txt-bold">${fechaEventoFormat}</span><br>
+                <span class="txt-small">${horaEvento}</span>
+            </td>
+            <td class="txt-bold">${unidadLimpia} ${badge}</td>
+            <td>${jornadaLimpia}</td>
+            <td align="center">${icon}</td>
+            <td>
+                ${designerCircle}
+                <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+            </td>
+        `;
+    } else {
+        // ADMIN O DISEÑADOR: Lógica de Iconos Condicional Robusta
+        // Verificamos que ArteFinal exista y no esté vacío
+        const hasArt = (s.ArteFinal && s.ArteFinal.trim() !== "" && s.ArteFinal !== "null");
+        
+        let actionIcon, actionText;
+
+        if (hasArt) {
+            // HAY ARCHIVO: Clip Verde
+            actionIcon = '<span style="color: var(--verde); font-size: 1.3rem;">📎</span>';
+            actionText = '<span style="color: var(--verde);">Archivo Adjunto</span>';
+        } else {
+            // NO HAY ARCHIVO: Mano Naranja
+            actionIcon = '<span style="color: #fb8500; font-size: 1.3rem;">👆</span>';
+            actionText = '<span>Click para seleccionar</span>';
+        }
+
+        tr.innerHTML = `
+        <td>
+            <span class="txt-bold">${s.id}</span>
+            ${badge}
+        </td>
+        <td>
+            <span class="txt-bold">${fechaEventoFormat}</span><br>
+            <span class="txt-small">${horaEvento}</span>
+        </td>
+        <td class="txt-bold">${unidadLimpia}</td>
+        <td>${jornadaLimpia}</td>
+        <td align="center">${icon}</td>
+        <td>
+            ${designerCircle}
+            <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+        </td>
+        <!-- COLUMNA DE ACCIONES CON ICONO CONDICIONAL Y TEXTO ALINEADO -->
+        <td align="right" class="admin-actions-cell">
+            <div class="admin-actions-content">
+                ${actionIcon}
+                ${actionText}
+            </div>
+        </td>
+        `;
+        
+        // AGREGAR VERIFICACIÓN: Solo permitir selección si es admin o diseñador
+        if (!isRegularUser) {
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', function(e) {
+                // VERIFICACIÓN ADICIONAL: No seleccionar si ya no es admin/diseñador
+                if (!isAdmin && !isDesigner) return;
+                // No seleccionar si se hizo click en un botón o enlace
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                selectRequest(s.id);
+            });
+        }
+    }
+    
+    return tr;
+}
+
+// FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
+// FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
+// ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
+function extractDatePart(dateString) {
+  if (!dateString || dateString.trim() === '') return 'N/A';
+  // Extraer solo la parte de fecha (antes del primer espacio)
+  return dateString.split(' ')[0] || 'N/A';
+}
+
+// ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
+function extractTimePart(dateString) {
+  if (!dateString || dateString.trim() === '') return 'Sin hora';
+  // Extraer hora + AM/PM (después del primer espacio)
+  const parts = dateString.trim().split(' ');
+  if (parts.length < 2) return 'Sin hora';
+  return parts.slice(1).join(' ');
+}
+// FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
 function renderLocalTable() {
     const body = document.getElementById('solicitudes-body');
     body.innerHTML = "";
@@ -2414,18 +2782,18 @@ function renderLocalTable() {
         xamir: 0
     };
     
-    // ✅ USAR DIRECTAMENTE localData (YA ORDENADO DEL BACKEND)
-    // ✅ Determinar si es usuario regular (ni admin ni diseñador)
+    // USAR DIRECTAMENTE localData (YA ORDENADO DEL BACKEND)
+    // Determinar si es usuario regular (ni admin ni diseñador)
     const isRegularUser = !isAdmin && !isDesigner;
     
-    // ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
+    // FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
     function extractDatePart(dateString) {
       if (!dateString || dateString.trim() === '') return 'N/A';
       // Extraer solo la parte de fecha (antes del primer espacio)
       return dateString.split(' ')[0] || 'N/A';
     }
 
-    // ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
+    // FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
     function extractTimePart(dateString) {
       if (!dateString || dateString.trim() === '') return 'Sin hora';
       // Extraer hora + AM/PM (después del primer espacio)
@@ -2514,42 +2882,59 @@ function renderLocalTable() {
                 <td></td>
             `;
         } else {
-            // ADMIN O DISEÑADOR: Muestra ID, fecha evento/hora, unidad, jornada, soportes, status, acciones
-            // ✅ BADGE MOVIDO A COLUMNA ID
+            // ADMIN O DISEÑADOR: Lógica de Iconos Condicional Robusta
+            // Verificamos que ArteFinal exista y no esté vacío
+            const hasArt = (s.ArteFinal && s.ArteFinal.trim() !== "" && s.ArteFinal !== "null");
             
-            // 1. Definir el clip solo si hay ArteFinal
-            const clipIcon = s.ArteFinal ? '<span style="color: var(--verde); font-size: 1.1rem; margin-right: 4px;">📎</span>' : '';
-            
+            let actionIcon, actionText;
+
+            if (hasArt) {
+                // HAY ARCHIVO: Clip Verde
+                actionIcon = '<span style="color: var(--verde); font-size: 1.3rem;">📎</span>';
+                actionText = '<span style="color: var(--verde);">Archivo Adjunto</span>';
+            } else {
+                // NO HAY ARCHIVO: Mano Naranja
+                actionIcon = '<span style="color: #fb8500; font-size: 1.3rem;">👆</span>';
+                actionText = '<span>Click para seleccionar</span>';
+            }
+
             tr.innerHTML = `
-                <td>
-                    <span class="txt-bold">${s.id}</span>
-                    ${badge}  <!-- ✅ BADGE MOVIDO AQUÍ -->
-                </td>
-                <td>
-                    <span class="txt-bold">${fechaEventoFormat}</span><br>
-                    <span class="txt-small">${horaEvento}</span>
-                </td>
-                <td class="txt-bold">${unidadLimpia}</td>
-                <td>${jornadaLimpia}</td>
-                <td align="center">${icon}</td>
-                <td>
-                    ${designerCircle}
-                    <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
-                </td>
-                <!-- ÚLTIMA COLUMNA: Clip (condicional) + Mensaje de mano -->
-                <td align="right" class="admin-actions">
-                    ${clipIcon}
-                    <span>👆 Click para seleccionar</span>
-                </td>
+            <td>
+                <span class="txt-bold">${s.id}</span>
+                ${badge}
+            </td>
+            <td>
+                <span class="txt-bold">${fechaEventoFormat}</span><br>
+                <span class="txt-small">${horaEvento}</span>
+            </td>
+            <td class="txt-bold">${unidadLimpia}</td>
+            <td>${jornadaLimpia}</td>
+            <td align="center">${icon}</td>
+            <td>
+                ${designerCircle}
+                <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+            </td>
+            <!-- COLUMNA DE ACCIONES CON ICONO CONDICIONAL Y TEXTO ALINEADO -->
+            <td align="right" class="admin-actions-cell">
+                <div class="admin-actions-content">
+                    ${actionIcon}
+                    ${actionText}
+                </div>
+            </td>
             `;
             
-            // ✅ AGREGAR EVENTO DE CLICK PARA SELECCIONAR (SOLO ADMIN Y DISEÑADOR)
-            tr.style.cursor = 'pointer';
-            tr.addEventListener('click', function(e) {
-                // No seleccionar si se hizo click en un botón o enlace
-                if (e.target.closest('button') || e.target.closest('a')) return;
-                selectRequest(s.id);
-            });
+            // AGREGAR VERIFICACIÓN: Solo permitir selección si es admin o diseñador
+            if (!isRegularUser) {
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', function(e) {
+                    // VERIFICACIÓN ADICIONAL: No seleccionar si ya no es admin/diseñador
+                    // ✅ VERIFICACIÓN ADICIONAL: No seleccionar si ya no es admin/diseñador
+                    if (!isAdmin && !isDesigner) return;
+                    // No seleccionar si se hizo click en un botón o enlace
+                    if (e.target.closest('button') || e.target.closest('a')) return;
+                    selectRequest(s.id);
+                });
+            }
         }
         
         body.appendChild(tr);
@@ -2635,8 +3020,14 @@ function renderLocalTable() {
     }
 }
 
-// ✅ FUNCIONES DEL PANEL LATERAL
+// FUNCIONES DEL PANEL LATERAL
 function openSidePanel() {
+    // AGREGAR: Verificar permisos antes de abrir
+    if (!isAdmin && !isDesigner) {
+        console.log("⛔ Intento de abrir panel sin permisos");
+        return;
+    }
+    
     const panel = document.getElementById('sidePanel');
     const overlay = document.getElementById('panelOverlay');
     
@@ -2663,6 +3054,12 @@ function closeSidePanel() {
 }
 
 function selectRequest(id) {
+    // AGREGAR: Verificar permisos antes de seleccionar
+    if (!isAdmin && !isDesigner) {
+        console.log("⛔ Intento de selección sin permisos");
+        return; // No permitir selección si no es admin o diseñador
+    }
+    
     // Si ya está seleccionada, no hacer nada
     if (selectedRequestId === id && isPanelOpen) return;
     
@@ -3245,6 +3642,14 @@ regionGrid.appendChild(btn);
 });
 updateTable();
 setupFieldErrorRemoval();
+
+// ✅ PRECARGA INTELIGENTE EN BACKGROUND
+setTimeout(() => {
+    if (!DATA_CACHE.data && !DATA_CACHE.isLoading) {
+        console.log("🚀 Iniciando precarga inteligente en background...");
+        updateTable();
+    }
+}, 2000);
 });
 
 function selectRegion(regionKey) {
@@ -3472,57 +3877,53 @@ userField.addEventListener('keydown', handleEnter);
 passField.addEventListener('keydown', handleEnter);
 }
 
-// VALIDACIÓN DE LOGIN MODIFICADA PARA SOPORTAR ADMIN Y DISEÑADOR
+// ✅ LOGIN CORREGIDO (NO FALLA SI LA TABLA TARDA)
 async function validateLogin() {
-    // ✅ PREVENIR DOBLE CLIC
     if (isLoggingIn) return;
     isLoggingIn = true;
-
+    
     const u = document.getElementById('adminUser').value.trim();
     const p = document.getElementById('adminPass').value.trim();
-    
-    // Deshabilitar botón visualmente
     const btn = document.getElementById('mainModalBtn');
     const originalBtnText = btn.innerText;
+    
     btn.disabled = true;
-    btn.style.opacity = "0.7";
     btn.innerText = "Verificando...";
-
+    
     if (!u || !p) {
         openModal("❌ Error", "Complete ambos campos.", "🔐");
         isLoggingIn = false;
         btn.disabled = false;
-        btn.style.opacity = "1";
         btn.innerText = originalBtnText;
         return;
     }
-
+    
+    // ✅ SPINNER DE CARGA
     document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
     document.getElementById('loadingOverlay').style.display = 'flex';
-
+    
     try {
         const params = new URLSearchParams();
         params.append("action", "loginAdmin");
         params.append("username", u);
         params.append("password", p);
-
+        
         const res = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
         });
-
-        // ✅ VALIDAR QUE LA RESPUESTA SEA TEXTO ANTES DE PARSEAR
+        
         const text = await res.text();
         let data;
         try {
             data = JSON.parse(text);
         } catch (e) {
-            console.error("Respuesta no es JSON válido:", text);
             throw new Error("Respuesta inválida del servidor");
         }
-
+        
         if (data.success && data.data) {
+            // ✅ LOGIN EXITOSO
             userCredentials = {
                 username: u,
                 password: p,
@@ -3532,92 +3933,85 @@ async function validateLogin() {
             };
             isAdmin = data.data.isAdmin || false;
             isDesigner = data.data.isDesigner || false;
-
-            let welcomeText = userCredentials.displayName;
-            if (isDesigner) welcomeText += " (Diseñador)";
             
-            document.getElementById('userNameDisplay').innerText = welcomeText;
+            // Actualizar UI
+            document.getElementById('userNameDisplay').innerText = userCredentials.displayName + (isDesigner ? " (Diseñador)" : "");
             document.getElementById('welcomeMessage').classList.add('show');
             document.getElementById('authBtn').className = "btn-logout";
-            document.getElementById('authBtn').innerText = `Cerrar Sesión`;
+            document.getElementById('authBtn').innerText = "Cerrar Sesión";
             document.getElementById('authBtn').onclick = logout;
-
-            document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
-            document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
             
-            if (isAdmin) {
-                document.getElementById('maintBtn').classList.remove('hidden');
-                checkFirstDayOfMonth();
-            }
-            if (isDesigner) {
-                document.getElementById('maintBtn').classList.add('hidden');
-                document.getElementById('reportBtn').classList.add('hidden');
-            }
-
-            updateSearchVisibility();
-            currentSearchId = "";
-            isSearchActive = false;
-            resetSearchHighlight();
-            document.getElementById('idNotFoundModal').style.display = 'none';
             clearCredentials();
             closeModal();
-            updateTable();
+            document.getElementById('loadingOverlay').style.display = 'none';
+            
+            // ✅ CARGAR DATOS EN SEGUNDO PLANO (NO BLOQUEA EL LOGIN)
+            DATA_CACHE.data = null;
+            updateTable(true).catch(err => {
+                console.warn("Login exitoso, pero fallo carga de datos:", err);
+                // ✅ NO MOSTRAR ERROR AL USUARIO SI EL LOGIN FUE EXITOSO
+            });
+            
         } else {
-            openModal("❌ Error", "Usuario o Contraseña incorrectos.", "🔐");
-            clearCredentials();
+            throw new Error("Credenciales incorrectas");
         }
     } catch (err) {
-        console.error("Error completo login:", err);
-        openModal("❌ Error", "Error de conexión al validar.", "💥");
-    } finally {
+        console.error("Error login:", err);
         document.getElementById('loadingOverlay').style.display = 'none';
+        openModal("❌ Error", err.message || "Error de conexión al validar.", "💥");
+        clearCredentials();
+    } finally {
         isLoggingIn = false;
         btn.disabled = false;
-        btn.style.opacity = "1";
         btn.innerText = originalBtnText;
     }
 }
 
 // FUNCIÓN DE LOGOUT MODIFICADA
 function logout() {
-isAdmin = false;
-isDesigner = false;
-userCredentials = { username: "", password: "", displayName: "", role: "", designerName: "" };
-
-// Cerrar panel si está abierto
-if (isPanelOpen) closeSidePanel();
-
-// Limpiar selección
-selectedRequestId = null;
-selectedRequestData = null;
-
-// RESTABLECER BÚSQUEDA
-currentSearchId = "";
-isSearchActive = false;
-resetSearchHighlight();
-
-// LIMPIAR INPUT DE BÚSQUEDA
-const searchInput = document.getElementById('searchIdInput');
-if (searchInput) searchInput.value = "";
-
-// OCULTAR MODAL DE ID NO ENCONTRADO
-document.getElementById('idNotFoundModal').style.display = 'none';
-
-document.getElementById('userNameDisplay').innerText = "";
-document.getElementById('welcomeMessage').classList.remove('show');
-document.getElementById('authBtn').className = "btn-login";
-document.getElementById('authBtn').innerText = "🔐 Administrador";
-document.getElementById('authBtn').onclick = showLogin;
-
-document.getElementById('th-admin').classList.add('hidden');
-document.getElementById('th-designer').classList.add('hidden');
-document.getElementById('maintBtn').classList.add('hidden');
-document.getElementById('reportBtn').classList.add('hidden');
-
-if(isMaintActive) document.getElementById('maintOverlay').style.display = 'flex';
-
-renderLocalTable();
-clearCredentials();
+    // 1. Limpiar estado de autenticación PRIMERO
+    isAdmin = false;
+    isDesigner = false;
+    userCredentials = { username: "", password: "", displayName: "", role: "", designerName: "" };
+    
+    // 2. Cerrar panel si está abierto
+    if (isPanelOpen) closeSidePanel();
+    
+    // 3. Limpiar selección visual
+    selectedRequestId = null;
+    selectedRequestData = null;
+    document.querySelectorAll('.row-selected-panel').forEach(row => {
+        row.classList.remove('row-selected-panel');
+    });
+    
+    // 4. Actualizar UI de contadores (cambiar a vista de usuario normal)
+    document.getElementById('stats-panel').style.display = 'flex';
+    document.getElementById('combined-stats').style.display = 'none';
+    document.getElementById('count-bermina-admin').innerText = '0';
+    document.getElementById('count-jorsy-admin').innerText = '0';
+    document.getElementById('count-maria-admin').innerText = '0';
+    document.getElementById('count-xamir-admin').innerText = '0';
+    
+    // 5. Limpiar búsqueda
+    currentSearchId = "";
+    isSearchActive = false;
+    resetSearchHighlight();
+    const searchInput = document.getElementById('searchIdInput');
+    if (searchInput) searchInput.value = "";
+    document.getElementById('idNotFoundModal').style.display = 'none';
+    
+    // 6. Actualizar UI de header
+    document.getElementById('userNameDisplay').innerText = "";
+    document.getElementById('welcomeMessage').classList.remove('show');
+    document.getElementById('authBtn').className = "btn-login";
+    document.getElementById('authBtn').innerText = "🔐 Administrador";
+    document.getElementById('authBtn').onclick = showLogin;
+    
+    clearCredentials();
+    
+    // 7. IMPORTANTE: NO borrar DATA_CACHE, solo re-renderizar con datos existentes
+    // Esto evita la recarga lenta
+    renderLocalTable();
 }
 
 // === FUNCIONES ADMIN ===
@@ -4069,26 +4463,103 @@ else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
 if(id === 'list-page') updateTable();
 }
 
-async function updateTable() {
-try {
-const res = await fetch(`${SCRIPT_URL}?action=read`);
-const response = await res.json();
-isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+// ✅ ACTUALIZAR TABLA (USA ESTADÍSTICAS PRE-CALCULADAS)
+async function updateTable(forceRefresh = false) {
+    const now = Date.now();
+    // Si tenemos cache y no forzamos, usamos cache
+    if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
+        localData = DATA_CACHE.data;
+        if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
+        renderLocalTableOptimized();
+        return;
+    }
 
-if(isMaintActive && !isAdmin && !isDesigner) {
-document.getElementById('maintOverlay').style.display = 'flex';
-}
-else {
-document.getElementById('maintOverlay').style.display = 'none';
+    if (DATA_CACHE.isLoading) {
+        await DATA_CACHE.pendingPromise;
+        return;
+    }
+
+    DATA_CACHE.isLoading = true;
+    DATA_CACHE.pendingPromise = fetchTableData();
+    
+    try {
+        const result = await DATA_CACHE.pendingPromise;
+        DATA_CACHE.data = result.rows;
+        DATA_CACHE.stats = result.stats; // ✅ GUARDAR ESTADÍSTICAS
+        DATA_CACHE.timestamp = now;
+        
+        localData = result.rows;
+        buildDataIndexes();
+        
+        // ✅ ACTUALIZAR CONTADORES INMEDIATAMENTE CON DATOS DEL SERVIDOR
+        if (result.stats) {
+            updateCounters(result.stats);
+        }
+        
+        renderLocalTableOptimized();
+    } catch (e) {
+        console.error("Error cargando tabla:", e);
+        // No lanzar error aquí para no bloquear la UI si falla la carga de datos secundarios
+    } finally {
+        DATA_CACHE.isLoading = false;
+        DATA_CACHE.pendingPromise = null;
+    }
 }
 
-if (response.success && Array.isArray(response.data)) {
-localData = response.data;
-renderLocalTable();
+// ✅ FUNCIÓN DE CARGA DE DATOS (RECIBE ESTADÍSTICAS DEL SERVIDOR)
+async function fetchTableData() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const response = await res.json();
+        
+        isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+        if (isMaintActive && !isAdmin && !isDesigner) {
+            document.getElementById('maintOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('maintOverlay').style.display = 'none';
+        }
+        
+        if (response.success && response.data) {
+            // ✅ EL SERVIDOR AHORA DEVUELVE { rows: [...], stats: {...} }
+            // Guardamos los datos crudos
+            return {
+                rows: response.data.rows || response.data, // Compatibilidad
+                stats: response.data.stats || null
+            };
+        }
+        return { rows: [], stats: null };
+    } catch (e) {
+        clearTimeout(timeoutId);
+        throw e;
+    }
 }
-} catch (e) {
-console.error("Error cargando tabla:", e);
-}
+
+function buildDataIndexes() {
+    DATA_INDEX.byId.clear();
+    DATA_INDEX.byStatus.clear();
+    DATA_INDEX.byDesigner.clear();
+    
+    localData.forEach((item, idx) => {
+        DATA_INDEX.byId.set(item.id, { item, index: idx });
+        
+        const status = (item.Estatus || "").toUpperCase().trim();
+        if (!DATA_INDEX.byStatus.has(status)) {
+            DATA_INDEX.byStatus.set(status, []);
+        }
+        DATA_INDEX.byStatus.get(status).push(item);
+        
+        if (item.Disenador) {
+            if (!DATA_INDEX.byDesigner.has(item.Disenador)) {
+                DATA_INDEX.byDesigner.set(item.Disenador, []);
+            }
+            DATA_INDEX.byDesigner.get(item.Disenador).push(item);
+        }
+    });
+    
+    console.log(` Índices construidos: ${DATA_INDEX.byId.size} registros`);
 }
 
 // VALIDACIÓN EN ORDEN CORRECTO
