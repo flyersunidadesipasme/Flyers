@@ -1360,6 +1360,17 @@ placeholder="Ingrese usuario">
 <span class="eye-icon" onclick="togglePass()">👁️</span>
 </div>
 </div>
+<!-- ✅ BARRA DE PROGRESO PARA LOGIN -->
+<div id="loginProgressBar" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid var(--celeste);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span id="loginProgressText" style="font-weight: 700; color: var(--azul-deep); font-size: 0.9rem;">Verificando credenciales...</span>
+        <span id="loginProgressPercent" style="font-weight: 800; color: var(--turquesa); font-size: 1rem;">0%</span>
+    </div>
+    <div style="background: #e9ecef; border-radius: 20px; height: 12px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+        <div id="loginProgressBarInner" style="background: linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 50%, var(--azul-deep) 100%); height: 100%; width: 0%; transition: width 0.4s ease; border-radius: 20px; box-shadow: 0 2px 8px rgba(33, 158, 188, 0.3);"></div>
+    </div>
+    <div id="loginProgressStatus" style="margin-top: 8px; font-size: 0.8rem; color: #6c757d; text-align: center; font-weight: 500;">Conectando con el servidor...</div>
+</div>
 <div id="uploadArea" class="hidden" style="margin-top:20px;">
 <input type="file" id="arteFile" class="modern-input" accept=".jpg,.jpeg,.png,.pdf,.zip" style="font-size: 0.8rem;">
 <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Máximo 5MB (Formatos: JPG, PNG, PDF, ZIP)</p>
@@ -1566,11 +1577,77 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
 </thead>
 <tbody id="solicitudes-body"></tbody>
 </table>
+<!-- ✅ CONTROLES DE PAGINACIÓN -->
+<div id="paginationControls" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 0 0 12px 12px; margin-top: -1px;">
+  <div style="font-size: 0.85rem; color: #6c757d;">
+    Mostrando <strong id="paginationStart">1</strong>-<strong id="paginationEnd">50</strong> de <strong id="paginationTotal">0</strong> registros
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <button onclick="changePage('first')" id="btnFirstPage" class="btn-act bg-pend" style="padding: 6px 12px;" disabled>⏮️ Primero</button>
+    <button onclick="changePage('prev')" id="btnPrevPage" class="btn-act bg-pend" style="padding: 6px 12px;" disabled>◀️ Anterior</button>
+    <span id="currentPageIndicator" style="padding: 6px 12px; background: var(--turquesa); color: white; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">1 / 1</span>
+    <button onclick="changePage('next')" id="btnNextPage" class="btn-act bg-proc" style="padding: 6px 12px;" disabled>Siguiente ▶️</button>
+    <button onclick="changePage('last')" id="btnLastPage" class="btn-act bg-proc" style="padding: 6px 12px;" disabled>Último ⏭️</button>
+  </div>
+</div>
 </div>
 </div>
 <script>
 // === CONFIGURACIÓN DE SCRIPT URL ===
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
+
+// === AGREGAR ESTO ===
+const BATCH_QUEUE = {
+  requests: [],
+  timeout: null,
+  delay: 100 // ms para agrupar requests
+};
+
+async function batchRequest(action, params) {
+  return new Promise((resolve, reject) => {
+    BATCH_QUEUE.requests.push({ action, params, resolve, reject });
+    
+    if (BATCH_QUEUE.timeout) {
+      clearTimeout(BATCH_QUEUE.timeout);
+    }
+    
+    BATCH_QUEUE.timeout = setTimeout(async () => {
+      const batch = BATCH_QUEUE.requests.splice(0);
+      BATCH_QUEUE.requests = [];
+      
+      try {
+        // ✅ PROCESAR EN PARALELO (máximo 3 simultáneos)
+        const results = await Promise.allSettled(
+          batch.map(async (req) => {
+            const params = new URLSearchParams();
+            params.append("action", req.action);
+            Object.keys(req.params).forEach(key => {
+              params.append(key, req.params[key]);
+            });
+            
+            const res = await fetch(SCRIPT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: params.toString()
+            });
+            return await res.json();
+          })
+        );
+        
+        // ✅ RESOLVER CADA PROMESA INDIVIDUAL
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            batch[index].resolve(result.value);
+          } else {
+            batch[index].reject(result.reason);
+          }
+        });
+      } catch (e) {
+        batch.forEach(req => req.reject(e));
+      }
+    }, BATCH_QUEUE.delay);
+  });
+}
 
 // ✅ VARIABLES GLOBALES DEL PANEL
 let selectedRequestId = null;
@@ -2201,6 +2278,15 @@ const DATA_CACHE = {
     pendingPromise: null
 };
 
+// === AGREGAR ESTO ===
+const PAGINATION = {
+  currentPage: 1,
+  limit: 50,
+  totalPages: 1,
+  totalRecords: 0,
+  isLoading: false
+};
+
 const VIRTUAL_SCROLL = {
     enabled: true,
     pageSize: 50,
@@ -2264,12 +2350,15 @@ async function updateTable(forceRefresh = false) {
   }
 }
 
-// ✅ FUNCIÓN DE CARGA DE DATOS
+// === REEMPLAZAR FUNCIÓN COMPLETA ===
 async function fetchTableData() {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
+    // ✅ AGREGAR PARÁMETROS DE PAGINACIÓN
+    const res = await fetch(`${SCRIPT_URL}?action=read&page=${PAGINATION.currentPage}&limit=${PAGINATION.limit}`, { 
+      signal: controller.signal 
+    });
     clearTimeout(timeoutId);
     const response = await res.json();
     isMaintActive = (response.maintenance === "true" || response.maintenance === true);
@@ -2279,10 +2368,16 @@ async function fetchTableData() {
       document.getElementById('maintOverlay').style.display = 'none';
     }
     if (response.success && response.data) {
+      // ✅ GUARDAR INFO DE PAGINACIÓN
+      if (response.data.pagination) {
+        PAGINATION.totalPages = response.data.pagination.totalPages;
+        PAGINATION.totalRecords = response.data.pagination.totalRecords;
+        PAGINATION.hasMore = response.data.pagination.hasMore;
+      }
       return {
         rows: response.data.rows || response.data,
         stats: response.data.stats || null,
-        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0") // ✅ PARSEAR COMO ENTERO
+        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0")
       };
     }
     return { rows: [], stats: null, cacheTimestamp: 0 };
@@ -2795,6 +2890,57 @@ function renderPage(pageNum) {
 function loadMoreRows() {
     VIRTUAL_SCROLL.currentPage++;
     renderPage(VIRTUAL_SCROLL.currentPage);
+}
+
+// === AGREGAR ESTAS FUNCIONES ===
+function updatePaginationControls() {
+  const start = (PAGINATION.currentPage - 1) * PAGINATION.limit + 1;
+  const end = Math.min(PAGINATION.currentPage * PAGINATION.limit, PAGINATION.totalRecords);
+  
+  document.getElementById('paginationStart').innerText = PAGINATION.totalRecords > 0 ? start : 0;
+  document.getElementById('paginationEnd').innerText = end;
+  document.getElementById('paginationTotal').innerText = PAGINATION.totalRecords;
+  document.getElementById('currentPageIndicator').innerText = `${PAGINATION.currentPage} / ${PAGINATION.totalPages}`;
+  
+  // ✅ HABILITAR/DESHABILITAR BOTONES
+  document.getElementById('btnFirstPage').disabled = PAGINATION.currentPage === 1;
+  document.getElementById('btnPrevPage').disabled = PAGINATION.currentPage === 1;
+  document.getElementById('btnNextPage').disabled = PAGINATION.currentPage >= PAGINATION.totalPages;
+  document.getElementById('btnLastPage').disabled = PAGINATION.currentPage >= PAGINATION.totalPages;
+}
+
+async function changePage(action) {
+  if (PAGINATION.isLoading) return;
+  
+  let newPage = PAGINATION.currentPage;
+  
+  switch(action) {
+    case 'first': newPage = 1; break;
+    case 'prev': newPage = Math.max(1, PAGINATION.currentPage - 1); break;
+    case 'next': newPage = Math.min(PAGINATION.totalPages, PAGINATION.currentPage + 1); break;
+    case 'last': newPage = PAGINATION.totalPages; break;
+  }
+  
+  if (newPage === PAGINATION.currentPage) return;
+  
+  PAGINATION.isLoading = true;
+  PAGINATION.currentPage = newPage;
+  
+  // ✅ MOSTRAR LOADING
+  document.getElementById('paginationControls').style.opacity = '0.5';
+  document.getElementById('solicitudes-body').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;"><div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 15px;"></div>Cargando página...</td></tr>';
+  
+  try {
+    await updateTable(true);
+    updatePaginationControls();
+  } catch (e) {
+    console.error("Error cambiando página:", e);
+    openModal("❌ Error", "No se pudo cargar la página", "💥");
+    PAGINATION.currentPage = newPage - (action === 'next' || action === 'last' ? 1 : -1);
+  } finally {
+    PAGINATION.isLoading = false;
+    document.getElementById('paginationControls').style.opacity = '1';
+  }
 }
 
 function createRowElement(s, idx) {
@@ -3406,8 +3552,28 @@ function updateFilePreview(arteUrl) {
     const thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
     
     container.innerHTML = `
-    <img src="${thumbnailUrl}" class="file-preview-image-full" onclick="window.open('${arteUrl}', '_blank')" title="Click para ver en tamaño completo">
+    <img src="" class="file-preview-image-full" onclick="window.open('${arteUrl}', '_blank')" title="Click para ver en tamaño completo">
     `;
+    
+    // ✅ LAZY LOADING CON INTERSECTION OBSERVER
+    const img = container.querySelector('img');
+    if (img) {
+        img.loading = 'lazy';
+        img.setAttribute('data-src', thumbnailUrl);
+        
+        // ✅ CARGAR SÓLO CUANDO SEA VISIBLE
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.getAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: '50px' });
+        
+        observer.observe(img);
+    }
     
     info.innerHTML = '💾 Archivo adjunto disponible';
     
@@ -3453,25 +3619,16 @@ async function changeStatus(newStatus) {
     document.getElementById('loadingOverlay').style.display = 'flex';
     
     try {
-        const params = new URLSearchParams();
-        params.append("action", "updateStatus");
-        params.append("id", selectedRequestId);
-        params.append("status", newStatus);
-        params.append("username", userCredentials.username);
-        params.append("password", userCredentials.password);
-        
-        // Si es finalizada y ya tiene diseñador, enviarlo
-        if (newStatus === 'FINALIZADA' && selectedRequestData?.Disenador) {
-            params.append("disenador", selectedRequestData.Disenador);
-        }
-        
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
+        // === REEMPLAZAR EL FETCH POR ===
+        const result = await batchRequest('updateStatus', {
+            id: selectedRequestId,
+            status: newStatus,
+            username: userCredentials.username,
+            password: userCredentials.password,
+            disenador: newStatus === 'FINALIZADA' ? selectedRequestData?.Disenador : ''
         });
         
-        const data = await response.json();
+        const data = result;
         
         if (data.success) {
             // Actualizar datos locales
@@ -3892,6 +4049,9 @@ setTimeout(() => {
 
 // ✅ INICIAR SINCRONIZACIÓN AUTOMÁTICA AL CARGAR
 iniciarSincronizacionPanel();
+
+// ✅ INICIALIZAR CONTROLES DE PAGINACIÓN
+updatePaginationControls();
 });
 
 function selectRegion(regionKey) {
@@ -4091,6 +4251,28 @@ function closeModal() {
         btnCancelUpload.style.display = 'none';
     }
     
+    // ✅ OCULTAR BARRA DE PROGRESO DEL LOGIN
+    const loginProgressBar = document.getElementById('loginProgressBar');
+    if (loginProgressBar) {
+        loginProgressBar.style.display = 'none';
+        // Restaurar estilos por defecto
+        const progressBarInner = document.getElementById('loginProgressBarInner');
+        const progressText = document.getElementById('loginProgressText');
+        const progressStatus = document.getElementById('loginProgressStatus');
+        if (progressBarInner) {
+            progressBarInner.style.width = '0%';
+            progressBarInner.style.background = 'linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 50%, var(--azul-deep) 100%)';
+        }
+        if (progressText) {
+            progressText.innerText = 'Verificando credenciales...';
+            progressText.style.color = '';
+        }
+        if (progressStatus) {
+            progressStatus.innerText = 'Conectando con el servidor...';
+            progressStatus.style.color = '';
+        }
+    }
+    
     // Reiniciar estado de chunks
     resetChunkUploadState();
 }
@@ -4124,6 +4306,12 @@ async function validateLogin() {
     if (isLoggingIn) return;
     isLoggingIn = true;
     
+    // ✅ OCULTAR CONTRASEÑA AUTOMÁTICAMENTE ANTES DE VALIDAR
+    const passField = document.getElementById('adminPass');
+    if (passField.type === 'text') {
+        passField.type = 'password';
+    }
+    
     const u = document.getElementById('adminUser').value.trim();
     const p = document.getElementById('adminPass').value.trim();
     const btn = document.getElementById('mainModalBtn');
@@ -4140,9 +4328,40 @@ async function validateLogin() {
         return;
     }
     
-    // ✅ SPINNER DE CARGA
-    document.getElementById('loadMainTxt').innerText = "Verificando credenciales...";
-    document.getElementById('loadingOverlay').style.display = 'flex';
+    // ✅ MOSTRAR BARRA DE PROGRESO EN EL MODAL (en lugar de loadingOverlay)
+    const progressBar = document.getElementById('loginProgressBar');
+    const progressBarInner = document.getElementById('loginProgressBarInner');
+    const progressPercent = document.getElementById('loginProgressPercent');
+    const progressText = document.getElementById('loginProgressText');
+    const progressStatus = document.getElementById('loginProgressStatus');
+
+    progressBar.style.display = 'block';
+    progressBarInner.style.width = '0%';
+    progressPercent.innerText = '0%';
+    progressText.innerText = 'Verificando credenciales...';
+    progressStatus.innerText = 'Conectando con el servidor...';
+
+    // ✅ SIMULAR PROGRESO ANIMADO
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressBarInner.style.width = progress + '%';
+            progressPercent.innerText = Math.round(progress) + '%';
+            
+            // Cambiar texto según el progreso
+            if (progress < 30) {
+                progressStatus.innerText = 'Conectando con el servidor...';
+            } else if (progress < 60) {
+                progressStatus.innerText = 'Validando credenciales...';
+            } else if (progress < 85) {
+                progressStatus.innerText = 'Obteniendo permisos de acceso...';
+            } else {
+                progressStatus.innerText = 'Finalizando...';
+            }
+        }
+    }, 300);
     
     try {
         const params = new URLSearchParams();
@@ -4165,6 +4384,14 @@ async function validateLogin() {
         }
         
         if (data.success && data.data) {
+            // ✅ LOGIN EXITOSO - Completar barra al 100%
+            clearInterval(progressInterval);
+            progressBarInner.style.width = '100%';
+            progressPercent.innerText = '100%';
+            progressText.innerText = '¡Acceso concedido!';
+            progressStatus.innerText = 'Redirigiendo...';
+            progressStatus.style.color = 'var(--verde)';
+            
             // ✅ LOGIN EXITOSO
             userCredentials = {
                 username: u,
@@ -4176,32 +4403,56 @@ async function validateLogin() {
             isAdmin = data.data.isAdmin || false;
             isDesigner = data.data.isDesigner || false;
             
-            // Actualizar UI
-            document.getElementById('userNameDisplay').innerText = userCredentials.displayName + (isDesigner ? " (Diseñador)" : "");
-            document.getElementById('welcomeMessage').classList.add('show');
-            document.getElementById('authBtn').className = "btn-logout";
-            document.getElementById('authBtn').innerText = "Cerrar Sesión";
-            document.getElementById('authBtn').onclick = logout;
-            
-            clearCredentials();
-            closeModal();
-            document.getElementById('loadingOverlay').style.display = 'none';
-            
-            // ✅ CARGAR DATOS EN SEGUNDO PLANO (NO BLOQUEA EL LOGIN)
-            DATA_CACHE.data = null;
-            updateTable(true).catch(err => {
-                console.warn("Login exitoso, pero fallo carga de datos:", err);
-                // ✅ NO MOSTRAR ERROR AL USUARIO SI EL LOGIN FUE EXITOSO
-            });
+            // Esperar un momento para mostrar el 100% antes de cerrar
+            setTimeout(() => {
+                // Actualizar UI
+                document.getElementById('userNameDisplay').innerText = userCredentials.displayName + (isDesigner ? " (Diseñador)" : "");
+                document.getElementById('welcomeMessage').classList.add('show');
+                document.getElementById('authBtn').className = "btn-logout";
+                document.getElementById('authBtn').innerText = "Cerrar Sesión";
+                document.getElementById('authBtn').onclick = logout;
+                
+                clearCredentials();
+                
+                // Ocultar barra de progreso y cerrar modal
+                progressBar.style.display = 'none';
+                closeModal();
+                
+                // Cargar datos en segundo plano
+                DATA_CACHE.data = null;
+                updateTable(true).catch(err => {
+                    console.warn("Login exitoso, pero fallo carga de datos:", err);
+                });
+            }, 800);
             
         } else {
             throw new Error("Credenciales incorrectas");
         }
     } catch (err) {
         console.error("Error login:", err);
-        document.getElementById('loadingOverlay').style.display = 'none';
-        openModal("❌ Error", err.message || "Error de conexión al validar.", "💥");
+        
+        // ✅ DETENER ANIMACIÓN Y MOSTRAR ERROR EN LA BARRA
+        clearInterval(progressInterval);
+        progressBarInner.style.width = '100%';
+        progressBarInner.style.background = 'linear-gradient(90deg, #e63946 0%, #c62828 100%)';
+        progressText.innerText = 'Error de autenticación';
+        progressText.style.color = 'var(--rojo)';
+        progressPercent.innerText = '✕';
+        progressStatus.innerText = err.message || "Error de conexión";
+        progressStatus.style.color = 'var(--rojo)';
+        
         clearCredentials();
+        
+        // Mantener visible el error por un momento, luego ocultar
+        setTimeout(() => {
+            progressBar.style.display = 'none';
+            // Restaurar estilos para próxima vez
+            progressBarInner.style.background = 'linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 50%, var(--azul-deep) 100%)';
+            progressText.style.color = '';
+            progressStatus.style.color = '';
+            
+            openModal("❌ Error", err.message || "Error de conexión al validar.", "💥");
+        }, 1500);
     } finally {
         isLoggingIn = false;
         btn.disabled = false;
@@ -4704,84 +4955,84 @@ else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
 if(id === 'list-page') updateTable();
 }
 
-// ✅ ACTUALIZAR TABLA CON INVALIDACIÓN DE CACHÉ
+// ✅ ACTUALIZAR TABLA CON INVALIDACIÓN DE CACHÉ (FASE 2)
 async function updateTable(forceRefresh = false) {
-    const now = Date.now();
-    const serverCacheTimestamp = DATA_CACHE.serverTimestamp || 0;
+  const now = Date.now();
+  
+  // ✅ CORRECCIÓN: Guardar y comparar serverTimestamp correctamente
+  const serverCacheTimestamp = parseInt(DATA_CACHE.serverTimestamp || "0");
+  if (serverCacheTimestamp > DATA_CACHE.timestamp) {
+    forceRefresh = true;
+    console.log("🔄 Caché del servidor actualizada, refrescando datos...");
+  }
+  
+  // Si tenemos cache local y no forzamos, usamos cache
+  if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
+    localData = DATA_CACHE.data;
+    if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
+    renderLocalTableOptimized();
+    return;
+  }
+  
+  if (DATA_CACHE.isLoading) {
+    await DATA_CACHE.pendingPromise;
+    return;
+  }
+  
+  DATA_CACHE.isLoading = true;
+  DATA_CACHE.pendingPromise = fetchTableData();
+  
+  try {
+    const result = await DATA_CACHE.pendingPromise;
+    DATA_CACHE.data = result.rows;
+    DATA_CACHE.stats = result.stats;
+    DATA_CACHE.serverTimestamp = result.cacheTimestamp || now; // ✅ GUARDAR CORRECTAMENTE
+    DATA_CACHE.timestamp = now;
+    localData = result.rows;
+    buildDataIndexes();
     
-    // Si hay cambios en el servidor, forzar refresh
-    if (serverCacheTimestamp > DATA_CACHE.timestamp) {
-        forceRefresh = true;
-        console.log("🔄 Caché del servidor actualizada, refrescando datos...");
+    if (result.stats) {
+      updateCounters(result.stats);
     }
-    
-    // Si tenemos cache local y no forzamos, usamos cache
-    if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
-        localData = DATA_CACHE.data;
-        if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
-        renderLocalTableOptimized();
-        return;
-    }
-    
-    if (DATA_CACHE.isLoading) {
-        await DATA_CACHE.pendingPromise;
-        return;
-    }
-    
-    DATA_CACHE.isLoading = true;
-    DATA_CACHE.pendingPromise = fetchTableData();
-    
-    try {
-        const result = await DATA_CACHE.pendingPromise;
-        DATA_CACHE.data = result.rows;
-        DATA_CACHE.stats = result.stats;
-        DATA_CACHE.serverTimestamp = result.cacheTimestamp; // ✅ Guardar timestamp del servidor
-        DATA_CACHE.timestamp = now;
-        localData = result.rows;
-        buildDataIndexes();
-        
-        if (result.stats) {
-            updateCounters(result.stats);
-        }
-        renderLocalTableOptimized();
-    } catch (e) {
-        console.error("Error cargando tabla:", e);
-    } finally {
-        DATA_CACHE.isLoading = false;
-        DATA_CACHE.pendingPromise = null;
-    }
+    renderLocalTableOptimized();
+  } catch (e) {
+    console.error("Error cargando tabla:", e);
+  } finally {
+    DATA_CACHE.isLoading = false;
+    DATA_CACHE.pendingPromise = null;
+  }
 }
 
 // ✅ FUNCIÓN DE CARGA DE DATOS (RECIBE ESTADÍSTICAS DEL SERVIDOR)
 async function fetchTableData() {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-    try {
-        const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const response = await res.json();
-        
-        isMaintActive = (response.maintenance === "true" || response.maintenance === true);
-        if (isMaintActive && !isAdmin && !isDesigner) {
-            document.getElementById('maintOverlay').style.display = 'flex';
-        } else {
-            document.getElementById('maintOverlay').style.display = 'none';
-        }
-        
-        if (response.success && response.data) {
-            // ✅ EL SERVIDOR AHORA DEVUELVE { rows: [...], stats: {...}, cacheTimestamp: number }
-            // Guardamos los datos crudos
-            return {
-                rows: response.data.rows || response.data, // Compatibilidad
-                stats: response.data.stats || null,
-                cacheTimestamp: response.data.cacheTimestamp || Date.now() // ✅ Timestamp del servidor
-            };
-        }
-        return { rows: [], stats: null };
-    } catch (e) {
-        clearTimeout(timeoutId);
-        throw e;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    const response = await res.json();
+    isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+    
+    if (isMaintActive && !isAdmin && !isDesigner) {
+      document.getElementById('maintOverlay').style.display = 'flex';
+    } else {
+      document.getElementById('maintOverlay').style.display = 'none';
     }
+    
+    if (response.success && response.data) {
+      return {
+        rows: response.data.rows || response.data,
+        stats: response.data.stats || null,
+        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0") // ✅ PARSEAR COMO ENTERO
+      };
+    }
+    return { rows: [], stats: null, cacheTimestamp: 0 };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 function buildDataIndexes() {
