@@ -1577,6 +1577,9 @@ let selectedRequestId = null;
 let selectedRequestData = null;
 let isPanelOpen = false;
 
+// ✅ POLLING PARA SINCRONIZACIÓN EN TIEMPO REAL
+let panelSyncInterval = null;
+
 // ✅ VARIABLES PARA SISTEMA DE CHUNKS MEJORADO
 let chunkUpload = {
     // Estado
@@ -2192,6 +2195,7 @@ let modoObituario = false;
 const DATA_CACHE = {
     data: null,
     timestamp: 0,
+    serverTimestamp: 0, // ✅ Timestamp del servidor para invalidación
     ttl: 60000, // CAMBIADO: de 5000 a 60000 (60 segundos)
     isLoading: false,
     pendingPromise: null
@@ -2211,6 +2215,135 @@ let DATA_INDEX = {
     byStatus: new Map(),
     byDesigner: new Map()
 };
+
+// ✅ ACTUALIZAR TABLA CON INVALIDACIÓN DE CACHÉ CORRECTA
+async function updateTable(forceRefresh = false) {
+  const now = Date.now();
+  
+  // ✅ CORRECCIÓN: Guardar y comparar serverTimestamp correctamente
+  const serverCacheTimestamp = parseInt(DATA_CACHE.serverTimestamp || "0");
+  
+  if (serverCacheTimestamp > DATA_CACHE.timestamp) {
+    forceRefresh = true;
+    console.log("🔄 Caché del servidor actualizada, refrescando datos...");
+  }
+  
+  if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
+    localData = DATA_CACHE.data;
+    if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
+    renderLocalTableOptimized();
+    return;
+  }
+  
+  if (DATA_CACHE.isLoading) {
+    await DATA_CACHE.pendingPromise;
+    return;
+  }
+  
+  DATA_CACHE.isLoading = true;
+  DATA_CACHE.pendingPromise = fetchTableData();
+  
+  try {
+    const result = await DATA_CACHE.pendingPromise;
+    DATA_CACHE.data = result.rows;
+    DATA_CACHE.stats = result.stats;
+    DATA_CACHE.serverTimestamp = result.cacheTimestamp || now; // ✅ GUARDAR CORRECTAMENTE
+    DATA_CACHE.timestamp = now;
+    localData = result.rows;
+    buildDataIndexes();
+    
+    if (result.stats) {
+      updateCounters(result.stats);
+    }
+    renderLocalTableOptimized();
+  } catch (e) {
+    console.error("Error cargando tabla:", e);
+  } finally {
+    DATA_CACHE.isLoading = false;
+    DATA_CACHE.pendingPromise = null;
+  }
+}
+
+// ✅ FUNCIÓN DE CARGA DE DATOS
+async function fetchTableData() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    const response = await res.json();
+    isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+    if (isMaintActive && !isAdmin && !isDesigner) {
+      document.getElementById('maintOverlay').style.display = 'flex';
+    } else {
+      document.getElementById('maintOverlay').style.display = 'none';
+    }
+    if (response.success && response.data) {
+      return {
+        rows: response.data.rows || response.data,
+        stats: response.data.stats || null,
+        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0") // ✅ PARSEAR COMO ENTERO
+      };
+    }
+    return { rows: [], stats: null, cacheTimestamp: 0 };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
+}
+
+// ✅ FUNCIÓN PARA MANTENER EL ÍNDICE DE DATOS ACTUALIZADO
+function maintainDataIndex() {
+    // Limpiar índices existentes
+    DATA_INDEX.byId.clear();
+    DATA_INDEX.byStatus.clear();
+    DATA_INDEX.byDesigner.clear();
+    
+    // Reconstruir índices con los datos actuales
+    localData.forEach((item, index) => {
+        // Índice por ID (para búsqueda rápida)
+        if (item.id) {
+            DATA_INDEX.byId.set(String(item.id).toUpperCase(), {
+                item: item,
+                index: index
+            });
+        }
+        
+        // Índice por estado
+        const status = item.Estatus ? item.Estatus.toUpperCase().trim() : '';
+        if (status) {
+            if (!DATA_INDEX.byStatus.has(status)) {
+                DATA_INDEX.byStatus.set(status, []);
+            }
+            DATA_INDEX.byStatus.get(status).push({ item, index });
+        }
+        
+        // Índice por diseñador
+        const designer = item.Disenador ? item.Disenador.trim() : '';
+        if (designer) {
+            if (!DATA_INDEX.byDesigner.has(designer)) {
+                DATA_INDEX.byDesigner.set(designer, []);
+            }
+            DATA_INDEX.byDesigner.get(designer).push({ item, index });
+        }
+    });
+    
+    console.log('✅ Índice de datos actualizado:', {
+        totalEntries: DATA_INDEX.byId.size,
+        byStatus: Object.fromEntries(DATA_INDEX.byStatus),
+        byDesigner: Object.fromEntries(DATA_INDEX.byDesigner)
+    });
+}
+
+// ✅ FUNCIÓN PARA CONSTRUIR ÍNDICES DE DATOS
+function buildDataIndexes() {
+    maintainDataIndex();
+}
+
+// ✅ FUNCIÓN RENDER LOCAL TABLE OPTIMIZADA
+function renderLocalTableOptimized() {
+    renderLocalTable();
+}
 
 // ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
 const designerColors = {
@@ -2246,59 +2379,89 @@ pediatrica: ["Criptorquidias", "Fimosis", "Hernia epigástrica", "Hernia inguina
 oftalmo: ["Cataratas", "Cirugía plástica ocular", "Dacriocistorrinostomía", "Desprendimiento de retina", "Glaucoma", "Melanoma uveal", "Pterigión", "Ptosis palpebral", "Queratoplastía", "Retinoblastoma", "Tumores oculares"]
 };
 
-// ✅ FUNCIÓN PRINCIPAL: BUSCAR POR ID
-function searchById() {
-    const searchInput = document.getElementById('searchIdInput');
-    const searchTerm = searchInput.value.trim().toUpperCase();
-    
-    currentSearchId = searchTerm;
-    isSearchActive = searchTerm.length > 0;
-    
-    const searchContainer = document.getElementById('designer-search-container');
-    if (isDesigner || isAdmin) {
-        searchContainer.classList.remove('hidden');
+// ✅ FUNCIÓN ÚNICA DE BÚSQUEDA POR ID (CON BÚSQUEDA PARCIAL)
+function buscarPorID() {
+  const searchInput = document.getElementById('searchIdInput');
+  const searchTerm = searchInput.value.trim().toUpperCase();
+  currentSearchId = searchTerm;
+  isSearchActive = searchTerm.length > 0;
+  
+  const searchContainer = document.getElementById('designer-search-container');
+  if (isAdmin || isDesigner) {
+    searchContainer.classList.remove('hidden');
+  }
+  
+  if (!isSearchActive) {
+    resetSearchHighlight();
+    renderPage(1);
+    return;
+  }
+  
+  // ✅ BÚSQUEDA PARCIAL (busca coincidencias en cualquier parte del ID)
+  const matchedEntries = [];
+  
+  // Iterar sobre el índice para encontrar coincidencias parciales
+  for (const [id, entry] of DATA_INDEX.byId) {
+    if (id.includes(searchTerm)) {
+      matchedEntries.push(entry);
     }
+  }
+  
+  if (matchedEntries.length > 0) {
+    const body = document.getElementById('solicitudes-body');
+    body.innerHTML = '';
     
-    if (!isSearchActive) {
-        resetSearchHighlight();
-        renderPage(1);
-        return;
+    // Calcular contadores para los resultados encontrados
+    let counts = {
+      total: matchedEntries.length,
+      pend: 0,
+      proc: 0,
+      fin: 0,
+      bermina: 0,
+      jorsy: 0,
+      maria: 0,
+      xamir: 0
+    };
+    
+    // Renderizar cada resultado encontrado
+    matchedEntries.forEach(entry => {
+      const tr = createRowElement(entry.item, entry.index);
+      tr.classList.add('row-highlighted');
+      body.appendChild(tr);
+      
+      // Actualizar contadores
+      if (entry.item.Estatus === 'PENDIENTE') counts.pend++;
+      else if (entry.item.Estatus === 'PROCESANDO') counts.proc++;
+      else if (entry.item.Estatus === 'FINALIZADA') counts.fin++;
+      
+      if (entry.item.Disenador === 'Bermina') counts.bermina++;
+      else if (entry.item.Disenador === 'Jorsy') counts.jorsy++;
+      else if (entry.item.Disenador === 'María F.') counts.maria++;
+      else if (entry.item.Disenador === 'Xamir') counts.xamir++;
+    });
+    
+    updateCounters(counts);
+    
+    // Hacer scroll al primer resultado
+    if (matchedEntries.length > 0) {
+      const firstRow = body.querySelector('tr');
+      if (firstRow) {
+        firstRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     }
+  } else {
+    document.getElementById('notFoundId').innerText = currentSearchId;
+    document.getElementById('idNotFoundModal').style.display = 'flex';
     
-    const matchedEntry = DATA_INDEX.byId.get(searchTerm);
-    
-    if (matchedEntry) {
-        const body = document.getElementById('solicitudes-body');
-        body.innerHTML = '';
-        const tr = createRowElement(matchedEntry.item, matchedEntry.index);
-        tr.classList.add('row-highlighted');
-        body.appendChild(tr);
-        
-        updateCounters({
-            total: 1, 
-            pend: matchedEntry.item.Estatus === 'PENDIENTE' ? 1 : 0,
-            proc: matchedEntry.item.Estatus === 'PROCESANDO' ? 1 : 0,
-            fin: matchedEntry.item.Estatus === 'FINALIZADA' ? 1 : 0,
-            bermina: matchedEntry.item.Disenador === 'Bermina' ? 1 : 0,
-            jorsy: matchedEntry.item.Disenador === 'Jorsy' ? 1 : 0,
-            maria: matchedEntry.item.Disenador === 'María F.' ? 1 : 0,
-            xamir: matchedEntry.item.Disenador === 'Xamir' ? 1 : 0
-        });
-        
-        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } else {
-        document.getElementById('notFoundId').innerText = currentSearchId;
-        document.getElementById('idNotFoundModal').style.display = 'flex';
-        
-        const body = document.getElementById('solicitudes-body');
-        body.innerHTML = `
-            <tr>
-                <td colspan="8" class="no-results-message show">
-                    No se encontraron resultados para "${searchTerm}"
-                </td>
-            </tr>
-        `;
-    }
+    const body = document.getElementById('solicitudes-body');
+    body.innerHTML = `
+      <tr>
+        <td colspan="8" class="no-results-message show">
+          No se encontraron resultados para "${searchTerm}"
+        </td>
+      </tr>
+    `;
+  }
 }
 
 // ✅ APLICAR RESALTADO Y BLOQUEO
@@ -2388,7 +2551,7 @@ document.getElementById('searchIdInput').focus();
 // ✅ LIMPIAR BÚSQUEDA
 function clearSearch() {
 document.getElementById('searchIdInput').value = "";
-searchById();
+buscarPorID();
 
 // ✅ FOCO DE NUEVO EN EL INPUT
 setTimeout(() => {
@@ -2405,7 +2568,7 @@ clearSearch();
 // ✅ PREVENIR ENVÍO DEL FORMULARIO AL PRESIONAR ENTER
 if (e.key === 'Enter') {
 e.preventDefault();
-searchById();
+buscarPorID();
 }
 }
 
@@ -2419,7 +2582,7 @@ let searchTimeout;
 searchInput.addEventListener('input', (e) => {
 clearTimeout(searchTimeout);
 searchTimeout = setTimeout(() => {
-searchById();
+buscarPorID();
 }, 300); // Esperar 300ms después de dejar de escribir
 });
 
@@ -2668,13 +2831,13 @@ function createRowElement(s, idx) {
         ? `📷 (${s.Soportes.match(/\d+/) || 1})` 
         : "🙈";
     
-    const fechaEventoFormat = extractDatePart(s.Fecha);
+    const fechaEventoFormat = extraerFecha(s.Fecha);
     const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
     const isRegularUser = !isAdmin && !isDesigner;
     
     if (isRegularUser) {
-        const fechaSolicitudFormat = extractDatePart(s.Timestamp);
-        const horaSolicitudFormat = extractTimePart(s.Timestamp);
+        const fechaSolicitudFormat = extraerFecha(s.Timestamp);
+        const horaSolicitudFormat = extraerHora(s.Timestamp);
         
         tr.innerHTML = `
             <td>
@@ -2751,23 +2914,62 @@ function createRowElement(s, idx) {
     return tr;
 }
 
-// FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
-// FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
-// ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
-function extractDatePart(dateString) {
-  if (!dateString || dateString.trim() === '') return 'N/A';
-  // Extraer solo la parte de fecha (antes del primer espacio)
-  return dateString.split(' ')[0] || 'N/A';
+// ✅ FUNCIÓN UNIFICADA PARA MANEJO DE FECHAS
+function formatearFecha(valor, formato = 'datetime') {
+  if (!valor || valor.toString().trim() === "") return "";
+  
+  var fechaObj;
+  if (valor instanceof Date) {
+    fechaObj = valor;
+  } else if (typeof valor === 'string') {
+    // Parsear string de fecha
+    var texto = valor.trim().replace(/-/g, '/');
+    var partes = texto.split(' ');
+    var fechaPart = partes[0];
+    
+    if (fechaPart.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+      var dmy = fechaPart.split('/');
+      fechaObj = new Date(parseInt(dmy[2]), parseInt(dmy[1]) - 1, parseInt(dmy[0]));
+    } else if (fechaPart.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
+      var iso = fechaPart.split('/');
+      fechaObj = new Date(parseInt(iso[0]), parseInt(iso[1]) - 1, parseInt(iso[2]));
+    } else {
+      return valor;
+    }
+  } else {
+    return valor;
+  }
+  
+  if (!fechaObj || isNaN(fechaObj.getTime())) return "";
+  
+  // Formatear según tipo
+  var dd = String(fechaObj.getDate()).padStart(2, '0');
+  var mm = String(fechaObj.getMonth() + 1).padStart(2, '0');
+  var yyyy = fechaObj.getFullYear();
+  
+  if (formato === 'date') {
+    return dd + '/' + mm + '/' + yyyy;
+  } else if (formato === 'datetime') {
+    var hh = String(fechaObj.getHours()).padStart(2, '0');
+    var min = String(fechaObj.getMinutes()).padStart(2, '0');
+    return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+  } else {
+    return dd + '/' + mm + '/' + yyyy;
+  }
 }
 
-// ✅ FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
-function extractTimePart(dateString) {
-  if (!dateString || dateString.trim() === '') return 'Sin hora';
-  // Extraer hora + AM/PM (después del primer espacio)
-  const parts = dateString.trim().split(' ');
-  if (parts.length < 2) return 'Sin hora';
-  return parts.slice(1).join(' ');
+function extraerFecha(dateTime) {
+  if (!dateTime) return "";
+  return dateTime.split(' ')[0] || "";
 }
+
+function extraerHora(dateTime) {
+  if (!dateTime) return "";
+  var partes = dateTime.trim().split(' ');
+  if (partes.length < 2) return "Sin hora";
+  return partes.slice(1).join(' ');
+}
+
 // FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
 function renderLocalTable() {
     const body = document.getElementById('solicitudes-body');
@@ -2787,21 +2989,6 @@ function renderLocalTable() {
     // Determinar si es usuario regular (ni admin ni diseñador)
     const isRegularUser = !isAdmin && !isDesigner;
     
-    // FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE FECHA (SIN new Date)
-    function extractDatePart(dateString) {
-      if (!dateString || dateString.trim() === '') return 'N/A';
-      // Extraer solo la parte de fecha (antes del primer espacio)
-      return dateString.split(' ')[0] || 'N/A';
-    }
-
-    // FUNCIÓN AUXILIAR PARA EXTRAER PARTE DE HORA (SIN new Date)
-    function extractTimePart(dateString) {
-      if (!dateString || dateString.trim() === '') return 'Sin hora';
-      // Extraer hora + AM/PM (después del primer espacio)
-      const parts = dateString.trim().split(' ');
-      if (parts.length < 2) return 'Sin hora';
-      return parts.slice(1).join(' ');
-    }
     
     localData.forEach((s, idx) => {
         counts.total++;
@@ -2848,9 +3035,9 @@ function renderLocalTable() {
         let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
         
         // ✅ FORMATEAR FECHAS Y HORAS CON VALIDACIÓN
-        const fechaSolicitudFormat = extractDatePart(s.Timestamp);
-        const horaSolicitudFormat = extractTimePart(s.Timestamp);
-        const fechaEventoFormat = extractDatePart(s.Fecha);
+        const fechaSolicitudFormat = extraerFecha(s.Timestamp);
+        const horaSolicitudFormat = extraerHora(s.Timestamp);
+        const fechaEventoFormat = extraerFecha(s.Fecha);
         const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
         
         const tr = document.createElement('tr');
@@ -3038,6 +3225,9 @@ function openSidePanel() {
     
     // Actualizar contenido
     updatePanelContent();
+    
+    // ✅ INICIAR SINCRONIZACIÓN AUTOMÁTICA
+    iniciarSincronizacionPanel();
 }
 
 function closeSidePanel() {
@@ -3047,6 +3237,12 @@ function closeSidePanel() {
     panel.classList.remove('active');
     overlay.classList.remove('active');
     isPanelOpen = false;
+    
+    // ✅ DETENER SINCRONIZACIÓN AUTOMÁTICA
+    if (panelSyncInterval) {
+        clearInterval(panelSyncInterval);
+        panelSyncInterval = null;
+    }
     
     // Deseleccionar fila visualmente (pero mantener selectedRequestId para referencia)
     document.querySelectorAll('.row-selected-panel').forEach(row => {
@@ -3406,6 +3602,48 @@ function panelEliminar() {
     deleteReq(selectedRequestId);
 }
 
+// ✅ POLLING PARA SINCRONIZACIÓN EN TIEMPO REAL
+function iniciarSincronizacionPanel() {
+    if (panelSyncInterval) clearInterval(panelSyncInterval);
+    
+    // Actualizar panel cada 30 segundos si está abierto
+    panelSyncInterval = setInterval(() => {
+        if (isPanelOpen && selectedRequestId) {
+            actualizarDatosPanel();
+        }
+    }, 30000); // 30 segundos
+}
+
+async function actualizarDatosPanel() {
+    if (!selectedRequestId) return;
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "getRequestData");
+        params.append("id", selectedRequestId);
+        
+        const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+            // Actualizar datos locales
+            const index = localData.findIndex(x => x.id == selectedRequestId);
+            if (index !== -1) {
+                localData[index] = data.data;
+                selectedRequestData = data.data;
+                updatePanelContent();
+            }
+        }
+    } catch (e) {
+        console.error("Error sincronizando panel:", e);
+    }
+}
+
 // ✅ FUNCIONES PARA REPORTE MENSUAL - SOLO ADMIN
 function generateMonthlyReport() {
 if (!isAdmin) {
@@ -3651,6 +3889,9 @@ setTimeout(() => {
         updateTable();
     }
 }, 2000);
+
+// ✅ INICIAR SINCRONIZACIÓN AUTOMÁTICA AL CARGAR
+iniciarSincronizacionPanel();
 });
 
 function selectRegion(regionKey) {
@@ -4065,9 +4306,11 @@ function openArteModal(id) {
     }, 100);
 }
 
-// SUBIR ARTE CON SISTEMA DE CHUNKS
+// ❌ FUNCIÓN DE REANUDACIÓN ELIMINADA - SIEMPRE INICIAR DESDE CERO
+
+// SUBIR ARTE CON SISTEMA DE CHUNKS (SIN REANUDACIÓN)
 async function uploadArte() {
-    // Reiniciar estado antes de comenzar
+    // ✅ REINICIAR ESTADO SIEMPRE (SIN VERIFICAR REANUDACIÓN)
     resetChunkUploadState();
     
     const fileInput = document.getElementById('arteFile');
@@ -4092,7 +4335,7 @@ async function uploadArte() {
         return;
     }
     
-    // Mostrar modal de progreso
+    // ✅ MOSTRAR MODAL DE PROGRESO
     showUploadProgressModal(id, file.name, fileSizeMB);
     
     try {
@@ -4100,22 +4343,22 @@ async function uploadArte() {
         document.getElementById('progressStatus').innerText = '📡 Detectando velocidad de conexión...';
         await detectConnectionSpeed();
         
-        // ✅ NUEVA LÓGICA DE CHUNKS: Solo activar para >1MB y conexión NO rápida
+        // ✅ NUEVA LÓGICA: SIN REANUDACIÓN, SIEMPRE DESDE CERO
         if (file.size <= 1024 * 1024) {
             // Archivos ≤1MB: siempre subir completo (sin chunks)
             document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo...';
             await uploadFileNormal(file, id);
             return;
         }
-
-        if (chunkUpload.connectionSpeed === 'fast') {
-            // Conexión rápida: subir completo incluso si >1MB (hasta 6MB permitidos)
+        
+        if (chunkUpload.connectionSpeed === 'fast' || chunkUpload.connectionSpeed === 'ultra-fast') {
+            // Conexión rápida: subir completo incluso si >1MB
             document.getElementById('progressStatus').innerText = '🚀 Subiendo archivo completo (conexión rápida)...';
             await uploadFileNormal(file, id);
             return;
         }
-
-        // ✅ SOLO LLEGAMOS AQUÍ SI: archivo >1MB Y conexión NO es rápida
+        
+        // ✅ ARCHIVOS GRANDES CON CONEXIÓN LENTA: CHUNKS SIN REANUDACIÓN
         document.getElementById('progressStatus').innerText = `📦 Fragmentando en chunks...`;
         
         // Dividir en chunks
@@ -4123,20 +4366,13 @@ async function uploadArte() {
         chunkUpload.chunks = chunks;
         chunkUpload.totalChunks = chunks.length;
         chunkUpload.currentChunk = 0;
-        chunkUpload.uploadedChunks = 0;
+        chunkUpload.uploadedChunks = 0; // ✅ SIEMPRE DESDE 0
         chunkUpload.startTime = Date.now();
         chunkUpload.isActive = true;
-
-        // ✅ INICIALIZAR VARIABLES DE VELOCIDAD
-        chunkUpload.currentChunkStartTime = null;
-        chunkUpload.currentChunkEndTime = null;
-        chunkUpload.uploadSpeeds = [];
-        chunkUpload.avgUploadSpeed = 0;
-        chunkUpload.currentUploadSpeed = 0;
         
-        document.getElementById('progressInfo').innerText = 
-            `Archivo: ${file.name} (${fileSizeMB.toFixed(2)}MB)`;
-        document.getElementById('progressSpeed').innerText = 
+        document.getElementById('progressInfo').innerText =
+            `Archivo: ${file.name} (${fileSizeMB.toFixed(2)}MB) - SUBIDA COMPLETA`;
+        document.getElementById('progressSpeed').innerText =
             `Conexión: ${chunkUpload.connectionSpeed} | Chunk: ${(chunkUpload.chunkSize / 1024).toFixed(0)}KB`;
         
         // Subir chunks secuencialmente
@@ -4145,7 +4381,11 @@ async function uploadArte() {
     } catch (error) {
         console.error('Error en uploadArte:', error);
         document.getElementById('loadingOverlay').style.display = 'none';
-        openModal("❌ Error", "Error al subir: " + error.message, "💥");
+        
+        // ✅ EN CASO DE ERROR, CANCELAR Y LIMPIAR TODO
+        await cancelUpload();
+        
+        openModal("❌ Error", "Error al subir: " + error.message + "\n\nTodos los recursos temporales han sido eliminados.", "💥");
     }
 }
 
@@ -4464,43 +4704,48 @@ else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
 if(id === 'list-page') updateTable();
 }
 
-// ✅ ACTUALIZAR TABLA (USA ESTADÍSTICAS PRE-CALCULADAS)
+// ✅ ACTUALIZAR TABLA CON INVALIDACIÓN DE CACHÉ
 async function updateTable(forceRefresh = false) {
     const now = Date.now();
-    // Si tenemos cache y no forzamos, usamos cache
+    const serverCacheTimestamp = DATA_CACHE.serverTimestamp || 0;
+    
+    // Si hay cambios en el servidor, forzar refresh
+    if (serverCacheTimestamp > DATA_CACHE.timestamp) {
+        forceRefresh = true;
+        console.log("🔄 Caché del servidor actualizada, refrescando datos...");
+    }
+    
+    // Si tenemos cache local y no forzamos, usamos cache
     if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
         localData = DATA_CACHE.data;
         if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
         renderLocalTableOptimized();
         return;
     }
-
+    
     if (DATA_CACHE.isLoading) {
         await DATA_CACHE.pendingPromise;
         return;
     }
-
+    
     DATA_CACHE.isLoading = true;
     DATA_CACHE.pendingPromise = fetchTableData();
     
     try {
         const result = await DATA_CACHE.pendingPromise;
         DATA_CACHE.data = result.rows;
-        DATA_CACHE.stats = result.stats; // ✅ GUARDAR ESTADÍSTICAS
+        DATA_CACHE.stats = result.stats;
+        DATA_CACHE.serverTimestamp = result.cacheTimestamp; // ✅ Guardar timestamp del servidor
         DATA_CACHE.timestamp = now;
-        
         localData = result.rows;
         buildDataIndexes();
         
-        // ✅ ACTUALIZAR CONTADORES INMEDIATAMENTE CON DATOS DEL SERVIDOR
         if (result.stats) {
             updateCounters(result.stats);
         }
-        
         renderLocalTableOptimized();
     } catch (e) {
         console.error("Error cargando tabla:", e);
-        // No lanzar error aquí para no bloquear la UI si falla la carga de datos secundarios
     } finally {
         DATA_CACHE.isLoading = false;
         DATA_CACHE.pendingPromise = null;
@@ -4524,11 +4769,12 @@ async function fetchTableData() {
         }
         
         if (response.success && response.data) {
-            // ✅ EL SERVIDOR AHORA DEVUELVE { rows: [...], stats: {...} }
+            // ✅ EL SERVIDOR AHORA DEVUELVE { rows: [...], stats: {...}, cacheTimestamp: number }
             // Guardamos los datos crudos
             return {
                 rows: response.data.rows || response.data, // Compatibilidad
-                stats: response.data.stats || null
+                stats: response.data.stats || null,
+                cacheTimestamp: response.data.cacheTimestamp || Date.now() // ✅ Timestamp del servidor
             };
         }
         return { rows: [], stats: null };
@@ -4929,8 +5175,11 @@ document.getElementById('loadingOverlay').style.display = 'none';
 // SUBIR CHUNKS SECUENCIALMENTE CON REINTENTOS
 async function uploadChunksSequential(id, filename, mimeType) {
     const totalChunks = chunkUpload.totalChunks;
+    const startFromChunk = chunkUpload.uploadedChunks; // Empezar desde el último chunk subido
     
-    for (let i = 0; i < totalChunks; i++) {
+    for (let i = startFromChunk; i < totalChunks; i++) {
+        chunkUpload.currentChunkIndex = i; // Actualizar índice actual para UI
+        
         if (chunkUpload.pauseRequested) {
             await waitForResume();
             if (!chunkUpload.isActive) return;
@@ -4944,12 +5193,15 @@ async function uploadChunksSequential(id, filename, mimeType) {
                 // ✅ REGISTRAR TIEMPO DE INICIO DEL CHUNK
                 chunkUpload.currentChunkStartTime = Date.now();
                 
-                await uploadSingleChunk(id, filename, mimeType, i);
+                // Cuando se reanuda, el array chunks solo contiene los pendientes
+                // El índice real del chunk es i, pero en el array es i - startFromChunk
+                const chunkArrayIndex = i - startFromChunk;
+                await uploadSingleChunk(id, filename, mimeType, chunkArrayIndex, i);
                 
                 // ✅ REGISTRAR TIEMPO DE FIN Y CALCULAR VELOCIDAD
                 chunkUpload.currentChunkEndTime = Date.now();
                 const chunkDuration = (chunkUpload.currentChunkEndTime - chunkUpload.currentChunkStartTime) / 1000; // segundos
-                const chunkSizeKB = chunkUpload.chunks[i].size / 1024; // KB
+                const chunkSizeKB = chunkUpload.chunks[chunkArrayIndex].size / 1024; // KB
                 const currentSpeed = chunkSizeKB / chunkDuration; // KB/s
                 
                 // Guardar velocidad actual
@@ -5010,8 +5262,8 @@ async function uploadChunksSequential(id, filename, mimeType) {
 }
 
 // SUBIR UN SOLO CHUNK
-async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
-    const chunk = chunkUpload.chunks[chunkIndex];
+async function uploadSingleChunk(id, filename, mimeType, chunkArrayIndex, realChunkIndex) {
+    const chunk = chunkUpload.chunks[chunkArrayIndex];
     const reader = new FileReader();
     
     return new Promise((resolve, reject) => {
@@ -5040,7 +5292,7 @@ async function uploadSingleChunk(id, filename, mimeType, chunkIndex) {
                 
                 if (data.success) {
                     document.getElementById('progressStatus').innerText = 
-                        `📤 Subiendo chunk ${chunk.index + 1}/${chunk.total}...`;
+                        `📤 Subiendo chunk ${realChunkIndex + 1}/${chunk.total}...`;
                     resolve();
                 } else {
                     reject(new Error(data.error || 'Error desconocido'));
@@ -5148,6 +5400,39 @@ function showUploadProgressModal(id, filename, fileSizeMB) {
     document.getElementById('modalAlert').style.display = 'flex';
 }
 
+// ✅ DETENER AL CERRAR SESIÓN
+function logout() {
+  // ✅ DETENER SINCRONIZACIÓN AUTOMÁTICA
+  if (panelSyncInterval) {
+    clearInterval(panelSyncInterval);
+    panelSyncInterval = null;
+  }
+  
+  // Resto del logout - cerrar panel si está abierto
+  if (isPanelOpen) {
+    closeSidePanel();
+  }
+  
+  // Limpiar variables de sesión
+  isAdmin = false;
+  isDesigner = false;
+  userCredentials = { username: '', password: '', displayName: '' };
+  
+  // Actualizar UI
+  document.getElementById('authBtn').innerText = '🔐 Administrador';
+  document.getElementById('authBtn').className = 'btn-login';
+  document.getElementById('authBtn').onclick = showLogin;
+  document.getElementById('welcomeMessage').classList.remove('show');
+  
+  // Cerrar panel si está abierto
+  closeSidePanel();
+  
+  // Recargar tabla para actualizar permisos
+  updateTable();
+  
+  openModal("✅ Sesión Cerrada", "Has cerrado sesión correctamente.", "🚪");
+}
+
 // ✅ ACTUALIZAR DISPLAY DE VELOCIDAD DE SUBIDA
 function updateUploadSpeedDisplay() {
   const speedElement = document.getElementById('progressUploadSpeed');
@@ -5242,4 +5527,3 @@ function cancelUpload() {
 </script>
 </body>
 </html>
-
