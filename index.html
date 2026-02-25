@@ -2352,14 +2352,19 @@ function maintainDataIndex() {
     DATA_INDEX.byStatus.clear();
     DATA_INDEX.byDesigner.clear();
     
+    console.log('🔄 Reconstruyendo índices con', localData.length, 'registros');
+    
     // Reconstruir índices con los datos actuales
     localData.forEach((item, index) => {
         // Índice por ID (para búsqueda rápida)
         if (item.id) {
-            DATA_INDEX.byId.set(String(item.id).toUpperCase(), {
+            const idKey = String(item.id).toUpperCase().trim();
+            DATA_INDEX.byId.set(idKey, {
                 item: item,
                 index: index
             });
+        } else {
+            console.warn('⚠️ Item sin ID:', item);
         }
         
         // Índice por estado
@@ -2381,10 +2386,9 @@ function maintainDataIndex() {
         }
     });
     
-    console.log('✅ Índice de datos actualizado:', {
+    console.log('✅ Índice reconstruido:', {
         totalEntries: DATA_INDEX.byId.size,
-        byStatus: Object.fromEntries(DATA_INDEX.byStatus),
-        byDesigner: Object.fromEntries(DATA_INDEX.byDesigner)
+        primerosIDs: Array.from(DATA_INDEX.byId.keys()).slice(0, 5)
     });
 }
 
@@ -2442,54 +2446,47 @@ function buscarPorID() {
   
   if (!isSearchActive) {
     resetSearchHighlight();
-    renderPage(1);
+    // CORRECCIÓN: Usar renderLocalTable para mostrar todos los datos y restaurar contadores
+    renderLocalTable();
+    // OCULTAR MODAL DE ID NO ENCONTRADO
+    document.getElementById('idNotFoundModal').style.display = 'none';
     return;
   }
   
-  // ✅ BÚSQUEDA PARCIAL (busca coincidencias en cualquier parte del ID)
+  // ✅ ASEGURAR QUE EL ÍNDICE ESTÉ ACTUALIZADO
+  if (DATA_INDEX.byId.size === 0) {
+    console.log('🔄 Índice vacío, reconstruyendo...');
+    buildDataIndexes();
+  }
+  
+  // ✅ DEPURACIÓN: Verificar qué hay en el índice
+  console.log('🔍 Buscando:', searchTerm);
+  console.log('📊 Total en índice:', DATA_INDEX.byId.size);
+  console.log('📋 IDs disponibles:', Array.from(DATA_INDEX.byId.keys()).slice(0, 10));
+  
+  // BÚSQUEDA PARCIAL (busca coincidencias en cualquier parte del ID)
   const matchedEntries = [];
   
   // Iterar sobre el índice para encontrar coincidencias parciales
   for (const [id, entry] of DATA_INDEX.byId) {
     if (id.includes(searchTerm)) {
       matchedEntries.push(entry);
+      console.log('✅ Coincidencia encontrada:', id);
     }
   }
+  
+  console.log('🎯 Resultados encontrados:', matchedEntries.length);
   
   if (matchedEntries.length > 0) {
     const body = document.getElementById('solicitudes-body');
     body.innerHTML = '';
-    
-    // Calcular contadores para los resultados encontrados
-    let counts = {
-      total: matchedEntries.length,
-      pend: 0,
-      proc: 0,
-      fin: 0,
-      bermina: 0,
-      jorsy: 0,
-      maria: 0,
-      xamir: 0
-    };
     
     // Renderizar cada resultado encontrado
     matchedEntries.forEach(entry => {
       const tr = createRowElement(entry.item, entry.index);
       tr.classList.add('row-highlighted');
       body.appendChild(tr);
-      
-      // Actualizar contadores
-      if (entry.item.Estatus === 'PENDIENTE') counts.pend++;
-      else if (entry.item.Estatus === 'PROCESANDO') counts.proc++;
-      else if (entry.item.Estatus === 'FINALIZADA') counts.fin++;
-      
-      if (entry.item.Disenador === 'Bermina') counts.bermina++;
-      else if (entry.item.Disenador === 'Jorsy') counts.jorsy++;
-      else if (entry.item.Disenador === 'María F.') counts.maria++;
-      else if (entry.item.Disenador === 'Xamir') counts.xamir++;
     });
-    
-    updateCounters(counts);
     
     // Hacer scroll al primer resultado
     if (matchedEntries.length > 0) {
@@ -2498,10 +2495,16 @@ function buscarPorID() {
         firstRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
+    
+    // OCULTAR MODAL DE ID NO ENCONTRADO SI HAY RESULTADOS
+    document.getElementById('idNotFoundModal').style.display = 'none';
+    
   } else {
+    // MOSTRAR MENSAJE DE NO RESULTADOS Y RENDERIZAR TABLA VACÍA
     document.getElementById('notFoundId').innerText = currentSearchId;
     document.getElementById('idNotFoundModal').style.display = 'flex';
     
+    // RENDERIZAR TABLA VACÍA PARA MOSTRAR QUE NO HAY RESULTADOS
     const body = document.getElementById('solicitudes-body');
     body.innerHTML = `
       <tr>
@@ -2513,7 +2516,7 @@ function buscarPorID() {
   }
 }
 
-// ✅ APLICAR RESALTADO Y BLOQUEO
+// APLICAR RESALTADO Y BLOQUEO
 function applySearchHighlight(searchTerm) {
     const rows = document.querySelectorAll('#solicitudes-body tr');
     let foundMatch = false;
@@ -5557,6 +5560,8 @@ document.getElementById('unidad-section').classList.add('hidden');
 openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
 setTimeout(() => {
 closeModal();
+// ✅ FORZAR ACTUALIZACIÓN COMPLETA DESDE SERVIDOR
+updateTable(true); // forceRefresh = true para obtener datos frescos
 showPage('list-page', document.getElementById('tab-list'));
 }, 2000);
 } else {
@@ -5567,6 +5572,8 @@ throw new Error(result.error);
 openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
 setTimeout(() => {
 closeModal();
+// ✅ FORZAR ACTUALIZACIÓN COMPLETA DESDE SERVIDOR
+updateTable(true); // forceRefresh = true para obtener datos frescos
 showPage('list-page', document.getElementById('tab-list'));
 }, 2000);
 })
