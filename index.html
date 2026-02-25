@@ -2281,20 +2281,12 @@ const DATA_CACHE = {
 // === AGREGAR ESTO ===
 const PAGINATION = {
   currentPage: 1,
-  limit: 50,
+  limit: 40,
   totalPages: 1,
   totalRecords: 0,
   isLoading: false
 };
 
-const VIRTUAL_SCROLL = {
-    enabled: true,
-    pageSize: 50,
-    currentPage: 1,
-    totalPages: 1,
-    allData: [],
-    renderedData: []
-};
 
 let DATA_INDEX = {
     byId: new Map(),
@@ -2317,7 +2309,8 @@ async function updateTable(forceRefresh = false) {
   if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
     localData = DATA_CACHE.data;
     if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
-    renderLocalTableOptimized();
+    renderLocalTable();
+    updatePaginationControls();
     return;
   }
   
@@ -2341,7 +2334,8 @@ async function updateTable(forceRefresh = false) {
     if (result.stats) {
       updateCounters(result.stats);
     }
-    renderLocalTableOptimized();
+    renderLocalTable();
+    updatePaginationControls();
   } catch (e) {
     console.error("Error cargando tabla:", e);
   } finally {
@@ -2350,42 +2344,6 @@ async function updateTable(forceRefresh = false) {
   }
 }
 
-// === REEMPLAZAR FUNCIÓN COMPLETA ===
-async function fetchTableData() {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-  try {
-    // ✅ AGREGAR PARÁMETROS DE PAGINACIÓN
-    const res = await fetch(`${SCRIPT_URL}?action=read&page=${PAGINATION.currentPage}&limit=${PAGINATION.limit}`, { 
-      signal: controller.signal 
-    });
-    clearTimeout(timeoutId);
-    const response = await res.json();
-    isMaintActive = (response.maintenance === "true" || response.maintenance === true);
-    if (isMaintActive && !isAdmin && !isDesigner) {
-      document.getElementById('maintOverlay').style.display = 'flex';
-    } else {
-      document.getElementById('maintOverlay').style.display = 'none';
-    }
-    if (response.success && response.data) {
-      // ✅ GUARDAR INFO DE PAGINACIÓN
-      if (response.data.pagination) {
-        PAGINATION.totalPages = response.data.pagination.totalPages;
-        PAGINATION.totalRecords = response.data.pagination.totalRecords;
-        PAGINATION.hasMore = response.data.pagination.hasMore;
-      }
-      return {
-        rows: response.data.rows || response.data,
-        stats: response.data.stats || null,
-        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0")
-      };
-    }
-    return { rows: [], stats: null, cacheTimestamp: 0 };
-  } catch (e) {
-    clearTimeout(timeoutId);
-    throw e;
-  }
-}
 
 // ✅ FUNCIÓN PARA MANTENER EL ÍNDICE DE DATOS ACTUALIZADO
 function maintainDataIndex() {
@@ -2435,10 +2393,6 @@ function buildDataIndexes() {
     maintainDataIndex();
 }
 
-// ✅ FUNCIÓN RENDER LOCAL TABLE OPTIMIZADA
-function renderLocalTableOptimized() {
-    renderLocalTable();
-}
 
 // ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
 const designerColors = {
@@ -2756,6 +2710,7 @@ async function modStatus(id, st) {
             const item = localData.find(x => x.id == id);
             if(item) item.Estatus = st;
             renderLocalTable();
+    updatePaginationControls();
         } else {
             throw new Error(data.error || "Error al actualizar estatus");
         }
@@ -2767,49 +2722,7 @@ async function modStatus(id, st) {
     }
 }
 
-function renderLocalTableOptimized() {
-    const body = document.getElementById('solicitudes-body');
-    // Mostrar spinner ligero
-    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#888;">Cargando filas...</td></tr>`;
 
-    requestAnimationFrame(() => {
-        VIRTUAL_SCROLL.allData = localData;
-        VIRTUAL_SCROLL.currentPage = 1;
-        VIRTUAL_SCROLL.totalPages = Math.ceil(localData.length / VIRTUAL_SCROLL.pageSize);
-        renderPage(1);
-    });
-}
-
-// NUEVA FUNCIÓN: SOLO CALCULA ESTADÍSTICAS SIN BLOQUEAR
-function calculateStatsInBackground() {
-    let counts = {
-        total: 0, pend: 0, proc: 0, fin: 0,
-        bermina: 0, jorsy: 0, maria: 0, xamir: 0
-    };
-
-    // Iteramos los datos para contar
-    localData.forEach(s => {
-        counts.total++;
-        const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
-        const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
-        
-        if(statusLimpio === 'pendiente') counts.pend++;
-        else if(statusLimpio === 'procesando') counts.proc++;
-        else if(statusLimpio === 'finalizada') {
-            counts.fin++;
-            if (s.Disenador) {
-                if (s.Disenador === "Bermina") counts.bermina++;
-                else if (s.Disenador === "Jorsy") counts.jorsy++;
-                else if (s.Disenador === "María F.") counts.maria++;
-                else if (s.Disenador === "Xamir") counts.xamir++;
-            }
-        }
-    });
-
-    // Actualizamos la UI con los resultados
-    updateCounters(counts);
-    console.log(" Estadísticas actualizadas en segundo plano");
-}
 
 // ACTUALIZAR CONTADORES (YA NO CALCULA, SOLO PINTA)
 function updateCounters(stats) {
@@ -2850,96 +2763,86 @@ function updateCounters(stats) {
     document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
 }
 
-function renderPage(pageNum) {
-    const body = document.getElementById('solicitudes-body');
-    const start = (pageNum - 1) * VIRTUAL_SCROLL.pageSize;
-    const end = Math.min(start + VIRTUAL_SCROLL.pageSize, VIRTUAL_SCROLL.allData.length);
-    const pageData = VIRTUAL_SCROLL.allData.slice(start, end);
-    
-    const fragment = document.createDocumentFragment();
-    
-    pageData.forEach((s, idx) => {
-        const tr = createRowElement(s, start + idx);
-        fragment.appendChild(tr);
-    });
-    
-    if (pageNum === 1) {
-        body.innerHTML = '';
-    } else {
-        body.lastElementChild?.remove();
-    }
-    
-    body.appendChild(fragment);
-    
-    if (pageNum < VIRTUAL_SCROLL.totalPages) {
-        const remaining = VIRTUAL_SCROLL.allData.length - end;
-        const loadMoreRow = document.createElement('tr');
-        loadMoreRow.innerHTML = `
-            <td colspan="7" style="text-align: center; padding: 20px;">
-                <button onclick="loadMoreRows()" 
-                        style="padding: 10px 30px; background: #219ebc; color: white; 
-                               border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    Cargar más (${remaining} restantes)
-                </button>
-            </td>
-        `;
-        body.appendChild(loadMoreRow);
-    }
-}
 
-function loadMoreRows() {
-    VIRTUAL_SCROLL.currentPage++;
-    renderPage(VIRTUAL_SCROLL.currentPage);
-}
-
-// === AGREGAR ESTAS FUNCIONES ===
+// ✅ FUNCIÓN PARA ACTUALIZAR CONTROLES DE PAGINACIÓN - CORREGIDA
 function updatePaginationControls() {
+  // ✅ CORRECCIÓN: Calcular totalPages basado en totalRecords real
+  const totalRecords = PAGINATION.totalRecords || localData.length;
+  const totalPages = Math.ceil(totalRecords / PAGINATION.limit) || 1;
+  
+  // Actualizar objeto global
+  PAGINATION.totalRecords = totalRecords;
+  PAGINATION.totalPages = totalPages;
+  
+  // Asegurar que currentPage sea válida
+  if (PAGINATION.currentPage < 1) PAGINATION.currentPage = 1;
+  if (PAGINATION.currentPage > totalPages) PAGINATION.currentPage = totalPages;
+  
   const start = (PAGINATION.currentPage - 1) * PAGINATION.limit + 1;
-  const end = Math.min(PAGINATION.currentPage * PAGINATION.limit, PAGINATION.totalRecords);
+  const end = Math.min(PAGINATION.currentPage * PAGINATION.limit, totalRecords);
   
-  document.getElementById('paginationStart').innerText = PAGINATION.totalRecords > 0 ? start : 0;
+  document.getElementById('paginationStart').innerText = totalRecords > 0 ? start : 0;
   document.getElementById('paginationEnd').innerText = end;
-  document.getElementById('paginationTotal').innerText = PAGINATION.totalRecords;
-  document.getElementById('currentPageIndicator').innerText = `${PAGINATION.currentPage} / ${PAGINATION.totalPages}`;
+  document.getElementById('paginationTotal').innerText = totalRecords;
+  document.getElementById('currentPageIndicator').innerText = `${PAGINATION.currentPage} / ${totalPages}`;
   
-  // ✅ HABILITAR/DESHABILITAR BOTONES
-  document.getElementById('btnFirstPage').disabled = PAGINATION.currentPage === 1;
-  document.getElementById('btnPrevPage').disabled = PAGINATION.currentPage === 1;
-  document.getElementById('btnNextPage').disabled = PAGINATION.currentPage >= PAGINATION.totalPages;
-  document.getElementById('btnLastPage').disabled = PAGINATION.currentPage >= PAGINATION.totalPages;
+  // Habilitar/Deshabilitar botones
+  const btnFirst = document.getElementById('btnFirstPage');
+  const btnPrev = document.getElementById('btnPrevPage');
+  const btnNext = document.getElementById('btnNextPage');
+  const btnLast = document.getElementById('btnLastPage');
+  
+  if (btnFirst) btnFirst.disabled = PAGINATION.currentPage === 1;
+  if (btnPrev) btnPrev.disabled = PAGINATION.currentPage === 1;
+  if (btnNext) btnNext.disabled = PAGINATION.currentPage >= totalPages;
+  if (btnLast) btnLast.disabled = PAGINATION.currentPage >= totalPages;
+  
+  console.log(`📊 Paginación: Página ${PAGINATION.currentPage}/${totalPages} | Total: ${totalRecords} registros | Mostrando ${start}-${end}`);
 }
 
+// ✅ FUNCIÓN changePage - CORREGIDA
 async function changePage(action) {
   if (PAGINATION.isLoading) return;
   
   let newPage = PAGINATION.currentPage;
+  const totalPages = PAGINATION.totalPages || 1;
   
   switch(action) {
     case 'first': newPage = 1; break;
     case 'prev': newPage = Math.max(1, PAGINATION.currentPage - 1); break;
-    case 'next': newPage = Math.min(PAGINATION.totalPages, PAGINATION.currentPage + 1); break;
-    case 'last': newPage = PAGINATION.totalPages; break;
+    case 'next': newPage = Math.min(totalPages, PAGINATION.currentPage + 1); break;
+    case 'last': newPage = totalPages; break;
   }
+  
+  console.log(`🔄 Cambiando página: ${PAGINATION.currentPage} -> ${newPage} (total: ${totalPages})`);
   
   if (newPage === PAGINATION.currentPage) return;
   
   PAGINATION.isLoading = true;
   PAGINATION.currentPage = newPage;
   
-  // ✅ MOSTRAR LOADING
-  document.getElementById('paginationControls').style.opacity = '0.5';
-  document.getElementById('solicitudes-body').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;"><div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 15px;"></div>Cargando página...</td></tr>';
+  // Mostrar loading
+  const paginationControls = document.getElementById('paginationControls');
+  if (paginationControls) paginationControls.style.opacity = '0.5';
+  
+  const body = document.getElementById('solicitudes-body');
+  body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;"><div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 15px;"></div>Cargando página ' + newPage + '...</td></tr>';
   
   try {
+    // Forzar refresh para obtener la nueva página del servidor
+    DATA_CACHE.data = null;
+    DATA_CACHE.timestamp = 0;
+    
     await updateTable(true);
-    updatePaginationControls();
+    
   } catch (e) {
     console.error("Error cambiando página:", e);
-    openModal("❌ Error", "No se pudo cargar la página", "💥");
+    openModal("❌ Error", "No se pudo cargar la página: " + e.message, "💥");
+    // Revertir página en caso de error
     PAGINATION.currentPage = newPage - (action === 'next' || action === 'last' ? 1 : -1);
   } finally {
     PAGINATION.isLoading = false;
-    document.getElementById('paginationControls').style.opacity = '1';
+    if (paginationControls) paginationControls.style.opacity = '1';
   }
 }
 
@@ -3060,47 +2963,78 @@ function createRowElement(s, idx) {
     return tr;
 }
 
-// ✅ FUNCIÓN UNIFICADA PARA MANEJO DE FECHAS
+// ✅ FUNCIÓN UNIFICADA PARA MANEJO DE FECHAS - VERSIÓN ROBUSTA
 function formatearFecha(valor, formato = 'datetime') {
   if (!valor || valor.toString().trim() === "") return "";
   
   var fechaObj;
-  if (valor instanceof Date) {
-    fechaObj = valor;
-  } else if (typeof valor === 'string') {
-    // Parsear string de fecha
-    var texto = valor.trim().replace(/-/g, '/');
-    var partes = texto.split(' ');
-    var fechaPart = partes[0];
-    
-    if (fechaPart.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
-      var dmy = fechaPart.split('/');
-      fechaObj = new Date(parseInt(dmy[2]), parseInt(dmy[1]) - 1, parseInt(dmy[0]));
-    } else if (fechaPart.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
-      var iso = fechaPart.split('/');
-      fechaObj = new Date(parseInt(iso[0]), parseInt(iso[1]) - 1, parseInt(iso[2]));
+  
+  try {
+    if (valor instanceof Date) {
+      fechaObj = valor;
+    } else if (typeof valor === 'string') {
+      var texto = valor.trim().replace(/-/g, '/');
+      var partes = texto.split(' ');
+      var fechaPart = partes[0];
+      
+      // Formato dd/MM/yyyy
+      if (fechaPart.match(/^\d{1,2}\/\d{1,2}\/\d{4}/)) {
+        var dmy = fechaPart.split('/');
+        var dia = parseInt(dmy[0], 10);
+        var mes = parseInt(dmy[1], 10) - 1;
+        var anio = parseInt(dmy[2], 10);
+        
+        var hora = 0, min = 0;
+        if (partes[1]) {
+          var tiempo = partes[1].split(':');
+          hora = parseInt(tiempo[0], 10) || 0;
+          min = parseInt(tiempo[1], 10) || 0;
+        }
+        
+        fechaObj = new Date(anio, mes, dia, hora, min);
+      }
+      // Formato yyyy/MM/dd
+      else if (fechaPart.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
+        var iso = fechaPart.split('/');
+        fechaObj = new Date(parseInt(iso[0]), parseInt(iso[1]) - 1, parseInt(iso[2]));
+      }
+      // Formato MM/dd/yyyy (US)
+      else if (fechaPart.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}/)) {
+        var us = fechaPart.split('/');
+        var anio = us[2].length === 2 ? 2000 + parseInt(us[2]) : parseInt(us[2]);
+        fechaObj = new Date(anio, parseInt(us[0]) - 1, parseInt(us[1]));
+      }
+      else {
+        // Intentar parseo nativo como último recurso
+        fechaObj = new Date(texto);
+      }
     } else {
-      return valor;
+      return valor; // Devolver tal cual si no se puede parsear
     }
-  } else {
-    return valor;
-  }
-  
-  if (!fechaObj || isNaN(fechaObj.getTime())) return "";
-  
-  // Formatear según tipo
-  var dd = String(fechaObj.getDate()).padStart(2, '0');
-  var mm = String(fechaObj.getMonth() + 1).padStart(2, '0');
-  var yyyy = fechaObj.getFullYear();
-  
-  if (formato === 'date') {
+    
+    if (!fechaObj || isNaN(fechaObj.getTime())) {
+      console.warn("⚠️ Fecha inválida:", valor);
+      return valor; // Devolver valor original en lugar de vacío
+    }
+    
+    // Formatear según tipo
+    var dd = String(fechaObj.getDate()).padStart(2, '0');
+    var mm = String(fechaObj.getMonth() + 1).padStart(2, '0');
+    var yyyy = fechaObj.getFullYear();
+    
+    if (formato === 'date') {
+      return dd + '/' + mm + '/' + yyyy;
+    } else if (formato === 'datetime') {
+      var hh = String(fechaObj.getHours()).padStart(2, '0');
+      var min = String(fechaObj.getMinutes()).padStart(2, '0');
+      return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
+    }
+    
     return dd + '/' + mm + '/' + yyyy;
-  } else if (formato === 'datetime') {
-    var hh = String(fechaObj.getHours()).padStart(2, '0');
-    var min = String(fechaObj.getMinutes()).padStart(2, '0');
-    return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
-  } else {
-    return dd + '/' + mm + '/' + yyyy;
+    
+  } catch (e) {
+    console.error("❌ Error formateando fecha:", valor, e);
+    return valor || ""; // Devolver valor original o vacío
   }
 }
 
@@ -3116,242 +3050,185 @@ function extraerHora(dateTime) {
   return partes.slice(1).join(' ');
 }
 
-// FUNCIÓN CORREGIDA: RENDER LOCAL TABLE PARA TODOS LOS ROLES
+// ✅ FUNCIÓN renderLocalTable - CORREGIDA
 function renderLocalTable() {
-    const body = document.getElementById('solicitudes-body');
-    body.innerHTML = "";
-    let counts = {
-        total: 0,
-        pend: 0,
-        proc: 0,
-        fin: 0,
-        bermina: 0,
-        jorsy: 0,
-        maria: 0,
-        xamir: 0
-    };
+  const body = document.getElementById('solicitudes-body');
+  body.innerHTML = "";
+  
+  // ✅ CORRECCIÓN: Usar PAGINATION.totalRecords que viene del servidor
+  const totalRecords = PAGINATION.totalRecords || localData.length;
+  const totalPages = Math.ceil(totalRecords / PAGINATION.limit) || 1;
+  
+  console.log(`📄 Renderizando: ${localData.length} registros en memoria de ${totalRecords} totales`);
+  
+  // Validar página actual
+  if (PAGINATION.currentPage > totalPages) {
+    PAGINATION.currentPage = totalPages;
+  }
+  if (PAGINATION.currentPage < 1) {
+    PAGINATION.currentPage = 1;
+  }
+  
+  // Calcular índices para mostrar
+  const startIndex = (PAGINATION.currentPage - 1) * PAGINATION.limit;
+  const endIndex = Math.min(startIndex + PAGINATION.limit, totalRecords);
+  
+  console.log(`📄 Página ${PAGINATION.currentPage}/${totalPages} - Registros ${startIndex + 1} a ${endIndex} de ${totalRecords}`);
+  
+  // ✅ IMPORTANTE: localData ya contiene solo los registros de la página actual del servidor
+  // No hacer slice aquí porque el servidor ya paginó los datos
+  const dataToRender = localData;
+  
+  const isRegularUser = !isAdmin && !isDesigner;
+  
+  dataToRender.forEach((s, idx) => {
+    const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
+    const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
+    const esNueva = (statusReal === "PENDIENTE");
+    const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
+    const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
     
-    // USAR DIRECTAMENTE localData (YA ORDENADO DEL BACKEND)
-    // Determinar si es usuario regular (ni admin ni diseñador)
-    const isRegularUser = !isAdmin && !isDesigner;
-    
-    
-    localData.forEach((s, idx) => {
-        counts.total++;
-        const statusReal = s.Estatus ? s.Estatus.toUpperCase().trim() : "";
-        const statusLimpio = statusReal.toLowerCase().replace(/\s+/g,'');
-        
-        if(statusLimpio === 'pendiente') counts.pend++;
-        if(statusLimpio === 'procesando') counts.proc++;
-        if(statusLimpio === 'finalizada') {
-            counts.fin++;
-            // ✅ CONTAR POR DISEÑADOR
-            if (s.Disenador) {
-                if (s.Disenador === "Bermina") counts.bermina++;
-                else if (s.Disenador === "Jorsy") counts.jorsy++;
-                else if (s.Disenador === "María F.") counts.maria++;
-                else if (s.Disenador === "Xamir") counts.xamir++;
-            }
-        }
-        
-        // ✅ CAMBIO: TODAS las pendientes son NEW (sin límite de 5)
-        const esNueva = (statusReal === "PENDIENTE");
-        const unidadLimpia = s.Unidad ? s.Unidad.replace(/\+/g, ' ') : "";
-        const jornadaLimpia = s.Jornada ? s.Jornada.replace(/\+/g, ' ') : "";
-        
-        let badge = '';
-        let rowClass = '';
-        if (esNueva) {
-            if (jornadaLimpia === "Obituario") {
-                badge = '<span class="badge-prioridad">PRIORIZAR</span>';
-                rowClass = "row-obituario";
-            } else {
-                badge = '<span class="badge-new">NEW</span>'; // ✅ Texto cambiado a "NEW"
-                rowClass = "row-new";
-            }
-        }
-        
-        // ✅ CÍRCULO DE DISEÑADOR - AHORA VISIBLE EN CUALQUIER ESTADO
-        let designerCircle = '';
-        if (s.Disenador) {
-            const color = designerColors[s.Disenador] || '#6c757d';
-            designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
-        }
-        
-        let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? `📷 (${s.Soportes.match(/\d+/) || 1})` : "🙈";
-        
-        // ✅ FORMATEAR FECHAS Y HORAS CON VALIDACIÓN
-        const fechaSolicitudFormat = extraerFecha(s.Timestamp);
-        const horaSolicitudFormat = extraerHora(s.Timestamp);
-        const fechaEventoFormat = extraerFecha(s.Fecha);
-        const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
-        
-        const tr = document.createElement('tr');
-        if(rowClass) tr.className = rowClass;
-        
-        // ✅ AGREGAR CLASE DE SELECCIÓN SI ESTÁ SELECCIONADA
-        if (selectedRequestId === s.id) {
-            tr.classList.add('row-selected-panel');
-        }
-        
-        // ✅ RENDERIZAR FILAS SEGÚN ROL DEL USUARIO
-        if (isRegularUser) {
-            // USUARIO REGULAR: Muestra fecha solicitud/hora, fecha evento/hora, unidad, jornada, soportes, status
-            tr.innerHTML = `
-                <td>
-                    <span class="txt-bold">${fechaSolicitudFormat}</span><br>
-                    <span class="txt-small">${horaSolicitudFormat}</span>
-                </td>
-                <td>
-                    <span class="txt-bold">${fechaEventoFormat}</span><br>
-                    <span class="txt-small">${horaEvento}</span>
-                </td>
-                <td class="txt-bold">${unidadLimpia} ${badge}</td>
-                <td>${jornadaLimpia}</td>
-                <td align="center">${icon}</td>
-                <td>
-                    ${designerCircle}
-                    <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
-                </td>
-                <td></td>
-            `;
-        } else {
-            // ADMIN O DISEÑADOR: Lógica de Iconos Condicional Robusta
-            // Verificamos que ArteFinal exista y no esté vacío
-            const hasArt = (s.ArteFinal && s.ArteFinal.trim() !== "" && s.ArteFinal !== "null");
-            
-            let actionIcon, actionText;
-
-            if (hasArt) {
-                // HAY ARCHIVO: Clip Verde
-                actionIcon = '<span style="color: var(--verde); font-size: 1.3rem;">📎</span>';
-                actionText = '<span style="color: var(--verde);">Archivo Adjunto</span>';
-            } else {
-                // NO HAY ARCHIVO: Mano Naranja
-                actionIcon = '<span style="color: #fb8500; font-size: 1.3rem;">👆</span>';
-                actionText = '<span>Click para seleccionar</span>';
-            }
-
-            tr.innerHTML = `
-            <td>
-                <span class="txt-bold">${s.id}</span>
-                ${badge}
-            </td>
-            <td>
-                <span class="txt-bold">${fechaEventoFormat}</span><br>
-                <span class="txt-small">${horaEvento}</span>
-            </td>
-            <td class="txt-bold">${unidadLimpia}</td>
-            <td>${jornadaLimpia}</td>
-            <td align="center">${icon}</td>
-            <td>
-                ${designerCircle}
-                <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
-            </td>
-            <!-- COLUMNA DE ACCIONES CON ICONO CONDICIONAL Y TEXTO ALINEADO -->
-            <td align="right" class="admin-actions-cell">
-                <div class="admin-actions-content">
-                    ${actionIcon}
-                    ${actionText}
-                </div>
-            </td>
-            `;
-            
-            // AGREGAR VERIFICACIÓN: Solo permitir selección si es admin o diseñador
-            if (!isRegularUser) {
-                tr.style.cursor = 'pointer';
-                tr.addEventListener('click', function(e) {
-                    // VERIFICACIÓN ADICIONAL: No seleccionar si ya no es admin/diseñador
-                    // ✅ VERIFICACIÓN ADICIONAL: No seleccionar si ya no es admin/diseñador
-                    if (!isAdmin && !isDesigner) return;
-                    // No seleccionar si se hizo click en un botón o enlace
-                    if (e.target.closest('button') || e.target.closest('a')) return;
-                    selectRequest(s.id);
-                });
-            }
-        }
-        
-        body.appendChild(tr);
-    });
-    
-    // ✅ ACTUALIZAR CONTADORES (MODO ADMIN + USUARIO REGULAR)
-    // Actualizar siempre los contadores básicos (para usuarios regulares)
-    document.getElementById('count-total').innerText = counts.total;
-    document.getElementById('count-pend').innerText = counts.pend;
-    document.getElementById('count-proc').innerText = counts.proc;
-    document.getElementById('count-fin').innerText = counts.fin;
-    
-    // ✅ MOSTRAR CONTADORES COMBINADOS SOLO PARA ADMIN
-    if (isAdmin) {
-      // Ocultar contadores básicos
-      document.getElementById('stats-panel').style.display = 'none';
-      // Mostrar contadores combinados
-      document.getElementById('combined-stats').style.display = 'flex';
-      // Actualizar TODOS los contadores (generales + diseñadores)
-      document.getElementById('count-total-admin').innerText = counts.total;
-      document.getElementById('count-pend-admin').innerText = counts.pend;
-      document.getElementById('count-proc-admin').innerText = counts.proc;
-      document.getElementById('count-fin-admin').innerText = counts.fin;
-      document.getElementById('count-bermina-admin').innerText = counts.bermina;
-      document.getElementById('count-jorsy-admin').innerText = counts.jorsy;
-      document.getElementById('count-maria-admin').innerText = counts.maria;
-      document.getElementById('count-xamir-admin').innerText = counts.xamir;
-    } else {
-      // Mostrar contadores básicos para usuarios regulares
-      document.getElementById('stats-panel').style.display = 'flex';
-      document.getElementById('combined-stats').style.display = 'none';
+    let badge = '';
+    let rowClass = '';
+    if (esNueva) {
+      if (jornadaLimpia === "Obituario") {
+        badge = '<span class="badge-prioridad">PRIORIZAR</span>';
+        rowClass = "row-obituario";
+      } else {
+        badge = '<span class="badge-new">NEW</span>';
+        rowClass = "row-new";
+      }
     }
     
-    // ✅ MOSTRAR/OCULTAR COLUMNAS SEGÚN ROL
-    document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
-    document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+    let designerCircle = '';
+    if (s.Disenador) {
+      const color = designerColors[s.Disenador] || '#6c757d';
+      designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+    }
     
-    // ✅ ACTUALIZAR ENCABEZADOS DE TABLA
-    const thId = document.querySelector('th:first-child');
-    const thFechaEvento = document.querySelector('th:nth-child(2)');
-    const thUnidad = document.querySelector('th:nth-child(3)');
-    const thJornada = document.querySelector('th:nth-child(4)');
-    // Seleccionamos el encabezado visible (Admin o Diseñador)
-    const thActions = isAdmin ? document.getElementById('th-admin') : document.getElementById('th-designer');
-
+    let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? ` (${s.Soportes.match(/\d+/) || 1})` : "";
+    
+    const fechaSolicitudFormat = extraerFecha(s.Timestamp);
+    const horaSolicitudFormat = extraerHora(s.Timestamp);
+    const fechaEventoFormat = extraerFecha(s.Fecha);
+    const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
+    
+    const tr = document.createElement('tr');
+    if(rowClass) tr.className = rowClass;
+    
+    if (selectedRequestId === s.id) {
+      tr.classList.add('row-selected-panel');
+    }
+    
     if (isRegularUser) {
-        thId.innerHTML = '📅 FECHA SOLICITUD';
-        thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
-        thUnidad.innerHTML = '🏥 UNIDAD';
-        thJornada.innerHTML = '📋 TIPO JORNADA';
-        // Ocultar encabezados de acciones si es usuario regular
-        document.getElementById('th-admin').classList.add('hidden');
-        document.getElementById('th-designer').classList.add('hidden');
+      tr.innerHTML = `
+        <td>
+          <span class="txt-bold">${fechaSolicitudFormat}</span><br>
+          <span class="txt-small">${horaSolicitudFormat}</span>
+        </td>
+        <td>
+          <span class="txt-bold">${fechaEventoFormat}</span><br>
+          <span class="txt-small">${horaEvento}</span>
+        </td>
+        <td class="txt-bold">${unidadLimpia} ${badge}</td>
+        <td>${jornadaLimpia}</td>
+        <td align="center">${icon}</td>
+        <td>
+          ${designerCircle}
+          <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+        </td>
+        <td></td>
+      `;
     } else {
-        thId.innerHTML = 'ID SOLICITUD';
-        thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
-        thUnidad.innerHTML = 'UNIDAD SOLICITANTE';
-        thJornada.innerHTML = 'TIPO DE JORNADA';
-        
-        // ✅ CAMBIO: Texto dinámico según el rol
-        if (isAdmin) {
-            thActions.innerHTML = 'ACCIONES ADMIN';
-            thActions.classList.remove('hidden');
-            document.getElementById('th-designer').classList.add('hidden');
-        } else if (isDesigner) {
-            thActions.innerHTML = 'ACCIONES DISEÑO';
-            thActions.classList.remove('hidden');
-            document.getElementById('th-admin').classList.add('hidden');
-        }
+      const hasArt = (s.ArteFinal && s.ArteFinal.trim() !== "" && s.ArteFinal !== "null");
+      let actionIcon, actionText;
+      if (hasArt) {
+        actionIcon = '<span style="color: var(--verde); font-size: 1.3rem;">📎</span>';
+        actionText = '<span style="color: var(--verde);">Archivo Adjunto</span>';
+      } else {
+        actionIcon = '<span style="color: #fb8500; font-size: 1.3rem;">👆</span>';
+        actionText = '<span>Click para seleccionar</span>';
+      }
+      
+      tr.innerHTML = `
+        <td>
+          <span class="txt-bold">${s.id}</span>
+          ${badge}
+        </td>
+        <td>
+          <span class="txt-bold">${fechaEventoFormat}</span><br>
+          <span class="txt-small">${horaEvento}</span>
+        </td>
+        <td class="txt-bold">${unidadLimpia}</td>
+        <td>${jornadaLimpia}</td>
+        <td align="center">${icon}</td>
+        <td>
+          ${designerCircle}
+          <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+        </td>
+        <td align="right" class="admin-actions-cell">
+          <div class="admin-actions-content">
+            ${actionIcon}
+            ${actionText}
+          </div>
+        </td>
+      `;
+      
+      if (!isRegularUser) {
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', function(e) {
+          if (!isAdmin && !isDesigner) return;
+          if (e.target.closest('button') || e.target.closest('a')) return;
+          selectRequest(s.id);
+        });
+      }
     }
+    body.appendChild(tr);
+  });
+  
+  // Actualizar headers según rol
+  const thActions = isAdmin ? document.getElementById('th-admin') : document.getElementById('th-designer');
+  const thId = document.querySelector('thead th:nth-child(1)');
+  const thFechaEvento = document.querySelector('thead th:nth-child(2)');
+  const thUnidad = document.querySelector('thead th:nth-child(3)');
+  const thJornada = document.querySelector('thead th:nth-child(4)');
+  
+  if (isRegularUser) {
+    if(thId) thId.innerHTML = '📅 FECHA SOLICITUD';
+    if(thFechaEvento) thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
+    if(thUnidad) thUnidad.innerHTML = '🏥 UNIDAD';
+    if(thJornada) thJornada.innerHTML = '📋 TIPO JORNADA';
+    document.getElementById('th-admin').classList.add('hidden');
+    document.getElementById('th-designer').classList.add('hidden');
+  } else {
+    if(thId) thId.innerHTML = 'ID SOLICITUD';
+    if(thFechaEvento) thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
+    if(thUnidad) thUnidad.innerHTML = 'UNIDAD SOLICITANTE';
+    if(thJornada) thJornada.innerHTML = 'TIPO DE JORNADA';
     
-    // ✅ ACTUALIZAR VISIBILIDAD DEL BUSCADOR
-    updateSearchVisibility();
-    
-    // ✅ SI HAY BÚSQUEDA ACTIVA, REAPLICAR FILTRO
-    if (isSearchActive && currentSearchId) {
-        applySearchHighlight(currentSearchId);
+    if (isAdmin) {
+      if(thActions) thActions.innerHTML = 'ACCIONES ADMIN';
+      thActions.classList.remove('hidden');
+      document.getElementById('th-designer').classList.add('hidden');
+    } else if (isDesigner) {
+      if(thActions) thActions.innerHTML = 'ACCIONES DISEÑO';
+      thActions.classList.remove('hidden');
+      document.getElementById('th-admin').classList.add('hidden');
     }
-    
-    // ✅ ACTUALIZAR PANEL SI ESTÁ ABIERTO
-    if (isPanelOpen && selectedRequestId) {
-        updatePanelContent();
-    }
+  }
+  
+  updateSearchVisibility();
+  
+  if (isSearchActive && currentSearchId) {
+    applySearchHighlight(currentSearchId);
+  }
+  
+  if (isPanelOpen && selectedRequestId) {
+    updatePanelContent();
+  }
+  
+  // ✅ ACTUALIZAR CONTROLES DE PAGINACIÓN AL FINAL
+  updatePaginationControls();
 }
 
 // FUNCIONES DEL PANEL LATERAL
@@ -3415,6 +3292,7 @@ function selectRequest(id) {
     
     // Actualizar tabla para mostrar selección visual
     renderLocalTable();
+    updatePaginationControls();
 }
 
 function updatePanelContent() {
@@ -3644,6 +3522,7 @@ async function changeStatus(newStatus) {
             // Actualizar panel y tabla
             updatePanelContent();
             renderLocalTable();
+    updatePaginationControls();
             
             openModal("✅ Éxito", `Estado actualizado a ${newStatus}`, "🔄");
         } else {
@@ -3704,6 +3583,7 @@ async function assignDesigner(designerName) {
             });
             
             renderLocalTable();
+    updatePaginationControls();
             openModal("✅ Éxito", `Diseñador ${designerName} asignado`, "👨‍🎨");
         } else {
             throw new Error(data.error || "Error al asignar diseñador");
@@ -4505,6 +4385,7 @@ function logout() {
     // 7. IMPORTANTE: NO borrar DATA_CACHE, solo re-renderizar con datos existentes
     // Esto evita la recarga lenta
     renderLocalTable();
+    updatePaginationControls();
 }
 
 // === FUNCIONES ADMIN ===
@@ -4745,6 +4626,7 @@ document.getElementById('loadingOverlay').style.display = 'none';
 
 // === ELIMINACIÓN CON MODALES PERSONALIZADOS ===
 let currentDeleteId = null;
+let isDeleting = false;
 
 function deleteReq(id) {
 if (!isAdmin) {
@@ -4766,12 +4648,8 @@ openCustomModal(
 () => closeModal()
 );
 } else if (step === 2) {
-openCustomModal(
-"⚠️ ¡Advertencia Final!",
-`¡Esta acción es <b>irreversible</b>!<br>¿Eliminar permanentemente la solicitud <b>${id}</b> de la base de datos?`,
-() => executeDelete(),
-() => closeModal()
-);
+// ✅ SEGUNDO MODAL CON BARRA DE PROGRESO (estilo login)
+showDeleteProgressModal(id);
 }
 }
 
@@ -4793,22 +4671,136 @@ document.getElementById('uploadArea').classList.add('hidden');
 document.getElementById('modalAlert').style.display = 'flex';
 }
 
-async function executeDelete() {
-    const id = currentDeleteId;
+// ✅ NUEVO: Modal de progreso de eliminación (similar al login)
+function showDeleteProgressModal(id) {
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+    const loginArea = document.getElementById('loginArea');
+    const uploadArea = document.getElementById('uploadArea');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const mainBtn = document.getElementById('mainModalBtn');
+
+    // Configurar contenido del modal
+    modalIcon.innerText = "🗑️";
+    modalTitle.innerText = "Eliminando Solicitud";
+    modalMsg.innerHTML = `Eliminando permanentemente la solicitud <b>${id}</b>...<br><span style="color: #e63946; font-weight: 600;">⚠️ Esta acción es irreversible</span>`;
     
-    // Mostrar mensaje de carga
-    document.getElementById('loadMainTxt').innerText = "Eliminando solicitud...";
-    document.getElementById('loadingOverlay').style.display = 'flex';
+    // Ocultar áreas no necesarias
+    loginArea.classList.add('hidden');
+    uploadArea.classList.add('hidden');
     
+    // Configurar botón principal (deshabilitado durante eliminación)
+    mainBtn.innerText = "ELIMINANDO...";
+    mainBtn.disabled = true;
+    mainBtn.classList.remove('hidden');
+    mainBtn.style.display = 'block';
+    
+    // Configurar botón de cerrar (oculto durante eliminación)
+    closeBtn.classList.add('hidden');
+    
+    // ✅ MOSTRAR BARRA DE PROGRESO (mismo estilo que login)
+    const progressBar = document.getElementById('loginProgressBar');
+    const progressBarInner = document.getElementById('loginProgressBarInner');
+    const progressPercent = document.getElementById('loginProgressPercent');
+    const progressText = document.getElementById('loginProgressText');
+    const progressStatus = document.getElementById('loginProgressStatus');
+
+    progressBar.style.display = 'block';
+    progressBarInner.style.width = '0%';
+    progressPercent.innerText = '0%';
+    progressText.innerText = 'Iniciando eliminación...';
+    progressStatus.innerText = 'Conectando con el servidor...';
+    
+    // Restaurar colores por si acaso
+    progressBarInner.style.background = 'linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 50%, var(--azul-deep) 100%)';
+    progressText.style.color = '';
+    progressStatus.style.color = '';
+
+    // Mostrar modal
+    document.getElementById('modalAlert').style.display = 'flex';
+    
+    // ✅ INICIAR ANIMACIÓN DE PROGRESO
+    // Pequeño retraso para asegurar que el DOM esté listo
+    setTimeout(() => {
+        startDeleteProgressAnimation(id);
+    }, 100);
+}
+
+// ✅ ANIMACIÓN DE PROGRESO PARA ELIMINACIÓN
+function startDeleteProgressAnimation(id) {
+    let progress = 0;
+    let phase = 'connecting'; // connecting, deleting, finalizing
+    
+    const progressBarInner = document.getElementById('loginProgressBarInner');
+    const progressPercent = document.getElementById('loginProgressPercent');
+    const progressText = document.getElementById('loginProgressText');
+    const progressStatus = document.getElementById('loginProgressStatus');
+    
+    // Validar que los elementos existan
+    if (!progressBarInner || !progressPercent || !progressText || !progressStatus) {
+        console.error("❌ Elementos de la barra de progreso no encontrados");
+        completeDeleteAnimation(false, id, "Error en la interfaz de progreso");
+        return;
+    }
+    
+    // Fases de la eliminación con tiempos diferentes
+    const phases = {
+        connecting: { target: 25, speed: 15, text: 'Conectando con el servidor...', status: 'Estableciendo conexión segura' },
+        deleting: { target: 75, speed: 8, text: 'Eliminando solicitud...', status: 'Removiendo datos de la base de datos' },
+        finalizing: { target: 90, speed: 5, text: 'Finalizando...', status: 'Limpiando archivos adjuntos' },
+        complete: { target: 100, speed: 20, text: '¡Completado!', status: 'Solicitud eliminada permanentemente' }
+    };
+    
+    const animateProgress = () => {
+        // ✅ CORRECCIÓN: La condición debe ser isDeleting (no !isDeleting)
+        if (isDeleting && progress < 100) {
+            const currentPhase = phases[phase];
+            
+            // Avanzar progreso
+            if (progress < currentPhase.target) {
+                progress += Math.random() * currentPhase.speed;
+                if (progress > currentPhase.target) progress = currentPhase.target;
+            }
+            
+            // Actualizar UI
+            progressBarInner.style.width = progress + '%';
+            progressPercent.innerText = Math.round(progress) + '%';
+            progressText.innerText = currentPhase.text;
+            progressStatus.innerText = currentPhase.status;
+            
+            // Cambiar de fase
+            if (progress >= currentPhase.target && phase !== 'complete') {
+                switch(phase) {
+                    case 'connecting': 
+                        phase = 'deleting'; 
+                        // Iniciar la eliminación real cuando llegamos a 25%
+                        executeRealDelete(id);
+                        break;
+                    case 'deleting': phase = 'finalizing'; break;
+                    case 'finalizing': phase = 'complete'; break;
+                }
+            }
+            
+            if (progress < 100) {
+                requestAnimationFrame(animateProgress);
+            }
+        }
+    };
+    
+    isDeleting = true;
+    requestAnimationFrame(animateProgress);
+}
+
+// ✅ EJECUCIÓN REAL DE ELIMINACIÓN (llamada al servidor)
+async function executeRealDelete(id) {
     try {
         const params = new URLSearchParams();
         params.append("action", "delete");
         params.append("id", id);
-        // ENVIAR CREDENCIALES DE ADMINISTRADOR (FALTABA ESTO)
         params.append("username", userCredentials.username);
         params.append("password", userCredentials.password);
         
-        // ESPERAR RESPUESTA DEL SERVIDOR ANTES DE MOSTRAR ÉXITO
         const response = await fetch(SCRIPT_URL, { 
             method: 'POST', 
             body: params 
@@ -4817,27 +4809,145 @@ async function executeDelete() {
         const data = await response.json();
         
         if (data.success) {
-            // SOLO ELIMINAR DE localData SI EL SERVIDOR CONFIRMA
-            localData = localData.filter(x => x.id != id);
-            
-            // Si la eliminada es la seleccionada, cerrar panel
-            if (selectedRequestId === id) {
-                closeSidePanel();
-                selectedRequestId = null;
-                selectedRequestData = null;
-            }
-            
-            renderLocalTable();
-            
-            openModal("✅ Éxito", "Solicitud y arte eliminados correctamente.", "🗑️");
+            // Completar animación hasta 100%
+            completeDeleteAnimation(true, id);
         } else {
             throw new Error(data.error || "Error al eliminar la solicitud");
         }
     } catch (e) {
-        openModal("❌ Error", "Error al eliminar: " + e.message, "💥");
-        updateTable(); // Recargar para restaurar la fila
-    } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
+        completeDeleteAnimation(false, id, e.message);
+    }
+}
+
+// ✅ COMPLETAR ANIMACIÓN DE ELIMINACIÓN
+function completeDeleteAnimation(success, id, errorMessage = '') {
+    const progressBarInner = document.getElementById('loginProgressBarInner');
+    const progressPercent = document.getElementById('loginProgressPercent');
+    const progressText = document.getElementById('loginProgressText');
+    const progressStatus = document.getElementById('loginProgressStatus');
+    const mainBtn = document.getElementById('mainModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+    
+    // Validar que los elementos existan
+    if (!progressBarInner || !progressPercent || !progressText || !progressStatus || !mainBtn || !closeBtn) {
+        console.error("❌ Elementos del modal no encontrados en completeDeleteAnimation");
+        // Forzar cierre del modal y limpieza
+        setTimeout(() => {
+            closeModal();
+            resetDeleteState();
+        }, 1000);
+        return;
+    }
+    
+    // Completar barra al 100%
+    progressBarInner.style.width = '100%';
+    progressPercent.innerText = '100%';
+    
+    if (success) {
+        // ✅ ÉXITO - Verde
+        progressBarInner.style.background = 'linear-gradient(90deg, #2d6a4f 0%, #40916c 50%, #52b788 100%)';
+        progressText.innerText = '¡Eliminación exitosa!';
+        progressText.style.color = 'var(--verde)';
+        progressStatus.innerText = 'La solicitud ha sido eliminada permanentemente';
+        progressStatus.style.color = 'var(--verde)';
+        
+        // Actualizar datos locales
+        localData = localData.filter(x => x.id != id);
+        
+        // Si la eliminada es la seleccionada, cerrar panel
+        if (selectedRequestId === id) {
+            closeSidePanel();
+            selectedRequestId = null;
+            selectedRequestData = null;
+        }
+        
+        renderLocalTable();
+        updatePaginationControls();
+        
+        // Cambiar botón a "Aceptar"
+        setTimeout(() => {
+            mainBtn.innerText = "ENTENDIDO";
+            mainBtn.disabled = false;
+            mainBtn.onclick = () => {
+                closeModal();
+                // Limpiar estado
+                setTimeout(() => {
+                    const progressBar = document.getElementById('loginProgressBar');
+                    if (progressBar) progressBar.style.display = 'none';
+                    resetDeleteState();
+                }, 300);
+            };
+            
+            // Mostrar botón de cerrar también
+            closeBtn.classList.remove('hidden');
+            closeBtn.innerText = "CERRAR";
+            closeBtn.onclick = () => {
+                closeModal();
+                setTimeout(() => {
+                    const progressBar = document.getElementById('loginProgressBar');
+                    if (progressBar) progressBar.style.display = 'none';
+                    resetDeleteState();
+                }, 300);
+            };
+        }, 800);
+        
+    } else {
+        // ❌ ERROR - Rojo
+        progressBarInner.style.background = 'linear-gradient(90deg, #e63946 0%, #c62828 100%)';
+        progressText.innerText = 'Error al eliminar';
+        progressText.style.color = 'var(--rojo)';
+        progressStatus.innerText = errorMessage || 'No se pudo completar la eliminación';
+        progressStatus.style.color = 'var(--rojo)';
+        
+        // Cambiar botón a reintentar
+        setTimeout(() => {
+            mainBtn.innerText = "REINTENTAR";
+            mainBtn.disabled = false;
+            mainBtn.onclick = () => {
+                resetDeleteState();
+                showDeleteProgressModal(id);
+            };
+            
+            closeBtn.classList.remove('hidden');
+            closeBtn.innerText = "CANCELAR";
+            closeBtn.onclick = () => {
+                closeModal();
+                setTimeout(() => {
+                    const progressBar = document.getElementById('loginProgressBar');
+                    if (progressBar) progressBar.style.display = 'none';
+                    resetDeleteState();
+                }, 300);
+            };
+        }, 800);
+    }
+    
+    isDeleting = false;
+}
+
+// ✅ REINICIAR ESTADO DE ELIMINACIÓN
+function resetDeleteState() {
+    isDeleting = false;
+    currentDeleteId = null;
+    
+    // Restaurar estilos de la barra
+    const progressBarInner = document.getElementById('loginProgressBarInner');
+    const progressText = document.getElementById('loginProgressText');
+    const progressStatus = document.getElementById('loginProgressStatus');
+    
+    if (progressBarInner) {
+        progressBarInner.style.background = 'linear-gradient(90deg, var(--celeste) 0%, var(--turquesa) 50%, var(--azul-deep) 100%)';
+    }
+    if (progressText) progressText.style.color = '';
+    if (progressStatus) progressStatus.style.color = '';
+}
+
+// ✅ FUNCIÓN executeDelete ORIGINAL (ya no se usa directamente, se reemplaza por executeRealDelete)
+// Mantener por compatibilidad pero marcar como obsoleta
+async function executeDelete() {
+    console.warn("executeDelete está obsoleto, usar showDeleteProgressModal");
+    // Redirigir al nuevo flujo si se llama directamente
+    if (currentDeleteId) {
+        showDeleteProgressModal(currentDeleteId);
     }
 }
 
@@ -4955,23 +5065,23 @@ else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
 if(id === 'list-page') updateTable();
 }
 
-// ✅ ACTUALIZAR TABLA CON INVALIDACIÓN DE CACHÉ (FASE 2)
+// ✅ FUNCIÓN updateTable - CORREGIDA
 async function updateTable(forceRefresh = false) {
   const now = Date.now();
   
-  // ✅ CORRECCIÓN: Guardar y comparar serverTimestamp correctamente
+  // ✅ CORRECCIÓN: Verificar si el cache tiene los datos correctos
   const serverCacheTimestamp = parseInt(DATA_CACHE.serverTimestamp || "0");
-  if (serverCacheTimestamp > DATA_CACHE.timestamp) {
-    forceRefresh = true;
-    console.log("🔄 Caché del servidor actualizada, refrescando datos...");
-  }
   
-  // Si tenemos cache local y no forzamos, usamos cache
   if (!forceRefresh && DATA_CACHE.data && (now - DATA_CACHE.timestamp) < DATA_CACHE.ttl) {
-    localData = DATA_CACHE.data;
-    if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
-    renderLocalTableOptimized();
-    return;
+    // Verificar si el cache tiene el totalRecords correcto
+    if (DATA_CACHE.totalRecords && DATA_CACHE.totalRecords > localData.length) {
+      console.log("💾 Usando caché local con totalRecords:", DATA_CACHE.totalRecords);
+      localData = DATA_CACHE.data;
+      PAGINATION.totalRecords = DATA_CACHE.totalRecords;
+      if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
+      renderLocalTable();
+      return;
+    }
   }
   
   if (DATA_CACHE.isLoading) {
@@ -4984,54 +5094,97 @@ async function updateTable(forceRefresh = false) {
   
   try {
     const result = await DATA_CACHE.pendingPromise;
+    
+    // ✅ GUARDAR totalRecords EN EL CACHE
     DATA_CACHE.data = result.rows;
     DATA_CACHE.stats = result.stats;
-    DATA_CACHE.serverTimestamp = result.cacheTimestamp || now; // ✅ GUARDAR CORRECTAMENTE
+    DATA_CACHE.serverTimestamp = result.cacheTimestamp || now;
     DATA_CACHE.timestamp = now;
+    DATA_CACHE.totalRecords = result.totalRecords; // ✅ GUARDAR TOTAL REAL
+    
     localData = result.rows;
-    buildDataIndexes();
+    PAGINATION.totalRecords = result.totalRecords; // ✅ ACTUALIZAR GLOBAL
     
     if (result.stats) {
       updateCounters(result.stats);
     }
-    renderLocalTableOptimized();
+    
+    renderLocalTable();
+    
   } catch (e) {
     console.error("Error cargando tabla:", e);
+    openModal("❌ Error", "No se pudieron cargar los datos: " + e.message, "⚠️");
   } finally {
     DATA_CACHE.isLoading = false;
     DATA_CACHE.pendingPromise = null;
   }
 }
 
-// ✅ FUNCIÓN DE CARGA DE DATOS (RECIBE ESTADÍSTICAS DEL SERVIDOR)
+// ✅ FUNCIÓN DE CARGA DE DATOS - CORREGIDA PARA PAGINACIÓN
 async function fetchTableData() {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-  
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=read`, { signal: controller.signal });
-    clearTimeout(timeoutId);
+    const params = new URLSearchParams();
+    params.append("action", "read");
+    params.append("page", PAGINATION.currentPage.toString());
+    params.append("limit", PAGINATION.limit.toString());
     
-    const response = await res.json();
-    isMaintActive = (response.maintenance === "true" || response.maintenance === true);
+    console.log("📤 Solicitando página", PAGINATION.currentPage, "con límite", PAGINATION.limit);
     
-    if (isMaintActive && !isAdmin && !isDesigner) {
-      document.getElementById('maintOverlay').style.display = 'flex';
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    
+    const responseText = await res.text();
+    console.log("📄 Respuesta cruda (primeros 500 chars):", responseText.substring(0, 500));
+    
+    let response;
+    try {
+      response = JSON.parse(responseText);
+    } catch (e) {
+      console.error("❌ No es JSON válido:", responseText);
+      throw new Error("El servidor no respondió con datos válidos");
+    }
+    
+    console.log("✅ Respuesta parseada:", response);
+    
+    if (!response.success) {
+      throw new Error(response.error || "Error del servidor");
+    }
+    
+    const data = response.data || response;
+    
+    // ✅ CORRECCIÓN CRÍTICA: Extraer totalRecords de la paginación del servidor
+    let totalRecords = 0;
+    if (data.pagination && data.pagination.totalRecords) {
+      totalRecords = parseInt(data.pagination.totalRecords);
+      console.log("📊 Total records desde servidor:", totalRecords);
+    } else if (data.totalRecords) {
+      totalRecords = parseInt(data.totalRecords);
+      console.log("📊 Total records desde data.totalRecords:", totalRecords);
     } else {
-      document.getElementById('maintOverlay').style.display = 'none';
+      // Fallback: si no hay paginación, usar la longitud de los datos
+      totalRecords = (data.rows || []).length;
+      console.log("⚠️ No hay paginación, usando length:", totalRecords);
     }
     
-    if (response.success && response.data) {
-      return {
-        rows: response.data.rows || response.data,
-        stats: response.data.stats || null,
-        cacheTimestamp: parseInt(response.data.cacheTimestamp || "0") // ✅ PARSEAR COMO ENTERO
-      };
-    }
-    return { rows: [], stats: null, cacheTimestamp: 0 };
-  } catch (e) {
-    clearTimeout(timeoutId);
-    throw e;
+    // ✅ ACTUALIZAR PAGINACIÓN GLOBAL
+    PAGINATION.totalRecords = totalRecords;
+    PAGINATION.totalPages = Math.ceil(totalRecords / PAGINATION.limit) || 1;
+    
+    console.log(`📊 Paginación calculada: ${PAGINATION.totalPages} páginas de ${PAGINATION.limit} registros cada una`);
+    
+    return {
+      rows: data.rows || [],
+      stats: data.stats || null,
+      cacheTimestamp: data.cacheTimestamp || Date.now(),
+      totalRecords: totalRecords
+    };
+    
+  } catch (error) {
+    console.error("❌ Error en fetchTableData:", error);
+    throw error;
   }
 }
 
