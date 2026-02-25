@@ -32,11 +32,75 @@ gap: 10px;
 line-height: 1; }
 .acronimo { font-size: 0.5rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px;
 }
-.nav-tabs { display: flex; justify-content: center; gap: 10px; flex: 1; min-width: 200px; flex-wrap: wrap; }
-.tab-btn { padding: 6px 16px; border-radius: 20px; border: none;
-cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; background: rgba(255,255,255,0.1); color: white; transition: 0.3s; display: flex; align-items: center; gap: 6px;
+/* ✅ ESTILO SWITCH COMPACTO CON DESLIZAMIENTO LATERAL */
+.nav-tabs { 
+  display: flex; 
+  justify-content: center; 
+  gap: 0; 
+  flex: 1; 
+  min-width: 160px; 
+  max-width: 200px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 25px;
+  padding: 3px;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
 }
-.tab-btn.active { background: var(--amarillo); color: var(--azul-deep); }
+
+.tab-btn { 
+  padding: 6px 16px; 
+  border-radius: 22px; 
+  border: none;
+  cursor: pointer; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  font-size: 0.65rem; 
+  background: transparent; 
+  color: rgba(255,255,255,0.8); 
+  transition: color 0.3s ease; 
+  display: flex; 
+  align-items: center; 
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+  letter-spacing: 0.3px;
+  flex: 1;
+  justify-content: center;
+}
+
+.tab-btn:hover {
+  color: white;
+}
+
+.tab-btn.active { 
+  color: var(--azul-deep);
+  font-weight: 800;
+}
+
+/* ✅ INDICADOR DESLIZANTE QUE SE MUEVE DE LADO A LADO */
+.nav-tabs::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: calc(100% - 6px);
+  width: calc(50% - 3px);
+  background: linear-gradient(135deg, var(--amarillo) 0%, var(--naranja) 100%);
+  border-radius: 22px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 12px rgba(251, 133, 0, 0.3);
+  z-index: 1;
+}
+
+/* ✅ MOVER EL INDICADOR SEGÚN EL BOTÓN ACTIVO */
+.nav-tabs.tab-formulario::before {
+  transform: translateX(0);
+}
+
+.nav-tabs.tab-solicitudes::before {
+  transform: translateX(100%);
+}
 .admin-access { flex: 1; display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 280px; flex-wrap: wrap; justify-content: flex-end; }
 /* ✅ ESTILO PARA MENSAJE DE BIENVENIDA - MÁS LLAMATIVO */
 .welcome-message {
@@ -237,17 +301,17 @@ border-bottom: 2px solid var(--celeste);
 white-space: nowrap; /* ✅ EVITA QUE LOS TÍTULOS SE ROMPAN */
 }
 td {
-padding: 14px 15px; /* ✅ FILAS MÁS ALTAS Y LEGIBLES */
+padding: 8px 15px; /* ✅ FILAS MÁS COMPACTAS PARA MEJOR VISIBILIDAD */
 border-bottom: 1px solid #edf2f4;
 font-size: 0.85rem;
-line-height: 1.4;
+line-height: 1.3;
 color: #334155;
 font-weight: 500;
 vertical-align: middle;
 }
 td.admin-actions-cell {
     vertical-align: middle;
-    padding: 14px 15px; /* Mismo padding que las otras celdas */
+    padding: 8px 15px; /* Mismo padding reducido que las otras celdas */
     text-align: right;
     border-bottom: 1px solid #edf2f4; /* Asegura el borde */
 }
@@ -2803,7 +2867,52 @@ function updatePaginationControls() {
   console.log(`📊 Paginación: Página ${PAGINATION.currentPage}/${totalPages} | Total: ${totalRecords} registros | Mostrando ${start}-${end}`);
 }
 
-// ✅ FUNCIÓN changePage - CORREGIDA
+// ✅ CACHE LOCAL PARA PAGINACIÓN INSTANTÁNEA
+const PAGE_CACHE = {
+  data: new Map(), // page -> {rows, stats, timestamp}
+  maxPages: 10, // Mantener hasta 10 páginas en caché
+  ttl: 5 * 60 * 1000, // 5 minutos
+  
+  // Guardar página en caché
+  setPage(page, data) {
+    this.data.set(page, {
+      ...data,
+      timestamp: Date.now()
+    });
+    
+    // Limpiar páginas antiguas si excede el límite
+    if (this.data.size > this.maxPages) {
+      const oldestPage = Array.from(this.data.keys())[0];
+      this.data.delete(oldestPage);
+    }
+  },
+  
+  // Obtener página desde caché
+  getPage(page) {
+    const cached = this.data.get(page);
+    if (!cached) return null;
+    
+    // Verificar si no ha expirado
+    if (Date.now() - cached.timestamp > this.ttl) {
+      this.data.delete(page);
+      return null;
+    }
+    
+    return cached;
+  },
+  
+  // Limpiar toda la caché
+  clear() {
+    this.data.clear();
+  },
+  
+  // Verificar si una página está en caché
+  hasPage(page) {
+    return this.getPage(page) !== null;
+  }
+};
+
+// ✅ FUNCIÓN changePage - VERSIÓN INSTANTÁNEA
 async function changePage(action) {
   if (PAGINATION.isLoading) return;
   
@@ -2821,15 +2930,41 @@ async function changePage(action) {
   
   if (newPage === PAGINATION.currentPage) return;
   
+  // ✅ CAMBIO INSTANTÁNEO: Verificar si tenemos la página en caché
+  const cachedPage = PAGE_CACHE.getPage(newPage);
+  
+  if (cachedPage) {
+    // ✅ PÁGINA EN CACHÉ - CAMBIO INSTANTÁNEO
+    console.log(`⚡ Página ${newPage} encontrada en caché - cambio instantáneo`);
+    
+    // Actualizar página actual
+    PAGINATION.currentPage = newPage;
+    
+    // Actualizar datos locales inmediatamente
+    localData = cachedPage.rows;
+    
+    // Renderizar inmediatamente sin loading
+    renderLocalTable();
+    updatePaginationControls();
+    
+    // Pre-cargar páginas adyacentes en background
+    preloadAdjacentPages(newPage);
+    
+    return; // Salir early - no necesitamos consultar al servidor
+  }
+  
+  // ✅ PÁGINA NO EN CACHÉ - Cargar con loading mínimo
+  console.log(`📡 Página ${newPage} no está en caché - cargando desde servidor`);
+  
   PAGINATION.isLoading = true;
   PAGINATION.currentPage = newPage;
   
-  // Mostrar loading
-  const paginationControls = document.getElementById('paginationControls');
-  if (paginationControls) paginationControls.style.opacity = '0.5';
-  
+  // Mostrar indicador sutil (no spinner completo)
   const body = document.getElementById('solicitudes-body');
-  body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;"><div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 15px;"></div>Cargando página ' + newPage + '...</td></tr>';
+  const originalContent = body.innerHTML;
+  
+  // Indicator minimalista
+  body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--turquesa);font-weight:600;font-size:0.9rem;">⚡ Cargando página ' + newPage + '...</td></tr>';
   
   try {
     // Forzar refresh para obtener la nueva página del servidor
@@ -2838,14 +2973,101 @@ async function changePage(action) {
     
     await updateTable(true);
     
+    // Guardar en caché para futuros usos
+    if (localData.length > 0) {
+      PAGE_CACHE.setPage(newPage, {
+        rows: [...localData],
+        stats: DATA_CACHE.stats
+      });
+    }
+    
+    // Pre-cargar páginas adyacentes
+    preloadAdjacentPages(newPage);
+    
   } catch (e) {
     console.error("Error cambiando página:", e);
     openModal("❌ Error", "No se pudo cargar la página: " + e.message, "💥");
-    // Revertir página en caso de error
+    
+    // Revertir página y restaurar contenido
     PAGINATION.currentPage = newPage - (action === 'next' || action === 'last' ? 1 : -1);
+    body.innerHTML = originalContent;
   } finally {
     PAGINATION.isLoading = false;
-    if (paginationControls) paginationControls.style.opacity = '1';
+  }
+}
+
+// ✅ PRE-CARGA DE PÁGINAS ADYACENTES EN BACKGROUND
+async function preloadAdjacentPages(currentPage) {
+  const totalPages = PAGINATION.totalPages || 1;
+  const pagesToPreload = [];
+  
+  // Pre-cargar página siguiente y anterior si no están en caché
+  if (currentPage < totalPages && !PAGE_CACHE.hasPage(currentPage + 1)) {
+    pagesToPreload.push(currentPage + 1);
+  }
+  
+  if (currentPage > 1 && !PAGE_CACHE.hasPage(currentPage - 1)) {
+    pagesToPreload.push(currentPage - 1);
+  }
+  
+  // También pre-cargar primera y última si son diferentes
+  if (!PAGE_CACHE.hasPage(1) && currentPage !== 1) {
+    pagesToPreload.push(1);
+  }
+  
+  if (!PAGE_CACHE.hasPage(totalPages) && currentPage !== totalPages) {
+    pagesToPreload.push(totalPages);
+  }
+  
+  // Limitar a 2 pre-cargas simultáneas para no sobrecargar
+  const limitedPages = pagesToPreload.slice(0, 2);
+  
+  if (limitedPages.length > 0) {
+    console.log(`🚀 Pre-cargando páginas: [${limitedPages.join(', ')}]`);
+    
+    // Ejecutar pre-cargas en paralelo sin bloquear UI
+    limitedPages.forEach(async (page) => {
+      try {
+        await preloadPage(page);
+      } catch (e) {
+        console.warn(`⚠️ Error pre-cargando página ${page}:`, e);
+      }
+    });
+  }
+}
+
+// ✅ FUNCIÓN PARA PRE-CARGAR UNA PÁGINA ESPECÍFICA
+async function preloadPage(pageNum) {
+  if (PAGE_CACHE.hasPage(pageNum)) return; // Ya está en caché
+  
+  try {
+    const params = new URLSearchParams();
+    params.append("action", "read");
+    params.append("page", pageNum.toString());
+    params.append("limit", PAGINATION.limit.toString());
+    
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    
+    const responseText = await res.text();
+    const response = JSON.parse(responseText);
+    
+    if (response.success && response.data) {
+      const data = response.data;
+      
+      // Guardar en caché
+      PAGE_CACHE.setPage(pageNum, {
+        rows: data.rows || [],
+        stats: data.stats || null
+      });
+      
+      console.log(`✅ Página ${pageNum} pre-cargada exitosamente`);
+    }
+  } catch (e) {
+    console.warn(`⚠️ Error pre-cargando página ${pageNum}:`, e);
   }
 }
 
@@ -3050,7 +3272,20 @@ function extraerHora(dateTime) {
   if (!dateTime) return "";
   var partes = dateTime.trim().split(' ');
   if (partes.length < 2) return "Sin hora";
-  return partes.slice(1).join(' ');
+  var horaCompleta = partes.slice(1).join(' ');
+  
+  // Convertir a formato 12 horas con a. m./p. m.
+  var horaPartes = horaCompleta.split(':');
+  if (horaPartes.length >= 2) {
+    var horas = parseInt(horaPartes[0]);
+    var minutos = horaPartes[1];
+    var ampm = horas >= 12 ? 'p. m.' : 'a. m.';
+    horas = horas % 12;
+    horas = horas ? horas : 12; // El 0 se convierte en 12
+    return horas + ':' + minutos + ' ' + ampm;
+  }
+  
+  return horaCompleta;
 }
 
 // ✅ FUNCIÓN renderLocalTable - CORREGIDA
@@ -3109,7 +3344,13 @@ function renderLocalTable() {
       designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
     }
     
-    let icon = (s.Soportes && s.Soportes.includes("SÍ")) ? ` (${s.Soportes.match(/\d+/) || 1})` : "";
+    let icon = '';
+    if (s.Soportes && s.Soportes.includes("SÍ")) {
+      const count = s.Soportes.match(/\d+/) || 1;
+      icon = `<span style="color: var(--verde); font-size: 1.2rem;" title="${count} soporte(s) adjunto(s)">📷 <span style="font-size: 0.8rem; font-weight: 600;">${count}</span></span>`;
+    } else {
+      icon = `<span style="color: var(--rojo); font-size: 1.2rem;" title="Sin soportes">❌</span>`;
+    }
     
     const fechaSolicitudFormat = extraerFecha(s.Timestamp);
     const horaSolicitudFormat = extraerHora(s.Timestamp);
@@ -4343,7 +4584,7 @@ async function validateLogin() {
     }
 }
 
-// FUNCIÓN DE LOGOUT MODIFICADA
+// ✅ FUNCIÓN DE LOGOUT MODIFICADA
 function logout() {
     // 1. Limpiar estado de autenticación PRIMERO
     isAdmin = false;
@@ -4385,8 +4626,11 @@ function logout() {
     
     clearCredentials();
     
-    // 7. IMPORTANTE: NO borrar DATA_CACHE, solo re-renderizar con datos existentes
-    // Esto evita la recarga lenta
+    // 7. ✅ MANTENER CACHÉ LOCAL - No borrar DATA_CACHE ni PAGE_CACHE para navegación rápida
+    // Esto permite que el usuario siga navegando instantáneamente después del logout
+    console.log("🔄 Logout completado - manteniendo caché local para navegación rápida");
+    
+    // 8. Re-renderizar con datos existentes (rápido, desde caché)
     renderLocalTable();
     updatePaginationControls();
 }
@@ -5068,7 +5312,7 @@ else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
 if(id === 'list-page') updateTable();
 }
 
-// ✅ FUNCIÓN updateTable - CORREGIDA
+// ✅ FUNCIÓN updateTable - CORREGIDA CON CACHE DE PÁGINAS
 async function updateTable(forceRefresh = false) {
   const now = Date.now();
   
@@ -5081,8 +5325,19 @@ async function updateTable(forceRefresh = false) {
       console.log("💾 Usando caché local con totalRecords:", DATA_CACHE.totalRecords);
       localData = DATA_CACHE.data;
       PAGINATION.totalRecords = DATA_CACHE.totalRecords;
+      
+      // ✅ Guardar página actual en caché de páginas
+      PAGE_CACHE.setPage(PAGINATION.currentPage, {
+        rows: [...localData],
+        stats: DATA_CACHE.stats
+      });
+      
       if(DATA_CACHE.stats) updateCounters(DATA_CACHE.stats);
       renderLocalTable();
+      
+      // Pre-cargar páginas adyacentes
+      preloadAdjacentPages(PAGINATION.currentPage);
+      
       return;
     }
   }
@@ -5108,11 +5363,20 @@ async function updateTable(forceRefresh = false) {
     localData = result.rows;
     PAGINATION.totalRecords = result.totalRecords; // ✅ ACTUALIZAR GLOBAL
     
+    // ✅ Guardar página actual en caché de páginas
+    PAGE_CACHE.setPage(PAGINATION.currentPage, {
+      rows: [...result.rows],
+      stats: result.stats
+    });
+    
     if (result.stats) {
       updateCounters(result.stats);
     }
     
     renderLocalTable();
+    
+    // Pre-cargar páginas adyacentes
+    preloadAdjacentPages(PAGINATION.currentPage);
     
   } catch (e) {
     console.error("Error cargando tabla:", e);
@@ -5559,11 +5823,17 @@ document.getElementById('unidad-section').classList.add('hidden');
 
 openModal("✅ ¡Éxito!", "Su solicitud ha sido enviada correctamente.", "🚀");
 setTimeout(() => {
-closeModal();
-// ✅ FORZAR ACTUALIZACIÓN COMPLETA DESDE SERVIDOR
-updateTable(true); // forceRefresh = true para obtener datos frescos
-showPage('list-page', document.getElementById('tab-list'));
-}, 2000);
+            closeModal();
+            // ✅ OPTIMIZACIÓN: Invalidar solo si estamos en la primera página
+            if (PAGINATION.currentPage === 1) {
+                invalidatePageCache();
+                updateTable(true); // forceRefresh = true para obtener datos frescos
+            } else {
+                // Si no estamos en la primera página, solo invalidar caché
+                invalidatePageCache();
+            }
+            showPage('list-page', document.getElementById('tab-list'));
+        }, 2000);
 } else {
 throw new Error(result.error);
 }
@@ -5572,8 +5842,13 @@ throw new Error(result.error);
 openModal("✅ Solicitud Procesada", "El sistema ha registrado su envío.", "📋");
 setTimeout(() => {
 closeModal();
-// ✅ FORZAR ACTUALIZACIÓN COMPLETA DESDE SERVIDOR
-updateTable(true); // forceRefresh = true para obtener datos frescos
+// ✅ OPTIMIZACIÓN: Invalidar caché y actualizar de forma inteligente
+invalidatePageCache();
+if (PAGINATION.currentPage === 1) {
+    updateTable(true); // Forzar recarga si estamos en primera página
+} else {
+    updateTable(); // Usar caché si estamos en otra página
+}
 showPage('list-page', document.getElementById('tab-list'));
 }, 2000);
 })
@@ -5747,6 +6022,8 @@ async function finalizeChunkedUpload(id, filename, mimeType) {
         setTimeout(() => {
             closeModal();
             openModal("✅ Éxito", "¡Arte subido con éxito!", "🎨");
+            // ✅ Invalidar caché ya que los datos cambiaron
+            invalidatePageCache();
             updateTable();
             document.getElementById('arteFile').value = '';
         }, 1000);
@@ -5811,6 +6088,16 @@ function showUploadProgressModal(id, filename, fileSizeMB) {
     document.getElementById('modalAlert').style.display = 'flex';
 }
 
+// ✅ FUNCIÓN PARA INVALIDAR CACHÉ CUANDO SE ACTUALIZAN DATOS
+function invalidatePageCache() {
+  console.log("🗑️ Invalidando caché de páginas - datos actualizados");
+  PAGE_CACHE.clear();
+  
+  // También invalidar caché principal para forzar recarga
+  DATA_CACHE.data = null;
+  DATA_CACHE.timestamp = 0;
+}
+
 // ✅ DETENER AL CERRAR SESIÓN
 function logout() {
   // ✅ DETENER SINCRONIZACIÓN AUTOMÁTICA
@@ -5838,7 +6125,10 @@ function logout() {
   // Cerrar panel si está abierto
   closeSidePanel();
   
-  // Recargar tabla para actualizar permisos
+  // ✅ MANTENER CACHÉ LOCAL para navegación rápida después del logout
+  console.log("🔄 Logout completado - manteniendo caché local");
+  
+  // Recargar tabla para actualizar permisos (usando caché si existe)
   updateTable();
   
   openModal("✅ Sesión Cerrada", "Has cerrado sesión correctamente.", "🚪");
@@ -5934,6 +6224,39 @@ function cancelUpload() {
         const fileInput = document.getElementById('arteFile');
         if (fileInput) fileInput.value = '';
     }, 300);
+}
+
+// ✅ FUNCIÓN PARA CAMBIAR PÁGINAS CON INDICADOR DESLIZANTE
+function showPage(pageId, tabBtn) {
+    // Ocultar todas las páginas
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Mostrar la página seleccionada
+    document.getElementById(pageId).classList.add('active');
+    
+    // Quitar clase active de todos los tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Agregar clase active al tab seleccionado
+    tabBtn.classList.add('active');
+    
+    // ✅ ACTUALIZAR INDICADOR DESLIZANTE
+    const navTabs = document.querySelector('.nav-tabs');
+    if (navTabs) {
+        // Remover clases existentes
+        navTabs.classList.remove('tab-formulario', 'tab-solicitudes');
+        
+        // Agregar clase según el tab activo
+        if (pageId === 'form-page') {
+            navTabs.classList.add('tab-formulario');
+        } else if (pageId === 'list-page') {
+            navTabs.classList.add('tab-solicitudes');
+        }
+    }
 }
 </script>
 </body>
