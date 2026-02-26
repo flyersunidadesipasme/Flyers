@@ -10,6 +10,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIRA 2.5 | Sistema Integral de Requerimientos de Artes</title>
 <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;600;800&display=swap" rel="stylesheet">
+<!-- ✅ Chart.js para gráficos de estadísticas -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
 --celeste: #8ecae6;
@@ -32,33 +34,29 @@ gap: 10px;
 line-height: 1; }
 .acronimo { font-size: 0.5rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.9; text-transform: uppercase; color: white; max-width: 250px;
 }
-/* ✅ ESTILO SWITCH COMPACTO CON DESLIZAMIENTO LATERAL */
+/* ✅ ESTILO SWITCH MEJORADO SIN CONTENEDOR */
 .nav-tabs { 
   display: flex; 
   justify-content: center; 
-  gap: 0; 
+  gap: 8px; 
   flex: 1; 
   min-width: 160px; 
-  max-width: 200px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 25px;
-  padding: 3px;
+  max-width: 220px;
+  padding: 4px;
   position: relative;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .tab-btn { 
-  padding: 6px 16px; 
-  border-radius: 22px; 
+  padding: 8px 16px; 
+  border-radius: 20px; 
   border: none;
   cursor: pointer; 
   font-weight: 700; 
   text-transform: uppercase; 
   font-size: 0.65rem; 
-  background: transparent; 
-  color: rgba(255,255,255,0.8); 
-  transition: color 0.3s ease; 
+  background: rgba(255,255,255,0.1); 
+  color: rgba(255,255,255,0.7); 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
   display: flex; 
   align-items: center; 
   gap: 4px;
@@ -67,54 +65,40 @@ line-height: 1; }
   letter-spacing: 0.3px;
   flex: 1;
   justify-content: center;
+  backdrop-filter: blur(10px);
 }
 
 .tab-btn:hover {
-  color: white;
+  background: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+  transform: translateY(-1px);
 }
 
 .tab-btn.active { 
+  background: linear-gradient(135deg, var(--amarillo) 0%, var(--naranja) 100%);
   color: var(--azul-deep);
   font-weight: 800;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(251, 133, 0, 0.4);
 }
 
-/* ✅ INDICADOR DESLIZANTE QUE SE MUEVE DE LADO A LADO */
-.nav-tabs::before {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  height: calc(100% - 6px);
-  width: calc(50% - 3px);
-  background: linear-gradient(135deg, var(--amarillo) 0%, var(--naranja) 100%);
-  border-radius: 22px;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 12px rgba(251, 133, 0, 0.3);
-  z-index: 1;
-}
-
-/* ✅ MOVER EL INDICADOR SEGÚN EL BOTÓN ACTIVO */
-.nav-tabs.tab-formulario::before {
-  transform: translateX(0);
-}
-
-.nav-tabs.tab-solicitudes::before {
-  transform: translateX(100%);
-}
 .admin-access { flex: 1; display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 280px; flex-wrap: wrap; justify-content: flex-end; }
 /* ✅ ESTILO PARA MENSAJE DE BIENVENIDA - MÁS LLAMATIVO */
 .welcome-message {
-font-size: 1rem;
+font-size: 0.9rem;
 font-weight: 800;
 color: white;
 background: linear-gradient(135deg, var(--amarillo) 0%, var(--naranja) 100%);
-padding: 8px 16px;
-border-radius: 25px;
+padding: 6px 14px;
+border-radius: 20px;
 display: none;
-box-shadow: 0 4px 15px rgba(251, 133, 0, 0.4);
-border: 2px solid rgba(255, 255, 255, 0.3);
+box-shadow: 0 3px 12px rgba(251, 133, 0, 0.3);
+border: 2px solid rgba(255, 255, 255, 0.2);
 text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-letter-spacing: 0.5px;
+letter-spacing: 0.3px;
+position: relative;
+z-index: 1;
+margin-left: 8px;
 }
 .welcome-message.show {
 display: block;
@@ -1273,6 +1257,534 @@ font-size: 0.7rem;
 padding: 6px 8px;
 }
 }
+
+/* ✅ ESTILOS PARA PÁGINA DE ESTADÍSTICAS */
+/* Estilos para gauges y medidores de cuota */
+.quota-gauge-card {
+background: white;
+border-radius: 16px;
+padding: 20px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+border: 2px solid var(--gris);
+transition: all 0.3s ease;
+}
+
+.quota-gauge-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.quota-gauge-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.quota-gauge-title {
+display: flex;
+align-items: center;
+gap: 10px;
+font-weight: 800;
+font-size: 1.1rem;
+color: var(--azul-deep);
+}
+
+.quota-gauge-icon {
+font-size: 1.5rem;
+}
+
+.quota-gauge-status {
+padding: 6px 12px;
+border-radius: 20px;
+font-size: 0.75rem;
+font-weight: 700;
+text-transform: uppercase;
+}
+
+.quota-gauge-status.status-good {
+background: #d4edda;
+color: #155724;
+}
+
+.quota-gauge-status.status-warning {
+background: #fff3cd;
+color: #856404;
+}
+
+.quota-gauge-status.status-danger {
+background: #f8d7da;
+color: #721c24;
+}
+
+.quota-gauge-chart-container {
+position: relative;
+height: 200px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 20px;
+}
+
+.quota-gauge-center-text {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+}
+
+.quota-gauge-percentage {
+font-size: 2.5rem;
+font-weight: 800;
+color: var(--azul-deep);
+line-height: 1;
+}
+
+.quota-gauge-label {
+font-size: 0.9rem;
+color: #666;
+margin-top: 5px;
+}
+
+.quota-gauge-details {
+display: flex;
+justify-content: space-around;
+gap: 20px;
+}
+
+.quota-detail-item {
+text-align: center;
+flex: 1;
+}
+
+.quota-detail-value {
+font-size: 1.5rem;
+font-weight: 800;
+color: var(--turquesa);
+line-height: 1;
+}
+
+.quota-detail-label {
+font-size: 0.8rem;
+color: #666;
+margin-top: 5px;
+}
+
+/* Estilos para timeline y gráficos */
+.quota-timeline-container {
+background: white;
+border-radius: 16px;
+padding: 20px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+border: 2px solid var(--gris);
+transition: all 0.3s ease;
+}
+
+.quota-timeline-container:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.quota-timeline-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.quota-timeline-title {
+display: flex;
+align-items: center;
+gap: 10px;
+font-weight: 800;
+font-size: 1.1rem;
+color: var(--azul-deep);
+}
+
+.quota-chart-container {
+position: relative;
+background: #f8f9fa;
+border-radius: 12px;
+padding: 15px;
+border: 1px solid #e9ecef;
+}
+
+/* Estilos para botones de tiempo y actualización */
+.quota-refresh-btn {
+background: var(--turquesa);
+color: white;
+border: none;
+padding: 8px 16px;
+border-radius: 12px;
+font-weight: 700;
+font-size: 0.85rem;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.quota-refresh-btn:hover {
+background: var(--azul-deep);
+transform: translateY(-1px);
+}
+
+.quota-refresh-btn:active {
+transform: translateY(0);
+}
+
+/* Estilos para Tarjetas de Diseñadores (Formato Didáctico) */
+.designer-performance-cards-container {
+display: flex;
+flex-direction: column;
+gap: 10px;
+width: 100%;
+}
+
+.designer-card {
+background: white;
+border-radius: 12px;
+padding: 15px;
+border: 2px solid #f1f5f9;
+display: flex;
+align-items: center;
+gap: 12px;
+transition: all 0.3s ease;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+justify-content: space-between; /* Distribuye el espacio entre los elementos */
+}
+
+.designer-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+border-color: var(--turquesa);
+}
+
+.designer-avatar {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 800;
+color: white;
+font-size: 1.1rem;
+flex-shrink: 0;
+box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.designer-info {
+flex: 1;
+display: flex;
+flex-direction: row; /* Cambiado a fila para distribuir horizontalmente */
+align-items: center; /* Centrar verticalmente los elementos */
+justify-content: space-between; /* Distribuir nombre y stats */
+gap: 10px; /* Espacio entre nombre y stats */
+}
+
+.designer-name {
+font-weight: 700;
+color: var(--azul-deep);
+font-size: 0.95rem;
+white-space: nowrap; /* Evitar que el nombre se rompa en varias líneas */
+overflow: hidden;
+text-overflow: ellipsis; /* Añadir puntos suspensivos si el nombre es muy largo */
+flex: 1; /* Permitir que el nombre ocupe el espacio disponible */
+min-width: 0; /* Forzar el truncamiento si no hay espacio */
+}
+
+.designer-stats {
+display: flex;
+flex-direction: row; /* Asegurar que las estadísticas estén en fila */
+align-items: center;
+gap: 8px; /* Reducir el espacio entre el número y 'FINALIZADAS' */
+}
+
+.designer-stat-value {
+font-weight: 800;
+font-size: 1.1rem;
+color: var(--turquesa);
+white-space: nowrap;
+}
+
+.designer-stat-label {
+font-size: 0.7rem;
+color: #64748b;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+white-space: nowrap;
+}
+
+.designer-percentage {
+background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+border-radius: 8px;
+padding: 6px 12px;
+font-weight: 800;
+font-size: 0.9rem;
+color: var(--azul-deep);
+min-width: 60px;
+text-align: center;
+border: 1px solid #e2e8f0;
+margin-left: 15px; /* Mantener el margen a la izquierda para separarlo */
+flex-shrink: 0; /* Evitar que el porcentaje se encoja */
+}
+
+/* Estilos para contenedores de estadísticas detalladas */
+.stats-detailed-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 20px;
+margin-top: 20px;
+}
+
+.stats-detail-card {
+background: #f8f9fa;
+border-radius: 12px;
+padding: 15px;
+border: 1px solid #e9ecef;
+}
+
+.stats-detail-title {
+font-weight: 800;
+font-size: 1rem;
+margin-bottom: 15px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.stats-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 8px 0;
+border-bottom: 1px solid #e9ecef;
+}
+
+.stats-item:last-child {
+border-bottom: none;
+}
+
+.stats-item-label {
+font-weight: 600;
+color: #495057;
+}
+
+.stats-item-value {
+font-weight: 800;
+color: var(--azul-deep);
+}
+
+/* Responsive para estadísticas */
+@media (max-width: 768px) {
+.quota-gauge-card,
+.quota-timeline-container {
+padding: 15px;
+margin-bottom: 15px;
+}
+
+.quota-gauge-chart-container {
+height: 150px;
+}
+
+.quota-gauge-percentage {
+font-size: 2rem;
+}
+
+.quota-gauge-details {
+flex-direction: column;
+gap: 15px;
+}
+
+.quota-detail-item {
+text-align: center;
+}
+
+.stats-detailed-grid {
+grid-template-columns: 1fr;
+gap: 15px;
+}
+}
+/* ✅ ESTILOS PARA PESTAÑA DE ESTADÍSTICAS */
+.nav-tabs.tab-estadisticas::before {
+transform: translateX(200%);
+}
+
+#stats-page .stat-card {
+min-width: 120px;
+}
+
+#stats-page .quota-gauge-card {
+margin-bottom: 20px;
+}
+
+#stats-page .quota-timeline-container {
+margin-bottom: 20px;
+}
+
+/* Responsive para estadísticas */
+@media (max-width: 768px) {
+#stats-page .stats-grid {
+flex-direction: column;
+}
+#stats-page .stat-card {
+min-width: 100%;
+}
+}
+/* ✅ NUEVO ESTILO PARA ESTADÍSTICAS DETALLADAS (TIPO DASHBOARD) */
+.stats-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.stat-dashboard-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid #edf2f4;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: var(--turquesa);
+}
+
+/* Barra de color superior */
+.stat-dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+}
+
+.stat-card-unidades::before { background: var(--turquesa); }
+.stat-card-jornadas::before { background: var(--naranja); }
+.stat-card-especialidades::before { background: var(--verde); }
+.stat-card-servicios::before { background: var(--rojo); }
+
+.stat-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.stat-card-title {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-list {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-card-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+}
+
+.stat-card-item:last-child {
+    border-bottom: none;
+}
+
+.stat-card-label {
+    color: #334155;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.stat-card-value {
+    font-weight: 800;
+    color: var(--azul-deep);
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+/* Colores específicos para valores */
+.stat-card-unidades .stat-card-value { color: var(--turquesa); background: #e0f7fa; }
+.stat-card-jornadas .stat-card-value { color: var(--naranja); background: #fff3e0; }
+.stat-card-especialidades .stat-card-value { color: var(--verde); background: #e8f5e9; }
+.stat-card-servicios .stat-card-value { color: var(--rojo); background: #ffebee; }
+
+/* ✅ OCULTAR TABLA ANTIGUA DE DISEÑADORES */
+#designerTableContainer {
+    display: none !important;
+}
+
+/* ✅ CORRECCIÓN TABLA DE DISEÑADORES */
+.designer-performance-table {
+  width: 100%;
+  table-layout: fixed; /* ✅ EVITA QUE LA TABLA SE SALGA DEL CONTENEDOR */
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 0.85rem;
+  border-spacing: 0;
+}
+.designer-performance-table th, 
+.designer-performance-table td {
+  padding: 12px 10px;
+  text-align: center;
+  overflow: hidden; /* ✅ RECORTA TEXTO LARGO */
+  white-space: nowrap; /* ✅ EVITA SALTOS DE LÍNEA */
+  text-overflow: ellipsis; /* ✅ PONE ... SI EL TEXTO ES LARGO */
+  vertical-align: middle;
+  border-bottom: 1px solid #edf2f4;
+}
+/* Columna de nombre más ancha y alineada a la izquierda */
+.designer-performance-table th:nth-child(1),
+.designer-performance-table td:nth-child(1) {
+  width: 45%;
+  text-align: left;
+  padding-left: 15px;
+}
+/* Columnas de números centradas con ancho fijo */
+.designer-performance-table th:nth-child(2),
+.designer-performance-table td:nth-child(2) {
+  width: 25%;
+  text-align: center;
+}
+.designer-performance-table th:nth-child(3),
+.designer-performance-table td:nth-child(3) {
+  width: 30%;
+  text-align: center;
+}
+/* Quitar borde de la última fila */
+.designer-performance-table tr:last-child td {
+  border-bottom: none;
+}
 </style>
 </head>
 <body>
@@ -1347,6 +1859,7 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <!-- Asignación de Diseñador (Solo Admin) -->
 <div class="designer-assign-section hidden" id="designerAssignSection">
 <div class="panel-section-title">👨‍🎨 Asignar Diseñador</div>
+<!-- ✅ ACTUALIZAR designer-grid EN EL PANEL LATERAL -->
 <div class="designer-grid" id="designerGrid">
 <button class="designer-btn" onclick="assignDesigner('Bermina')" disabled>
 <span class="designer-avatar" style="background: #fb8500;">👩</span>
@@ -1363,6 +1876,10 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <button class="designer-btn" onclick="assignDesigner('Xamir')" disabled>
 <span class="designer-avatar" style="background: #ffb703;">👨</span>
 <span>Xamir</span>
+</button>
+<button class="designer-btn" onclick="assignDesigner('Fulan@')" disabled>
+<span class="designer-avatar" style="background: #9d0208; color: white;">👤</span>
+<span>Fulan@</span>
 </button>
 </div>
 </div>
@@ -1480,6 +1997,7 @@ Verifica que el ID sea correcto o limpia la búsqueda para ver todas las solicit
 <div class="nav-tabs">
 <button id="tab-form" class="tab-btn active" onclick="showPage('form-page', this)">📝 FORMULARIO</button>
 <button id="tab-list" class="tab-btn" onclick="showPage('list-page', this)">📋 SOLICITUDES</button>
+<button id="tab-stats" class="tab-btn hidden" onclick="showPage('stats-page', this)">📊 ESTADÍSTICAS</button>
 </div>
 <div class="admin-access">
 <!-- ✅ MENSAJE DE BIENVENIDA - MÁS LLAMATIVO -->
@@ -1563,43 +2081,25 @@ line-height: 1.4;">
 </form>
 </div>
 <div class="container page" id="list-page">
-<!-- ✅ CONTADORES COMBINADOS PARA ADMIN (TEXTO COMPLETO, UNA SOLA LÍNEA) -->
+<!-- ✅ CONTADORES COMBINADOS PARA ADMIN (ELIMINAR CONTADORES DE DISEÑADORES) -->
 <div class="combined-stats" id="combined-stats" style="display:none; margin-bottom: 10px; gap: 6px;">
-  <!-- Contadores generales -->
-  <div class="stat-card stat-mini st-total">
-    <span class="stat-label">Total</span>
-    <span id="count-total-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini st-pend">
-    <span class="stat-label">Pendiente</span>
-    <span id="count-pend-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini st-proc">
-    <span class="stat-label">En Proceso</span>
-    <span id="count-proc-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini st-fin">
-    <span class="stat-label">Finalizada</span>
-    <span id="count-fin-admin" class="stat-val">0</span>
-  </div>
-  
-  <!-- Contadores de diseñadores (SOLO ADMIN) -->
-  <div class="stat-card stat-mini stat-bermina">
-    <span class="stat-label">Bermina</span>
-    <span id="count-bermina-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini stat-jorsy">
-    <span class="stat-label">Jorsy</span>
-    <span id="count-jorsy-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini stat-maria">
-    <span class="stat-label">María F.</span>
-    <span id="count-maria-admin" class="stat-val">0</span>
-  </div>
-  <div class="stat-card stat-mini stat-xamir">
-    <span class="stat-label">Xamir</span>
-    <span id="count-xamir-admin" class="stat-val">0</span>
-  </div>
+<!-- Contadores generales SOLAMENTE -->
+<div class="stat-card stat-mini st-total">
+<span class="stat-label">Total</span>
+<span id="count-total-admin" class="stat-val">0</span>
+</div>
+<div class="stat-card stat-mini st-pend">
+<span class="stat-label">Pendiente</span>
+<span id="count-pend-admin" class="stat-val">0</span>
+</div>
+<div class="stat-card stat-mini st-proc">
+<span class="stat-label">En Proceso</span>
+<span id="count-proc-admin" class="stat-val">0</span>
+</div>
+<div class="stat-card stat-mini st-fin">
+<span class="stat-label">Finalizada</span>
+<span id="count-fin-admin" class="stat-val">0</span>
+</div>
 </div>
 
 <!-- ✅ CONTADORES PARA USUARIOS REGULARES (SIN CAMBIOS) -->
@@ -1656,6 +2156,133 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
 </div>
 </div>
 </div>
+
+<!-- ✅ PÁGINA DE ESTADÍSTICAS (REESTRUCTURADA) -->
+<div class="container page" id="stats-page">
+    
+    <!-- 1. CONTADORES GLOBALES FIJOS (ARRIBA DEL TODO) -->
+    <div class="stats-grid" style="margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; border-radius: 20px; background: white;">
+        <div class="stat-card st-total">
+            <span class="stat-label">Total Solicitudes</span>
+            <span id="stats-count-total" class="stat-val" style="font-size: 2rem;">0</span>
+        </div>
+        <div class="stat-card st-pend">
+            <span class="stat-label">Pendientes</span>
+            <span id="stats-count-pend" class="stat-val" style="font-size: 2rem;">0</span>
+        </div>
+        <div class="stat-card st-proc">
+            <span class="stat-label">En Proceso</span>
+            <span id="stats-count-proc" class="stat-val" style="font-size: 2rem;">0</span>
+        </div>
+        <div class="stat-card st-fin">
+            <span class="stat-label">Finalizadas</span>
+            <span id="stats-count-fin" class="stat-val" style="font-size: 2rem;">0</span>
+        </div>
+    </div>
+
+    <!-- Selector de Período -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+        <div style="font-weight: 800; color: var(--azul-deep); margin-right: 10px;">📅 Período:</div>
+        <button class="btn-time" onclick="loadStats('day')" id="btnStatsDay">Día</button>
+        <button class="btn-time" onclick="loadStats('week')" id="btnStatsWeek">Semana</button>
+        <button class="btn-time active" onclick="loadStats('month')" id="btnStatsMonth">Mes</button>
+        <button class="quota-refresh-btn" onclick="refreshAllStats()" id="btnRefreshStats" style="margin-left: auto;">
+            <span>🔄</span> Actualizar
+        </button>
+    </div>
+
+    <!-- Gráficos Principales (Fila 1) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <!-- Solicitudes por Día -->
+        <div class="quota-timeline-container">
+            <div class="quota-timeline-header">
+                <div class="quota-timeline-title"><span>📈</span> Solicitudes Recibidas</div>
+            </div>
+            <div class="quota-chart-container" style="height: 250px;">
+                <canvas id="requestsChart"></canvas>
+            </div>
+        </div>
+        <!-- Finalizadas vs Recibidas -->
+        <div class="quota-timeline-container">
+            <div class="quota-timeline-header">
+                <div class="quota-timeline-title"><span>✅</span> Solicitudes Finalizadas</div>
+            </div>
+            <div class="quota-chart-container" style="height: 250px;">
+                <canvas id="finalizedChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rendimiento de Diseñadores (Gráfico Circular) -->
+    <div class="quota-timeline-container" style="margin-bottom: 20px;">
+        <div class="quota-timeline-header">
+            <div class="quota-timeline-title"><span>🎨</span> Rendimiento de Diseñadores</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
+            <div class="quota-chart-container" style="height: 300px;">
+                <canvas id="designerPerformanceChart"></canvas>
+            </div>
+            <!-- Tarjetas de Diseñadores (Formato Didáctico) -->
+            <div class="designer-performance-cards-container" id="designerPerformanceCards"></div>
+        </div>
+    </div>
+
+    <!-- 2. ESTADÍSTICAS DETALLADAS (NUEVO DISEÑO DE TARJETAS) -->
+    <div class="quota-timeline-container">
+        <div class="quota-timeline-header">
+            <div class="quota-timeline-title"><span>📋</span> Estadísticas Detalladas</div>
+        </div>
+        
+        <!-- Grid de Tarjetas Estilo Dashboard -->
+        <div class="stats-dashboard-grid">
+            
+            <!-- Tarjeta 1: Top Unidades -->
+            <div class="stat-dashboard-card stat-card-unidades">
+                <div class="stat-card-icon">🏥</div>
+                <div class="stat-card-title">Top Unidades</div>
+                <ul class="stat-card-list" id="topUnidadesStats">
+                    <!-- Se llena con JS -->
+                    <li class="stat-card-item"><span class="stat-card-label">Cargando...</span></li>
+                </ul>
+            </div>
+
+            <!-- Tarjeta 2: Top Jornadas -->
+            <div class="stat-dashboard-card stat-card-jornadas">
+                <div class="stat-card-icon">📂</div>
+                <div class="stat-card-title">Top Jornadas</div>
+                <ul class="stat-card-list" id="topJornadasStats">
+                    <!-- Se llena con JS -->
+                    <li class="stat-card-item"><span class="stat-card-label">Cargando...</span></li>
+                </ul>
+            </div>
+
+            <!-- Tarjeta 3: Top Especialidades -->
+            <div class="stat-dashboard-card stat-card-especialidades">
+                <div class="stat-card-icon">🩺</div>
+                <div class="stat-card-title">Top Especialidades</div>
+                <ul class="stat-card-list" id="topEspecialidadesStats">
+                    <!-- Se llena con JS -->
+                    <li class="stat-card-item"><span class="stat-card-label">Cargando...</span></li>
+                </ul>
+            </div>
+
+            <!-- Tarjeta 4: Top Servicios -->
+            <div class="stat-dashboard-card stat-card-servicios">
+                <div class="stat-card-icon">🔧</div>
+                <div class="stat-card-title">Top Servicios</div>
+                <ul class="stat-card-list" id="topServiciosStats">
+                    <!-- Se llena con JS -->
+                    <li class="stat-card-item"><span class="stat-card-label">Cargando...</span></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3. ELIMINADO: Solicitudes Finalizadas por Diseñador (Ya no existe en el HTML) -->
+
+</div>
+
 <script>
 // === CONFIGURACIÓN DE SCRIPT URL ===
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
@@ -2332,14 +2959,16 @@ let selectedRegionKey = "";
 let selectedUnidad = "";
 let modoObituario = false;
 
-// ✅ OPTIMIZACIONES DE RENDIMIENTO - CACHE Y VIRTUALIZACIÓN
+// ✅ ACTUALIZAR DATA_CACHE PARA INCLUIR NUEVAS ESTADÍSTICAS
 const DATA_CACHE = {
     data: null,
     timestamp: 0,
     serverTimestamp: 0, // ✅ Timestamp del servidor para invalidación
     ttl: 60000, // CAMBIADO: de 5000 a 60000 (60 segundos)
     isLoading: false,
-    pendingPromise: null
+    pendingPromise: null,
+    stats: null,
+    statsPeriod: 'month'
 };
 
 // === AGREGAR ESTO ===
@@ -2462,12 +3091,13 @@ function buildDataIndexes() {
 }
 
 
-// ✅ NUEVA VARIABLE GLOBAL CON COLORES DE DISEÑADORES
+// ✅ ACTUALIZAR VARIABLE GLOBAL DE DISEÑADORES (5 DISEÑADORES)
 const designerColors = {
 "Bermina": "#fb8500",
 "Jorsy": "#023047",
 "María F.": "#2d6a4f",
-"Xamir": "#ffb703"
+"Xamir": "#ffb703",
+"Fulan@": "#9d0208"  // ✅ NUEVO 5TO DISEÑADOR
 };
 
 // ✅ NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
@@ -4536,6 +5166,11 @@ async function validateLogin() {
                 document.getElementById('authBtn').innerText = "Cerrar Sesión";
                 document.getElementById('authBtn').onclick = logout;
                 
+                // ✅ MOSTRAR TAB DE ESTADÍSTICAS PARA ADMIN Y DISEÑADOR
+                if (isAdmin || isDesigner) {
+                    document.getElementById('tab-stats').classList.remove('hidden');
+                }
+                
                 clearCredentials();
                 
                 // Ocultar barra de progreso y cerrar modal
@@ -4623,6 +5258,9 @@ function logout() {
     document.getElementById('authBtn').className = "btn-login";
     document.getElementById('authBtn').innerText = "🔐 Administrador";
     document.getElementById('authBtn').onclick = showLogin;
+    
+    // ✅ OCULTAR TAB DE ESTADÍSTICAS AL HACER LOGOUT
+    document.getElementById('tab-stats').classList.add('hidden');
     
     clearCredentials();
     
@@ -5303,13 +5941,13 @@ cont.appendChild(d);
 }
 
 function showPage(id, btn) {
-document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-window.scrollTo({top: 0, behavior: 'smooth'});
-if(btn) btn.classList.add('active');
-else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
-if(id === 'list-page') updateTable();
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  if(btn) btn.classList.add('active');
+  else document.getElementById('tab-' + id.split('-')[0]).classList.add('active');
+  if(id === 'list-page') updateTable();
 }
 
 // ✅ FUNCIÓN updateTable - CORREGIDA CON CACHE DE PÁGINAS
@@ -6248,16 +6886,916 @@ function showPage(pageId, tabBtn) {
     const navTabs = document.querySelector('.nav-tabs');
     if (navTabs) {
         // Remover clases existentes
-        navTabs.classList.remove('tab-formulario', 'tab-solicitudes');
+        navTabs.classList.remove('tab-formulario', 'tab-solicitudes', 'tab-estadisticas');
         
         // Agregar clase según el tab activo
         if (pageId === 'form-page') {
             navTabs.classList.add('tab-formulario');
         } else if (pageId === 'list-page') {
             navTabs.classList.add('tab-solicitudes');
+        } else if (pageId === 'stats-page') {
+            navTabs.classList.add('tab-estadisticas');
         }
     }
+    
+    if (pageId === 'list-page') updateTable();
+    if (pageId === 'stats-page') loadStats(currentStatsPeriod);
 }
+
+// ✅ FUNCIONES PARA PÁGINA DE ESTADÍSTICAS
+
+// Función para refrescar todas las estadísticas
+async function refreshAllStats() {
+    const btn = document.getElementById('btnRefreshStats');
+    const originalContent = btn.innerHTML;
+    
+    // Mostrar animación de carga
+    btn.innerHTML = '<span>⏳</span> Actualizando...';
+    btn.disabled = true;
+    
+    try {
+        await loadStats(currentStatsPeriod);
+        
+        // Mostrar éxito brevemente
+        btn.innerHTML = '<span>✅</span> Actualizado';
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }, 1500);
+        
+    } catch (error) {
+        btn.innerHTML = '<span>❌</span> Error';
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }, 1500);
+    }
+}
+
+// Función para obtener datos del backend
+async function fetchStatsData(period) {
+    const params = new URLSearchParams();
+    params.append('action', 'getStats');
+    params.append('period', period);
+    
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    });
+    
+    if (!response.ok) {
+        throw new Error('Error al obtener estadísticas');
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+        throw new Error(data.error || 'Error desconocido');
+    }
+    
+    return data.data;
+}
+
+// Actualizar contadores universales
+function updateStatsCounters(data) {
+    document.getElementById('stats-count-total').textContent = data.total || 0;
+    document.getElementById('stats-count-pend').textContent = data.pendiente || 0;
+    document.getElementById('stats-count-proc').textContent = data.procesando || 0;
+    document.getElementById('stats-count-fin').textContent = data.finalizada || 0;
+}
+
+// Inicializar gráfico de velocidad de conexión
+function initializeConnectionSpeedChart() {
+    const ctx = document.getElementById('connectionSpeedChart').getContext('2d');
+    
+    // Crear gráfico de gauge simple
+    statsCharts.connectionSpeed = {
+        ctx: ctx,
+        width: ctx.canvas.width = 200,
+        height: ctx.canvas.height = 200
+    };
+    
+    drawConnectionSpeedGauge(0);
+}
+
+// Dibujar gauge de velocidad de conexión
+function drawConnectionSpeedGauge(speed) {
+    const chart = statsCharts.connectionSpeed;
+    if (!chart) return;
+    
+    const { ctx, width, height } = chart;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Dibujar arco de fondo
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.7, Math.PI * 2.3);
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 20;
+    ctx.stroke();
+    
+    // Calcular ángulo basado en velocidad (0-100 Mbps)
+    const maxSpeed = 100;
+    const speedPercent = Math.min(speed / maxSpeed, 1);
+    const endAngle = Math.PI * 0.7 + (Math.PI * 1.6 * speedPercent);
+    
+    // Determinar color basado en velocidad
+    let color = '#28a745'; // verde
+    if (speed < 10) color = '#dc3545'; // rojo
+    else if (speed < 30) color = '#ffc107'; // amarillo
+    else if (speed < 60) color = '#17a2b8'; // azul
+    
+    // Dibujar arco de velocidad
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.7, endAngle);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+}
+
+// Actualizar gauge de velocidad de conexión
+function updateConnectionSpeedGauge(data) {
+    const speed = data.current || 0;
+    const avg = data.average || 0;
+    const max = data.maximum || 0;
+    
+    // Actualizar valores
+    document.getElementById('connSpeedValue').textContent = speed.toFixed(1);
+    document.getElementById('connSpeedAvg').textContent = avg.toFixed(1);
+    document.getElementById('connSpeedMax').textContent = max.toFixed(1);
+    
+    // Actualizar estado
+    const statusElement = document.getElementById('connStatus');
+    statusElement.classList.remove('status-good', 'status-warning', 'status-danger');
+    
+    if (speed >= 50) {
+        statusElement.textContent = 'Excelente';
+        statusElement.classList.add('status-good');
+    } else if (speed >= 20) {
+        statusElement.textContent = 'Buena';
+        statusElement.classList.add('status-good');
+    } else if (speed >= 10) {
+        statusElement.textContent = 'Regular';
+        statusElement.classList.add('status-warning');
+    } else {
+        statusElement.textContent = 'Lenta';
+        statusElement.classList.add('status-danger');
+    }
+    
+    // Dibujar gauge
+    drawConnectionSpeedGauge(speed);
+}
+
+// Actualizar gráfico de solicitudes recibidas
+function updateRequestsChart(data) {
+    const ctx = document.getElementById('requestsChart').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (statsCharts.requests) {
+        statsCharts.requests.destroy();
+    }
+    
+    // Preparar datos
+    const labels = data.map(item => item.date);
+    const values = data.map(item => item.count);
+    
+    // Crear nuevo gráfico
+    statsCharts.requests = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Solicitudes Recibidas',
+                data: values,
+                borderColor: '#219ebc',
+                backgroundColor: 'rgba(33, 158, 188, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Actualizar gráfico de solicitudes finalizadas
+function updateFinalizedChart(data) {
+    const ctx = document.getElementById('finalizedChart').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (statsCharts.finalized) {
+        statsCharts.finalized.destroy();
+    }
+    
+    // Preparar datos
+    const labels = data.map(item => item.date);
+    const values = data.map(item => item.count);
+    
+    // Crear nuevo gráfico
+    statsCharts.finalized = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Solicitudes Finalizadas',
+                data: values,
+                backgroundColor: '#2d6a4f',
+                borderColor: '#2d6a4f',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Actualizar rendimiento de diseñadores
+function updateDesignerPerformance(data) {
+    const ctx = document.getElementById('designerPerformanceChart').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (statsCharts.designerPerformance) {
+        statsCharts.designerPerformance.destroy();
+    }
+    
+    // Preparar datos
+    const designers = Object.keys(data);
+    const values = designers.map(designer => data[designer].finalized || 0);
+    const colors = ['#fb8500', '#023047', '#2d6a4f', '#ffb703']; // Bermina, Jorsy, María, Xamir
+    
+    // Crear nuevo gráfico
+    statsCharts.designerPerformance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: designers,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, designers.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Actualizar tabla
+    updateDesignerTable(data);
+}
+
+// Actualizar tabla de diseñadores
+function updateDesignerTable(data) {
+    const tbody = document.getElementById('designerPerformanceTable');
+    tbody.innerHTML = '';
+    
+    const total = Object.values(data).reduce((sum, designer) => sum + (designer.finalized || 0), 0);
+    
+    Object.entries(data).forEach(([designer, stats]) => {
+        const finalized = stats.finalized || 0;
+        const percentage = total > 0 ? ((finalized / total) * 100).toFixed(1) : 0;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="padding: 10px; font-weight: 600;">${designer}</td>
+            <td style="padding: 10px; text-align: center;">${finalized}</td>
+            <td style="padding: 10px; text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <div style="background: #f1f5f9; border-radius: 10px; padding: 4px 8px; font-weight: 700; min-width: 50px; text-align: center;">
+                        ${percentage}%
+                    </div>
+                    <div style="background: #e9ecef; border-radius: 10px; height: 8px; width: 60px; overflow: hidden;">
+                        <div style="background: var(--turquesa); height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Actualizar estadísticas detalladas
+function updateDetailedStats(topUnidades, topJornadas) {
+    // Top Unidades
+    const unidadesContainer = document.getElementById('topUnidadesStats');
+    unidadesContainer.innerHTML = '';
+    
+    topUnidades.forEach((unidad, index) => {
+        const item = document.createElement('div');
+        item.className = 'stats-item';
+        item.innerHTML = `
+            <span class="stats-item-label">${index + 1}. ${unidad.unidad}</span>
+            <span class="stats-item-value">${unidad.count}</span>
+        `;
+        unidadesContainer.appendChild(item);
+    });
+    
+    // Top Jornadas
+    const jornadasContainer = document.getElementById('topJornadasStats');
+    jornadasContainer.innerHTML = '';
+    
+    topJornadas.forEach((jornada, index) => {
+        const item = document.createElement('div');
+        item.className = 'stats-item';
+        item.innerHTML = `
+            <span class="stats-item-label">${index + 1}. ${jornada.jornada}</span>
+            <span class="stats-item-value">${jornada.count}</span>
+        `;
+        jornadasContainer.appendChild(item);
+    });
+}
+
+// Mostrar loading en estadísticas
+function showLoadingStats() {
+    // Actualizar contadores con loading
+    ['total', 'pend', 'proc', 'fin'].forEach(type => {
+        const element = document.getElementById(`stats-count-${type}`);
+        if (element) element.textContent = '...';
+    });
+    
+    // Mostrar loading en gráficos
+    const charts = ['requestsChart', 'finalizedChart', 'designerPerformanceChart'];
+    charts.forEach(chartId => {
+        const canvas = document.getElementById(chartId);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '14px Georama';
+            ctx.fillStyle = '#666';
+            ctx.textAlign = 'center';
+            ctx.fillText('Cargando...', canvas.width / 2, canvas.height / 2);
+        }
+    });
+}
+
+// Mostrar error en estadísticas
+function showErrorStats() {
+    // Actualizar contadores con error
+    ['total', 'pend', 'proc', 'fin'].forEach(type => {
+        const element = document.getElementById(`stats-count-${type}`);
+        if (element) element.textContent = 'Error';
+    });
+    
+    // Mostrar error en gráficos
+    const charts = ['requestsChart', 'finalizedChart', 'designerPerformanceChart'];
+    charts.forEach(chartId => {
+        const canvas = document.getElementById(chartId);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '14px Georama';
+            ctx.fillStyle = '#dc3545';
+            ctx.textAlign = 'center';
+            ctx.fillText('Error al cargar datos', canvas.width / 2, canvas.height / 2);
+        }
+    });
+}
+
+// ✅ FUNCIÓN AUXILIAR: Mostrar gráfico vacío
+function showEmptyChart(canvasId, message) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '14px Arial';
+    ctx.fillStyle = '#666';
+    ctx.textAlign = 'center';
+    ctx.fillText(message, canvas.width/2, canvas.height/2);
+}
+// ✅ VARIABLES GLOBALES PARA ESTADÍSTICAS
+let statsCharts = {
+connectionSpeed: null,
+requests: null,
+finalized: null,
+designerPerformance: null
+};
+let currentStatsPeriod = 'month';
+let connectionSpeedHistory = [];
+
+// ✅ FUNCIÓN PARA MOSTRAR/OCULTAR PESTAÑA ESTADÍSTICAS
+function updateStatsTabVisibility() {
+const statsTab = document.getElementById('tab-stats');
+if (isAdmin || isDesigner) {
+statsTab.classList.remove('hidden');
+} else {
+statsTab.classList.add('hidden');
+}
+}
+
+// ✅ CARGAR ESTADÍSTICAS - VERSIÓN FINAL
+async function loadStats(period) {
+  currentStatsPeriod = period;
+  
+  // Actualizar botones activos
+  document.getElementById('btnStatsDay').classList.toggle('active', period === 'day');
+  document.getElementById('btnStatsWeek').classList.toggle('active', period === 'week');
+  document.getElementById('btnStatsMonth').classList.toggle('active', period === 'month');
+  
+  const btnRefresh = document.getElementById('btnRefreshStats');
+  if(btnRefresh) btnRefresh.innerHTML = '<span>⏳</span> Cargando...';
+  
+  try {
+    if (!userCredentials.username || !userCredentials.password) {
+      throw new Error("Sesión no válida. Por favor inicie sesión nuevamente.");
+    }
+    
+    const params = new URLSearchParams();
+    params.append('action', 'getAdvancedStats');
+    params.append('period', period);
+    params.append('username', userCredentials.username);
+    params.append('password', userCredentials.password);
+    
+    console.log("📤 Solicitando estadísticas para período:", period);
+    
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    });
+    
+    const text = await response.text();
+    console.log("📥 Respuesta recibida:", text.substring(0, 500));
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error("JSON inválido:", text);
+      throw new Error("Respuesta del servidor no válida: " + e.message);
+    }
+    
+    if (!data.success) {
+      throw new Error(data.error || "Error desconocido del servidor");
+    }
+    
+    const stats = data.data || {};
+    
+    // ✅ CARGAR GRÁFICOS - SOLO GRÁFICOS
+    console.log("✅ Cargando gráficos para período:", period);
+    
+    // ❌ COMENTAR O ELIMINAR ESTAS LÍNEAS PARA QUE LOS CONTADORES SEAN FIJOS:
+    /*
+    document.getElementById('stats-count-total').innerText = stats.total || 0;
+    document.getElementById('stats-count-pend').innerText = stats.pendiente || 0;
+    document.getElementById('stats-count-proc').innerText = stats.procesando || 0;
+    document.getElementById('stats-count-fin').innerText = stats.finalizada || 0;
+    */
+    
+    // ✅ ACTUALIZAR GRÁFICO DE SOLICITUDES POR DÍA
+    if (stats.porDia && stats.porDia.length > 0) {
+      console.log("📊 Datos porDia:", stats.porDia);
+      updateRequestsChart(stats.porDia);
+    } else {
+      console.warn("⚠️ No hay datos porDia");
+      showEmptyChart('requestsChart', 'No hay datos para este período');
+    }
+    
+    // ✅ ACTUALIZAR ESTADÍSTICAS DETALLADAS (CON ESPECIALIDADES Y SERVICIOS)
+    updateDetailedStats(stats);
+    
+    // ✅ CARGAR DATOS ADICIONALES EN PARALELO
+    await Promise.all([
+      loadHistoryData(period),
+      loadDesignerData(period)
+    ]);
+    
+  } catch (e) {
+    console.error("❌ Error en loadStats:", e);
+    openModal("❌ Error", "No se pudieron cargar las estadísticas: " + e.message, "💥");
+    
+    // Mostrar zeros en contadores
+    document.getElementById('stats-count-total').innerText = '0';
+    document.getElementById('stats-count-pend').innerText = '0';
+    document.getElementById('stats-count-proc').innerText = '0';
+    document.getElementById('stats-count-fin').innerText = '0';
+  } finally {
+    if(btnRefresh) btnRefresh.innerHTML = '<span>🔄</span> Actualizar';
+  }
+}
+
+// ✅ CARGAR HISTORIAL (CORREGIDO)
+async function loadHistoryData(period) {
+    try {
+        const params = new URLSearchParams();
+        params.append('action', 'getRequestsHistory');
+        params.append('period', period);
+        params.append('username', userCredentials.username);
+        params.append('password', userCredentials.password);
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        const responseData = await response.json();
+        
+        // ✅ CORRECCIÓN: Extraer el array de data.data
+        if (responseData.success && Array.isArray(responseData.data)) {
+            updateFinalizedChart(responseData.data);
+        } else {
+            console.warn("⚠️ Historial vacío o formato incorrecto");
+        }
+    } catch (e) {
+        console.error("Error cargando historial:", e);
+    }
+}
+
+// ✅ CARGAR DESEMPEÑO DISEÑADORES (CORREGIDO)
+async function loadDesignerData(period) {
+    try {
+        const params = new URLSearchParams();
+        params.append('action', 'getDesignerPerformance');
+        params.append('period', period);
+        params.append('username', userCredentials.username);
+        params.append('password', userCredentials.password);
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        const responseData = await response.json();
+        
+        // ✅ CORRECCIÓN: Extraer el array de data.data
+        if (responseData.success && Array.isArray(responseData.data)) {
+            updateDesignerPerformanceChart(responseData.data);
+            updateDesignerPerformanceTable(responseData.data);
+        } else {
+            console.warn("⚠️ Datos de diseñadores vacíos");
+        }
+    } catch (e) {
+        console.error("Error cargando diseñadores:", e);
+    }
+}
+
+// ✅ ACTUALIZAR GRÁFICO DE SOLICITUDES (ADAPTADO AL BACKEND)
+function updateRequestsChart(data) {
+    const ctx = document.getElementById('requestsChart');
+    if (!ctx) return;
+    
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        console.warn("No hay datos de solicitudes para mostrar");
+        showEmptyChart('requestsChart', 'No hay datos disponibles');
+        return;
+    }
+    
+    // ✅ MAPEO CORRECTO DE PROPIEDADES (Backend: fecha/cantidad -> Frontend: date/count)
+    const labels = data.map(d => {
+        if (d.fecha) {
+            const parts = d.fecha.split('-');
+            return `${parts[2]}/${parts[1]}`; // Formato DD/MM
+        }
+        return '';
+    });
+    
+    const values = data.map(d => d.cantidad || 0);
+    
+    if (statsCharts.requests) {
+        statsCharts.requests.destroy();
+    }
+    
+    statsCharts.requests = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Solicitudes Recibidas',
+                data: values,
+                borderColor: '#219ebc',
+                backgroundColor: 'rgba(33, 158, 188, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+// ✅ ACTUALIZAR GRÁFICO DE FINALIZADAS
+function updateFinalizedChart(data) {
+    const ctx = document.getElementById('finalizedChart');
+    if (!ctx) return;
+
+    if (!data || data.length === 0) {
+        console.warn("No hay datos de historial para mostrar");
+        return;
+    }
+
+    const labels = data.map(d => d.dia || '');
+    const recibidas = data.map(d => d.recibidas || 0);
+    const finalizadas = data.map(d => d.finalizadas || 0);
+
+    if (statsCharts.finalized) {
+        statsCharts.finalized.destroy();
+    }
+
+    statsCharts.finalized = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Recibidas',
+                    data: recibidas,
+                    backgroundColor: '#8ecae6'
+                },
+                {
+                    label: 'Finalizadas',
+                    data: finalizadas,
+                    backgroundColor: '#2d6a4f'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+// ✅ ACTUALIZAR GRÁFICO DE DESEMPEÑO DE DISEÑADORES
+function updateDesignerPerformanceChart(data) {
+    const ctx = document.getElementById('designerPerformanceChart');
+    if (!ctx) return;
+
+    const labels = data.map(d => d.nombre);
+    const values = data.map(d => d.finalizadas);
+    const colors = data.map(d => d.color);
+
+    if (statsCharts.designerPerformance) {
+        statsCharts.designerPerformance.destroy();
+    }
+
+    statsCharts.designerPerformance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// ✅ ACTUALIZAR TARJETAS DE DESEMPEÑO DE DISEÑADORES (FORMATO DIDÁCTICO)
+function updateDesignerPerformanceTable(data) {
+const container = document.getElementById('designerPerformanceCards');
+if (!container) return;
+
+// Calcular el total correcto incluyendo todos los diseñadores
+const totalFinalizadas = data.reduce((sum, d) => sum + (d.finalizadas || 0), 0);
+
+container.innerHTML = data.map(d => {
+    const finalized = d.finalizadas || 0;
+    // Calcular porcentaje basado en el total de todos los diseñadores
+    const percentage = totalFinalizadas > 0 ? ((finalized / totalFinalizadas) * 100).toFixed(1) : 0;
+    
+    // Determinar inicial del diseñador
+    const getInitial = (name) => {
+        if (name === 'Bermina') return '👩';
+        if (name === 'Jorsy') return '👨';
+        if (name === 'María F.') return '👩';
+        if (name === 'Xamir') return '👨';
+        if (name === 'Fulan@') return '👤';
+        return '👤';
+    };
+    
+    return `
+<div class="designer-card">
+    <div class="designer-avatar" style="background: ${d.color};">
+        ${getInitial(d.nombre)}
+    </div>
+    <div class="designer-info">
+        <div class="designer-name">${d.nombre}</div>
+        <div class="designer-stats">
+            <div class="designer-stat">
+                <div class="designer-stat-value">${finalized}</div>
+                <div class="designer-stat-label">Finalizadas</div>
+            </div>
+            <div class="designer-percentage">${percentage}%</div>
+        </div>
+    </div>
+</div>
+`;
+}).join('');
+}
+
+// ✅ ACTUALIZAR ESTADÍSTICAS DETALLADAS (FORMATO TARJETAS)
+function updateDetailedStats(stats) {
+    // --- 1. TOP UNIDADES ---
+    const topUnidades = Object.entries(stats.porUnidad || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5
+    
+    const unidadesContainer = document.getElementById('topUnidadesStats');
+    if (unidadesContainer) {
+        unidadesContainer.innerHTML = topUnidades.length > 0 
+            ? topUnidades.map(([name, count]) => `
+                <li class="stat-card-item">
+                    <span class="stat-card-label" title="${name}">${name}</span>
+                    <span class="stat-card-value">${count}</span>
+                </li>
+            `).join('')
+            : '<li class="stat-card-item"><span class="stat-card-label">Sin datos</span></li>';
+    }
+
+    // --- 2. TOP JORNADAS ---
+    const topJornadas = Object.entries(stats.porJornada || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5
+
+    const jornadasContainer = document.getElementById('topJornadasStats');
+    if (jornadasContainer) {
+        jornadasContainer.innerHTML = topJornadas.length > 0
+            ? topJornadas.map(([name, count]) => `
+                <li class="stat-card-item">
+                    <span class="stat-card-label" title="${name}">${name}</span>
+                    <span class="stat-card-value">${count}</span>
+                </li>
+            `).join('')
+            : '<li class="stat-card-item"><span class="stat-card-label">Sin datos</span></li>';
+    }
+
+    // --- 3. TOP ESPECIALIDADES ---
+    const topEspecialidades = Object.entries(stats.porEspecialidad || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5
+
+    const especialidadesContainer = document.getElementById('topEspecialidadesStats');
+    if (especialidadesContainer) {
+        especialidadesContainer.innerHTML = topEspecialidades.length > 0
+            ? topEspecialidades.map(([name, count]) => `
+                <li class="stat-card-item">
+                    <span class="stat-card-label" title="${name}">${name}</span>
+                    <span class="stat-card-value">${count}</span>
+                </li>
+            `).join('')
+            : '<li class="stat-card-item"><span class="stat-card-label">Sin datos</span></li>';
+    }
+
+    // --- 4. TOP SERVICIOS ---
+    const topServicios = Object.entries(stats.porServicio || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5
+
+    const serviciosContainer = document.getElementById('topServiciosStats');
+    if (serviciosContainer) {
+        serviciosContainer.innerHTML = topServicios.length > 0
+            ? topServicios.map(([name, count]) => `
+                <li class="stat-card-item">
+                    <span class="stat-card-label" title="${name}">${name}</span>
+                    <span class="stat-card-value">${count}</span>
+                </li>
+            `).join('')
+            : '<li class="stat-card-item"><span class="stat-card-label">Sin datos</span></li>';
+    }
+}
+
+// ✅ ACTUALIZAR VISIBILIDAD DE BÚSQUEDA Y ESTADÍSTICAS
+function updateSearchVisibility() {
+const searchContainer = document.getElementById('designer-search-container');
+if (isAdmin || isDesigner) {
+searchContainer.classList.remove('hidden');
+if (!window.searchEventsInitialized) {
+initSearchEvents();
+window.searchEventsInitialized = true;
+}
+} else {
+searchContainer.classList.add('hidden');
+resetSearchHighlight();
+document.getElementById('idNotFoundModal').style.display = 'none';
+}
+updateStatsTabVisibility();  // ✅ AGREGAR
+}
+
+// ✅ REFRESCAR TODAS LAS ESTADÍSTICAS
+function refreshAllStats() {
+loadStats(currentStatsPeriod);
+}
+
+// ✅ ACTUALIZAR CONTADORES GLOBALES (FIJOS)
+function updateCounters(stats) {
+  if (!stats) return;
+  
+  // 1. CONTADORES DE LA PESTAÑA SOLICITUDES (ARRIBA DE LA TABLA)
+  document.getElementById('count-total').innerText = stats.total || 0;
+  document.getElementById('count-pend').innerText = stats.pend || 0;
+  document.getElementById('count-proc').innerText = stats.proc || 0;
+  document.getElementById('count-fin').innerText = stats.fin || 0;
+  
+  // Contadores Admin (si existen)
+  const countTotalAdmin = document.getElementById('count-total-admin');
+  if(countTotalAdmin) countTotalAdmin.innerText = stats.total || 0;
+  const countPendAdmin = document.getElementById('count-pend-admin');
+  if(countPendAdmin) countPendAdmin.innerText = stats.pend || 0;
+  const countProcAdmin = document.getElementById('count-proc-admin');
+  if(countProcAdmin) countProcAdmin.innerText = stats.proc || 0;
+  const countFinAdmin = document.getElementById('count-fin-admin');
+  if(countFinAdmin) countFinAdmin.innerText = stats.fin || 0;
+
+  // 2. CONTADORES DE LA PESTAÑA ESTADÍSTICAS (ARRIBA DE LOS GRÁFICOS)
+  // Estos AHORA serán fijos (Totales BD) y no cambiarán al filtrar Día/Semana/Mes
+  document.getElementById('stats-count-total').innerText = stats.total || 0;
+  document.getElementById('stats-count-pend').innerText = stats.pendiente || stats.pend || 0;
+  document.getElementById('stats-count-proc').innerText = stats.procesando || stats.proc || 0;
+  document.getElementById('stats-count-fin').innerText = stats.finalizada || stats.fin || 0;
+
+  // Visibilidad según rol
+  if (isAdmin) {
+    document.getElementById('stats-panel').style.display = 'none';
+    document.getElementById('combined-stats').style.display = 'flex';
+  } else {
+    document.getElementById('stats-panel').style.display = 'flex';
+    document.getElementById('combined-stats').style.display = 'none';
+  }
+  
+  updateSearchVisibility();
+  if (isSearchActive && currentSearchId) applySearchHighlight(currentSearchId);
+  if (isPanelOpen && selectedRequestId) updatePanelContent();
+  
+  document.getElementById('th-admin').classList.toggle('hidden', !isAdmin);
+  document.getElementById('th-designer').classList.toggle('hidden', !isDesigner);
+}
+
+// ✅ ACTUALIZAR logout PARA LIMPIAR ESTADÍSTICAS
+function logout() {
+// ... código existente ...
+// Limpiar gráficos de estadísticas
+if (statsCharts.requests) statsCharts.requests.destroy();
+if (statsCharts.finalized) statsCharts.finalized.destroy();
+if (statsCharts.designerPerformance) statsCharts.designerPerformance.destroy();
+}
+
 </script>
 </body>
 </html>
