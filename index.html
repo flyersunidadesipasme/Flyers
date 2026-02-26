@@ -2191,6 +2191,69 @@ style="background: white; border-color: #ffb703; font-weight: 600;"
         </button>
     </div>
 
+    <!-- ✅ MEDIDORES DE VELOCIDAD (NUEVO) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <!-- Velocidad de Internet -->
+        <div class="quota-gauge-card">
+            <div class="quota-gauge-header">
+                <div class="quota-gauge-title">
+                    <span>🌐</span>
+                    <span>Velocidad de Internet</span>
+                </div>
+                <div class="quota-gauge-status status-good" data-stat="internet-status">EXCELENTE</div>
+            </div>
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--azul-deep);" 
+                     data-stat="internet-speed-value">0</div>
+                <div style="color: #666; font-size: 1rem;">Mbps</div>
+            </div>
+            <div class="quota-gauge-details">
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="internet-speed-avg">0</div>
+                    <div class="quota-detail-label">Promedio</div>
+                </div>
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="internet-speed-max">0</div>
+                    <div class="quota-detail-label">Máximo</div>
+                </div>
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="internet-speed-last">--:--</div>
+                    <div class="quota-detail-label">Última Medición</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Velocidad de Subida (Chunks) -->
+        <div class="quota-gauge-card">
+            <div class="quota-gauge-header">
+                <div class="quota-gauge-title">
+                    <span>📤</span>
+                    <span>Velocidad de Subida (Chunks)</span>
+                </div>
+                <div class="quota-gauge-status status-good" data-stat="upload-status">EXCELENTE</div>
+            </div>
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 3rem; font-weight: 800; color: var(--azul-deep);" 
+                     data-stat="upload-speed-value">0</div>
+                <div style="color: #666; font-size: 1rem;">Mbps</div>
+            </div>
+            <div class="quota-gauge-details">
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="upload-speed-avg">0</div>
+                    <div class="quota-detail-label">Promedio</div>
+                </div>
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="upload-speed-tier">--</div>
+                    <div class="quota-detail-label">Nivel</div>
+                </div>
+                <div class="quota-detail-item">
+                    <div class="quota-detail-value" data-stat="upload-speed-last">--:--</div>
+                    <div class="quota-detail-label">Última Medición</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Gráficos Principales (Fila 1) -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
         <!-- Solicitudes por Día -->
@@ -2410,6 +2473,28 @@ let chunkUpload = {
     currentChunk: 0
 };
 
+// ✅ VARIABLES PARA MEDIDORES DE VELOCIDAD
+let speedMonitoring = {
+    internetSpeed: {
+        current: 0,
+        average: 0,
+        maximum: 0,
+        history: [],
+        lastMeasurement: null
+    },
+    uploadSpeed: {  // ✅ CAMBIADO: Ahora mide velocidad de subida real para chunks
+        current: 0,
+        average: 0,
+        minimum: 9999,
+        history: [],
+        lastMeasurement: null,
+        tier: 'unknown',  // ULTRA_FAST, FAST, MEDIUM, SLOW, VERY_SLOW
+        chunkSize: 512 * 1024  // Tamaño de chunk recomendado
+    },
+    intervalId: null,
+    measurementInterval: 5 * 60 * 1000 // 5 minutos
+};
+
 // ✅ CONFIGURACIÓN AVANZADA DE CHUNKS CON ADAPTACIÓN DINÁMICA
 const CHUNK_CONFIG = {
     // Umbrales de velocidad en KB/s (medidos empíricamente)
@@ -2453,110 +2538,168 @@ const CHUNK_CONFIG = {
 };
 
 // ============================================================
-// FUNCIÓN 1: DETECCIÓN PRECISA DE VELOCIDAD DE CONEXIÓN
+// FUNCIÓN CORREGIDA: DETECCIÓN REAL DE VELOCIDAD
 // ============================================================
 async function detectConnectionSpeed() {
     console.log("🔍 Iniciando detección de velocidad de conexión...");
     
-    const testSizes = [50 * 1024, 100 * 1024]; // 50KB y 100KB para muestras
-    const speeds = [];
+    // ✅ ARCHIVOS DE PRUEBA MÁS GRANDES (10MB y 50MB)
+    const testSizes = [
+        { size: 10 * 1024 * 1024, name: "10MB" },   // 10 MB
+        { size: 50 * 1024 * 1024, name: "50MB" }    // 50 MB para conexiones >100Mbps
+    ];
     
-    // Realizar múltiples pruebas para precisión
-    for (let size of testSizes) {
+    const speeds = [];
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyw4oGU8GLqut_CQTWIdkArjakKsuRAZLVF9xI4YhO-pYV0XYvMp-BXoE4arULToavgaw/exec";
+    
+    for (let test of testSizes) {
         try {
-            // Generar datos aleatorios para evitar caché
-            const testData = new Uint8Array(size);
-            for (let i = 0; i < size; i++) {
-                testData[i] = Math.floor(Math.random() * 256);
+            // Crear blob de datos aleatorios del tamaño especificado
+            const testData = new Uint8Array(test.size);
+            const chunk = 65536; // 64KB chunks para mejor performance
+            
+            for (let i = 0; i < test.size; i += chunk) {
+                const end = Math.min(i + chunk, test.size);
+                for (let j = i; j < end; j++) {
+                    testData[j] = Math.floor(Math.random() * 256);
+                }
             }
             
             const blob = new Blob([testData]);
+            const formData = new FormData();
+            formData.append('speedTest', blob);
+            formData.append('action', 'speedTest');
+            formData.append('timestamp', Date.now().toString());
+            formData.append('size', test.size.toString());
+            
             const startTime = performance.now();
             
-            // Simular subida real (usar el mismo endpoint o uno de prueba)
-            const formData = new FormData();
-            formData.append('ping', blob);
-            formData.append('action', 'ping');
-            
-            // Timeout de 5 segundos para la prueba
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos max
             
-            await fetch(SCRIPT_URL, {
+            const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: formData,
                 signal: controller.signal,
-                // No enviar credenciales en ping para velocidad
-                credentials: 'omit'
+                cache: 'no-store'
             });
             
             clearTimeout(timeoutId);
             
             const endTime = performance.now();
             const duration = (endTime - startTime) / 1000; // segundos
-            const speedKBps = (size / 1024) / duration;   // KB/s
             
-            speeds.push(speedKBps);
-            console.log(`📊 Prueba con ${size/1024}KB: ${speedKBps.toFixed(2)} KB/s`);
+            // ✅ CÁLCULO CORREGIDO: bits por segundo, no bytes
+            const bitsUploaded = test.size * 8;
+            const speedBps = bitsUploaded / duration;
+            const speedMbps = speedBps / (1024 * 1024); // Convertir a Mbps
+            
+            // Solo usar mediciones válidas (>0.1s para evitar precisión insuficiente)
+            if (duration > 0.1) {
+                speeds.push(speedMbps);
+                console.log(`📊 Prueba ${test.name}: ${speedMbps.toFixed(2)} Mbps (${duration.toFixed(2)}s)`);
+            }
             
         } catch (e) {
-            console.warn(`⚠️ Prueba fallida: ${e.message}`);
+            console.warn(`⚠️ Prueba ${test.name} fallida: ${e.message}`);
         }
     }
     
-    // Calcular velocidad promedio de las pruebas exitosas
-    let avgSpeed = 0;
+    // Calcular velocidad final
+    let finalSpeed = 0;
     if (speeds.length > 0) {
-        avgSpeed = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+        // Usar la mediana para evitar outliers
+        speeds.sort((a, b) => a - b);
+        finalSpeed = speeds[Math.floor(speeds.length / 2)];
     } else {
-        // Si todas fallan, usar un valor conservador
-        avgSpeed = 128; // 128 KB/s por defecto
+        // Fallback: estimar basado en Network Information API
+        finalSpeed = estimateSpeedFromNetworkAPI();
     }
     
-    // Determinar tier de conexión
-    let tier, chunkSize, concurrent;
+    // Determinar tier y configuración
+    const config = getSpeedConfig(finalSpeed);
     
-    if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.ULTRA_FAST) {
-        tier = 'ULTRA_FAST';
-        chunkSize = CHUNK_CONFIG.SIZES.ULTRA_FAST;
-        concurrent = CHUNK_CONFIG.CONCURRENT.ULTRA_FAST;
-    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.FAST) {
-        tier = 'FAST';
-        chunkSize = CHUNK_CONFIG.SIZES.FAST;
-        concurrent = CHUNK_CONFIG.CONCURRENT.FAST;
-    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.MEDIUM) {
-        tier = 'MEDIUM';
-        chunkSize = CHUNK_CONFIG.SIZES.MEDIUM;
-        concurrent = CHUNK_CONFIG.CONCURRENT.MEDIUM;
-    } else if (avgSpeed >= CHUNK_CONFIG.THRESHOLDS.SLOW) {
-        tier = 'SLOW';
-        chunkSize = CHUNK_CONFIG.SIZES.SLOW;
-        concurrent = CHUNK_CONFIG.CONCURRENT.SLOW;
-    } else {
-        tier = 'VERY_SLOW';
-        chunkSize = CHUNK_CONFIG.SIZES.VERY_SLOW;
-        concurrent = CHUNK_CONFIG.CONCURRENT.VERY_SLOW;
-    }
-    
-    // Guardar configuración
-    chunkUpload.connectionTier = tier;
-    chunkUpload.currentChunkSize = chunkSize;
-    chunkUpload.maxConcurrent = concurrent;
-    
-    // Para compatibilidad con código existente
-    chunkUpload.connectionSpeed = tier.toLowerCase().replace('_', '-');
-    chunkUpload.chunkSize = chunkSize;
-    
-    console.log(`🌐 Velocidad detectada: ${avgSpeed.toFixed(2)} KB/s (${(avgSpeed*8).toFixed(2)} Kbps)`);
-    console.log(`🏷️ Tier: ${tier} | Chunk: ${chunkSize === Infinity ? 'Completo' : (chunkSize/1024).toFixed(0) + 'KB'} | Concurrente: ${concurrent}`);
+    console.log(`🌐 Velocidad detectada: ${finalSpeed.toFixed(2)} Mbps`);
+    console.log(`🏷️ Tier: ${config.tier} | Chunk: ${config.chunkSize === Infinity ? 'Completo' : (config.chunkSize/1024/1024).toFixed(1) + 'MB'}`);
     
     return {
-        speed: avgSpeed,
-        tier: tier,
-        chunkSize: chunkSize,
-        concurrent: concurrent,
-        shouldUseChunks: chunkSize !== Infinity
+        speed: finalSpeed,
+        tier: config.tier,
+        chunkSize: config.chunkSize,
+        concurrent: config.concurrent,
+        shouldUseChunks: config.chunkSize !== Infinity
     };
+}
+
+// ============================================================
+// FUNCIÓN AUXILIAR: Estimación desde Network API
+// ============================================================
+function estimateSpeedFromNetworkAPI() {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    if (connection) {
+        // downlink está en Mbps según la especificación
+        if (connection.downlink) {
+            console.log(`📡 Network API estima: ${connection.downlink} Mbps`);
+            return connection.downlink;
+        }
+        
+        // Fallback por effectiveType
+        const estimates = {
+            '4g': 50,    // 4G típico: 5-100 Mbps
+            '3g': 3,     // 3G típico: 0.5-5 Mbps
+            '2g': 0.1    // 2G típico: <0.1 Mbps
+        };
+        
+        if (estimates[connection.effectiveType]) {
+            return estimates[connection.effectiveType];
+        }
+    }
+    
+    return 10; // Default conservador: 10 Mbps
+}
+
+// ============================================================
+// FUNCIÓN AUXILIAR: Configuración basada en velocidad
+// ============================================================
+function getSpeedConfig(speedMbps) {
+    // ✅ UMBRALES REALISTAS para 2024-2025
+    if (speedMbps >= 100) {
+        return {
+            tier: 'ULTRA_FAST',
+            chunkSize: Infinity,        // No usar chunks
+            concurrent: 1,
+            description: 'Fibra óptica / 5G'
+        };
+    } else if (speedMbps >= 20) {
+        return {
+            tier: 'FAST',
+            chunkSize: 10 * 1024 * 1024,  // 10 MB chunks
+            concurrent: 2,
+            description: 'Cable / 4G+'
+        };
+    } else if (speedMbps >= 5) {
+        return {
+            tier: 'MEDIUM',
+            chunkSize: 5 * 1024 * 1024,   // 5 MB chunks
+            concurrent: 1,
+            description: 'ADSL / 4G'
+        };
+    } else if (speedMbps >= 1) {
+        return {
+            tier: 'SLOW',
+            chunkSize: 2 * 1024 * 1024,   // 2 MB chunks
+            concurrent: 1,
+            description: '3G / Conexión débil'
+        };
+    } else {
+        return {
+            tier: 'VERY_SLOW',
+            chunkSize: 512 * 1024,        // 512 KB chunks
+            concurrent: 1,
+            description: '2G / Muy lenta'
+        };
+    }
 }
 
 // ✅ REINICIAR ESTADO DE CHUNKS
@@ -5262,6 +5405,9 @@ function logout() {
     // ✅ OCULTAR TAB DE ESTADÍSTICAS AL HACER LOGOUT
     document.getElementById('tab-stats').classList.add('hidden');
     
+    // ✅ DETENER MONITOREO DE VELOCIDAD
+    stopSpeedMonitoring();
+    
     clearCredentials();
     
     // 7. ✅ MANTENER CACHÉ LOCAL - No borrar DATA_CACHE ni PAGE_CACHE para navegación rápida
@@ -6964,6 +7110,397 @@ function updateStatsCounters(data) {
     document.getElementById('stats-count-fin').textContent = data.finalizada || 0;
 }
 
+// ============================================================
+// FUNCIÓN CORREGIDA - REEMPLAZAR LA EXISTENTE
+// ============================================================
+async function measureInternetSpeed() {
+    console.log("✅ NUEVA FUNCIÓN EJECUTÁNDOSE - v2.0");
+    console.log("🔍 Midiendo velocidad real de internet...");
+    
+    // ✅ USAR NETWORK INFORMATION API PRIMERO (más preciso para conexiones rápidas)
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    if (connection && connection.downlink) {
+        // downlink viene en Mbps directamente según la especificación W3C
+        const apiSpeed = connection.downlink;
+        console.log(`📡 Network API reporta: ${apiSpeed} Mbps`);
+        
+        // Validar que sea razonable (no 0.1 ni valores absurdos)
+        if (apiSpeed > 1) {
+            updateInternetSpeedDisplay(apiSpeed, apiSpeed, apiSpeed);
+            return apiSpeed;
+        }
+    }
+    
+    // ✅ FALLBACK: Prueba de descarga real con archivo grande
+    try {
+        // Usar un archivo de prueba de 25MB (Cloudflare o similar)
+        const testUrl = 'https://speed.cloudflare.com/__down?bytes=25000000'; // 25MB
+        const startTime = performance.now();
+        
+        const response = await fetch(testUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            mode: 'no-cors' // Evitar CORS issues
+        });
+        
+        // Leer el stream completo para medir tiempo real
+        const reader = response.body.getReader();
+        let receivedLength = 0;
+        
+        while(true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            receivedLength += value.length;
+        }
+        
+        const endTime = performance.now();
+        const duration = (endTime - startTime) / 1000; // segundos
+        
+        // ✅ CÁLCULO CORREGIDO: Mbps = (bytes * 8) / (segundos * 1,000,000)
+        const bitsDownloaded = receivedLength * 8;
+        const speedMbps = bitsDownloaded / (duration * 1000000);
+        
+        console.log(`📥 Descarga real: ${speedMbps.toFixed(2)} Mbps (${receivedLength} bytes en ${duration.toFixed(2)}s)`);
+        
+        updateInternetSpeedDisplay(speedMbps, speedMbps, speedMbps);
+        return speedMbps;
+        
+    } catch (e) {
+        console.warn("⚠️ Prueba de descarga falló, usando estimación:", e);
+        
+        // ✅ ÚLTIMO RECURSO: Estimación basada en tipo de conexión
+        const fallbackSpeed = estimateFromConnectionType();
+        updateInternetSpeedDisplay(fallbackSpeed, fallbackSpeed, fallbackSpeed);
+        return fallbackSpeed;
+    }
+}
+
+// ============================================================
+// FUNCIÓN AUXILIAR: Estimación desde tipo de conexión
+// ============================================================
+function estimateFromConnectionType() {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    
+    if (!connection) return 50; // Default: 50 Mbps
+    
+    const estimates = {
+        '4g': 100,      // 4G típico: 10-100 Mbps
+        '3g': 5,        // 3G típico: 1-10 Mbps  
+        '2g': 0.5,      // 2G típico: <1 Mbps
+        'slow-2g': 0.1  // 2G lento
+    };
+    
+    // Si tenemos downlink y es válido, usarlo
+    if (connection.downlink && connection.downlink > 1) {
+        return connection.downlink;
+    }
+    
+    // Si no, usar effectiveType
+    if (estimates[connection.effectiveType]) {
+        return estimates[connection.effectiveType];
+    }
+    
+    // Default basado en saveData
+    if (connection.saveData) {
+        return 10; // Modo ahorro = conexión lenta
+    }
+    
+    return 50; // Default conservador pero realista
+}
+
+// ============================================================
+// FUNCIÓN AUXILIAR: Actualizar display de velocidad
+// ============================================================
+function updateInternetSpeedDisplay(current, avg, max) {
+    // Actualizar elementos de la UI
+    const valueEl = document.querySelector('[data-stat="internet-speed-value"]');
+    const avgEl = document.querySelector('[data-stat="internet-speed-avg"]');
+    const maxEl = document.querySelector('[data-stat="internet-speed-max"]');
+    const lastEl = document.querySelector('[data-stat="internet-speed-last"]');
+    const badge = document.querySelector('[data-stat="internet-status"]');
+    
+    if (valueEl) valueEl.textContent = current.toFixed(1);
+    if (avgEl) avgEl.textContent = avg.toFixed(1);
+    if (maxEl) maxEl.textContent = max.toFixed(1);
+    
+    if (lastEl) {
+        const now = new Date();
+        lastEl.textContent = now.toLocaleTimeString('es-VE', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+    
+    // Actualizar badge de estado
+    if (badge) {
+        badge.className = 'quota-gauge-status';
+        if (current >= 100) {
+            badge.textContent = 'EXCELENTE';
+            badge.classList.add('status-good');
+        } else if (current >= 20) {
+            badge.textContent = 'BUENA';
+            badge.classList.add('status-good');
+        } else if (current >= 5) {
+            badge.textContent = 'REGULAR';
+            badge.classList.add('status-warning');
+        } else {
+            badge.textContent = 'LENTA';
+            badge.classList.add('status-danger');
+        }
+    }
+    
+    // Guardar en variable global para uso del sistema
+    speedMonitoring.internetSpeed.current = current;
+    speedMonitoring.internetSpeed.average = avg;
+    speedMonitoring.internetSpeed.maximum = max;
+    speedMonitoring.internetSpeed.lastMeasurement = new Date();
+}
+
+// ✅ MEDICIÓN REALISTA DE VELOCIDAD DE SUBIDA (CHUNKS)
+async function measureUploadSpeed() {
+  const testSize = 128 * 1024; // 128 KB (tamaño similar a chunk pequeño)
+  
+  try {
+    // Crear datos aleatorios (igual que chunks reales)
+    const testData = new Uint8Array(testSize);
+    for (let i = 0; i < testSize; i++) {
+      testData[i] = Math.floor(Math.random() * 256);
+    }
+    
+    const blob = new Blob([testData]);
+    const formData = new FormData();
+    formData.append('chunkTest', blob);
+    formData.append('action', 'chunkSpeedTest');
+    formData.append('chunkIndex', '0');
+    formData.append('totalChunks', '1');
+    formData.append('fileId', 'speedtest_' + Date.now());
+    formData.append('filename', 'speedtest.bin');
+    formData.append('mime', 'application/octet-stream');
+    formData.append('uploadedBy', userCredentials.displayName || 'System');
+    formData.append('timestamp', Date.now().toString());
+    
+    // Medir tiempo REAL de subida
+    const startTime = performance.now();
+    
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData,
+      cache: 'no-store'
+    });
+    
+    const endTime = performance.now();
+    const duration = (endTime - startTime) / 1000; // segundos
+    
+    // Calcular velocidad REAL (igual que uploadSingleChunkWithProgress)
+    const speedKbps = (testSize / 1024) / duration; // KB/s
+    const speedMbps = (speedKbps * 8) / 1024; // Mbps
+    
+    // Determinar tier (igual que detectConnectionSpeed)
+    let tier = 'VERY_SLOW';
+    if (speedKbps >= 2048) tier = 'ULTRA_FAST';
+    else if (speedKbps >= 512) tier = 'FAST';
+    else if (speedKbps >= 128) tier = 'MEDIUM';
+    else if (speedKbps >= 32) tier = 'SLOW';
+    
+    // Actualizar historial
+    speedMonitoring.uploadSpeed.history.push(speedMbps);
+    if (speedMonitoring.uploadSpeed.history.length > 10) {
+      speedMonitoring.uploadSpeed.history.shift();
+    }
+    
+    // Actualizar estadísticas
+    const history = speedMonitoring.uploadSpeed.history;
+    speedMonitoring.uploadSpeed.current = speedMbps;
+    speedMonitoring.uploadSpeed.average = 
+      history.reduce((a, b) => a + b, 0) / history.length;
+    speedMonitoring.uploadSpeed.minimum = Math.min(
+      speedMonitoring.uploadSpeed.minimum, 
+      speedMbps
+    );
+    speedMonitoring.uploadSpeed.lastMeasurement = new Date();
+    speedMonitoring.uploadSpeed.tier = tier;
+    
+    // Actualizar UI
+    updateUploadSpeedDisplay();
+    
+    console.log(`📤 Velocidad de Subida: ${speedMbps.toFixed(2)} Mbps (${speedKbps.toFixed(0)} KB/s) - Tier: ${tier}`);
+    return speedMbps;
+    
+  } catch (e) {
+    console.error("❌ Error midiendo subida:", e);
+    return 0;
+  }
+}
+
+
+// ✅ ACTUALIZAR DISPLAY DE VELOCIDAD DE SUBIDA
+function updateUploadSpeedDisplay() {
+  const data = speedMonitoring.uploadSpeed;
+  
+  // Actualizar valores
+  const valueEl = document.querySelector('[data-stat="upload-speed-value"]');
+  const avgEl = document.querySelector('[data-stat="upload-speed-avg"]');
+  const tierEl = document.querySelector('[data-stat="upload-speed-tier"]');
+  const lastEl = document.querySelector('[data-stat="upload-speed-last"]');
+  const badge = document.querySelector('[data-stat="upload-status"]');
+  
+  if (valueEl) valueEl.textContent = data.current.toFixed(1);
+  if (avgEl) avgEl.textContent = data.average.toFixed(1);
+  
+  if (tierEl) {
+    const tierLabels = {
+      'ULTRA_FAST': '🚀 Ultra',
+      'FAST': '⚡ Rápida',
+      'MEDIUM': '📶 Media',
+      'SLOW': '🐢 Lenta',
+      'VERY_SLOW': '🐌 Muy Lenta'
+    };
+    tierEl.textContent = tierLabels[data.tier] || '--';
+  }
+  
+  if (lastEl && data.lastMeasurement) {
+    const time = data.lastMeasurement.toLocaleTimeString('es-VE', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true
+    });
+    lastEl.textContent = time;
+  }
+  
+  // Actualizar badge
+  if (badge) {
+    badge.className = 'quota-gauge-status';
+    if (data.current >= 5) {
+      badge.textContent = 'EXCELENTE';
+      badge.classList.add('status-good');
+    } else if (data.current >= 2) {
+      badge.textContent = 'BUENA';
+      badge.classList.add('status-good');
+    } else if (data.current >= 0.5) {
+      badge.textContent = 'REGULAR';
+      badge.classList.add('status-warning');
+    } else {
+      badge.textContent = 'LENTA';
+      badge.classList.add('status-danger');
+    }
+  }
+}
+
+// ✅ DIBUJAR GAUGE DE VELOCIDAD DE INTERNET
+function updateInternetSpeedGauge(speed) {
+    const canvas = document.getElementById('internetSpeedGauge');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = 200;
+    const height = canvas.height = 200;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Dibujar arco de fondo
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.75, Math.PI * 2.25);
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Calcular ángulo (0-100 Mbps)
+    const maxSpeed = 100;
+    const speedPercent = Math.min(speed / maxSpeed, 1);
+    const endAngle = Math.PI * 0.75 + (Math.PI * 1.5 * speedPercent);
+    
+    // Determinar color
+    let color = '#28a745';
+    if (speed < 10) color = '#dc3545';
+    else if (speed < 30) color = '#ffc107';
+    else if (speed < 60) color = '#17a2b8';
+    
+    // Dibujar arco de velocidad
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.75, endAngle);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 20;
+    ctx.stroke();
+}
+
+// ✅ DIBUJAR GAUGE DE VELOCIDAD DE SUBIDA
+function updateUploadSpeedGauge(speed) {
+    const canvas = document.getElementById('uploadSpeedGauge');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = 200;
+    const height = canvas.height = 200;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    
+    // Limpiar canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Dibujar arco de fondo
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.75, Math.PI * 2.25);
+    ctx.strokeStyle = '#e9ecef';
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Calcular ángulo (0-10 Mbps escala)
+    const maxSpeed = 10; // Mbps
+    const speedPercent = Math.min(speed / maxSpeed, 1);
+    const endAngle = Math.PI * 0.75 + (Math.PI * 1.5 * speedPercent);
+    
+    // Determinar color según velocidad
+    let color = '#28a745'; // verde
+    if (speed < 0.5) color = '#dc3545'; // rojo
+    else if (speed < 1) color = '#ffc107'; // amarillo
+    else if (speed < 3) color = '#17a2b8'; // azul
+    else if (speed < 5) color = '#20c997'; // turquesa
+    else color = '#28a745'; // verde
+    
+    // Dibujar arco de velocidad
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI * 0.75, endAngle);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 20;
+    ctx.stroke();
+}
+
+// ✅ INICIAR MONITOREO
+function startSpeedMonitoring() {
+    // Medición inicial
+    measureInternetSpeed();
+    measureUploadSpeed();  // ✅ CAMBIADO: Ahora mide velocidad de subida
+    
+    // Programar mediciones cada 5 minutos
+    if (speedMonitoring.intervalId) {
+        clearInterval(speedMonitoring.intervalId);
+    }
+    
+    speedMonitoring.intervalId = setInterval(() => {
+        measureInternetSpeed();
+        measureUploadSpeed();  // ✅ CAMBIADO
+    }, speedMonitoring.measurementInterval);
+    
+    console.log("📊 Monitoreo de velocidad iniciado (cada 5 minutos)");
+}
+
+// ✅ DETENER MONITOREO
+function stopSpeedMonitoring() {
+    if (speedMonitoring.intervalId) {
+        clearInterval(speedMonitoring.intervalId);
+        speedMonitoring.intervalId = null;
+    }
+}
+
 // Inicializar gráfico de velocidad de conexión
 function initializeConnectionSpeedChart() {
     const ctx = document.getElementById('connectionSpeedChart').getContext('2d');
@@ -7369,6 +7906,11 @@ async function loadStats(period) {
     
     if (!data.success) {
       throw new Error(data.error || "Error desconocido del servidor");
+    }
+    
+    // ✅ INICIAR MONITOREO DE VELOCIDAD AL CARGAR ESTADÍSTICAS
+    if (isAdmin || isDesigner) {
+        startSpeedMonitoring();
     }
     
     const stats = data.data || {};
