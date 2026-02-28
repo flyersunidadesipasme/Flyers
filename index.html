@@ -2659,28 +2659,8 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <!-- Asignación de Diseñador (Solo Admin) -->
 <div class="designer-assign-section hidden" id="designerAssignSection">
 <div class="panel-section-title">👨‍🎨 Asignar Diseñador</div>
-<!-- ✅ ACTUALIZAR designer-grid EN EL PANEL LATERAL -->
+<!-- ACTUALIZAR designer-grid EN EL PANEL LATERAL -->
 <div class="designer-grid" id="designerGrid">
-<button class="designer-btn" onclick="assignDesigner('Bermina')" disabled>
-<span class="designer-avatar" style="background: #fb8500;">👩</span>
-<span>Bermina</span>
-</button>
-<button class="designer-btn" onclick="assignDesigner('Jorsy')" disabled>
-<span class="designer-avatar" style="background: #023047; color: white;">👨</span>
-<span>Jorsy</span>
-</button>
-<button class="designer-btn" onclick="assignDesigner('María F.')" disabled>
-<span class="designer-avatar" style="background: #2d6a4f;">👩</span>
-<span>María F.</span>
-</button>
-<button class="designer-btn" onclick="assignDesigner('Xamir')" disabled>
-<span class="designer-avatar" style="background: #ffb703;">👨</span>
-<span>Xamir</span>
-</button>
-<button class="designer-btn" onclick="assignDesigner('Fulan@')" disabled>
-<span class="designer-avatar" style="background: #9d0208; color: white;">👤</span>
-<span>Fulan@</span>
-</button>
 </div>
 </div>
 
@@ -2695,6 +2675,9 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 </button>
 <button class="panel-btn panel-btn-primary" id="btnEnviarTG" onclick="panelEnviarTelegram()" disabled>
 ✈️ Enviar a Telegram
+</button>
+<button class="panel-btn panel-btn-success" id="btnEnviarCorreo" onclick="panelEnviarCorreo()" disabled>
+📧 Enviar por Correo
 </button>
 </div>
 
@@ -4295,6 +4278,7 @@ function maintainDataIndex() {
 // ✅ FUNCIÓN PARA CONSTRUIR ÍNDICES DE DATOS
 function buildDataIndexes() {
     maintainDataIndex();
+    generateDesignerButtons();
 }
 
 
@@ -4307,10 +4291,41 @@ const designerColors = {
 "Fulan@": "#9d0208"  // NUEVO 5TO DISEÑADOR
 };
 
+// FUNCIÓN PARA GENERAR BOTONES DE DISEÑADOR DINÁMICAMENTE
+function generateDesignerButtons() {
+    const designerGrid = document.getElementById('designerGrid');
+    if (!designerGrid) return;
+    
+    // Definir iconos para cada diseñador
+    const designerIcons = {
+        "Bermina": "👵",
+        "Jorsy": "😎", 
+        "María F.": "🤪",
+        "Xamir": "🐲",
+        "Fulan@": "👋"
+    };
+    
+    // Generar HTML para cada diseñador
+    let buttonsHTML = '';
+    for (const [designer, color] of Object.entries(designerColors)) {
+        const icon = designerIcons[designer] || "";
+        const textColor = (designer === "Jorsy" || designer === "Fulan@") ? "white" : "white";
+        
+        buttonsHTML += `
+<button class="designer-btn" onclick="assignDesigner('${designer}')" disabled>
+<span class="designer-avatar" style="background: ${color}; color: ${textColor};">${icon}</span>
+<span>${designer}</span>
+</button>`;
+    }
+    
+    designerGrid.innerHTML = buttonsHTML;
+}
+
 // NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
 // VARIABLE ELIMINADA - Ya no se usa modal de diseñador, se usa el panel lateral
 // let requestIdForDesigner = null; // ELIMINADO
 
+// VARIABLES GLOBALES PARA BÚSQUEDA
 // ✅ VARIABLES GLOBALES PARA BÚSQUEDA
 let currentSearchId = "";
 let isSearchActive = false;
@@ -5520,6 +5535,29 @@ function updatePanelContent() {
     document.getElementById('btnAdjuntar').disabled = !(isAdmin || isDesigner);
     document.getElementById('btnVerArte').disabled = !hasArt;
     document.getElementById('btnEnviarTG').disabled = !hasArt;
+    
+    // ✅ VERIFICAR SI EL CORREO YA TIENE ASTERISCO (ARTE ENVIADO) - PRIMERA VALIDACIÓN
+    const correo = selectedRequestData?.Correo;
+    const correoEnviado = correo && correo.includes("*");
+    
+    // Si el arte ya fue enviado por correo, mantener el botón desactivado y mostrar "Archivo enviado"
+    if (correoEnviado) {
+        const btnCorreo = document.getElementById('btnEnviarCorreo');
+        btnCorreo.disabled = true;
+        btnCorreo.innerHTML = '📧 Archivo enviado';
+        btnCorreo.style.background = 'linear-gradient(to right, #2d6a4f, #1a5435)';
+        btnCorreo.title = `Arte ya enviado a ${correo.replace(" (*)", "")}`;
+    } else {
+        // Habilitar normalmente si no se ha enviado (verificar arte y correo)
+        document.getElementById('btnEnviarCorreo').disabled = !hasArt || !selectedRequestData?.Correo;
+        // Restaurar texto original si estaba en estado "enviado"
+        const btnCorreo = document.getElementById('btnEnviarCorreo');
+        if (btnCorreo.innerHTML.includes('Archivo enviado')) {
+            btnCorreo.innerHTML = '📧 Enviar por Correo';
+            btnCorreo.style.background = '';
+            btnCorreo.title = '';
+        }
+    }
 }
 
 function updateFilePreview(arteUrl) {
@@ -5536,6 +5574,7 @@ function updateFilePreview(arteUrl) {
         info.innerHTML = '';
         document.getElementById('btnVerArte').disabled = true;
         document.getElementById('btnEnviarTG').disabled = true;
+        document.getElementById('btnEnviarCorreo').disabled = true;
         return;
     }
     
@@ -5548,6 +5587,7 @@ function updateFilePreview(arteUrl) {
         <div>No se puede previsualizar</div>
         </div>
         `;
+        document.getElementById('btnEnviarCorreo').disabled = true;
         return;
     }
     
@@ -5583,12 +5623,8 @@ function updateFilePreview(arteUrl) {
     
     document.getElementById('btnVerArte').disabled = false;
     document.getElementById('btnEnviarTG').disabled = false;
-}
-
-function disableAllPanelButtons() {
-    const buttons = document.querySelectorAll('.panel-btn:not(#btnMaint):not(#btnReport)');
-    buttons.forEach(btn => btn.disabled = true);
-    document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = true);
+    
+    // El botón de correo se maneja en updatePanelContent() para validar el asterisco
 }
 
 function enablePanelButtons() {
@@ -5601,6 +5637,8 @@ function enablePanelButtons() {
     document.getElementById('btnAdjuntar').disabled = false;
     document.getElementById('btnVerArte').disabled = !selectedRequestData?.ArteFinal;
     document.getElementById('btnEnviarTG').disabled = !selectedRequestData?.ArteFinal;
+    
+    // ✅ El botón de correo se maneja en updatePanelContent() para validar el asterisco
     
     // Botones especiales de Admin
     if (isAdmin) {
@@ -5758,6 +5796,60 @@ async function panelEnviarTelegram() {
     }
 }
 
+async function panelEnviarCorreo() {
+    if (!selectedRequestId || !selectedRequestData?.ArteFinal) return;
+    
+    // Verificar que haya correo electrónico disponible
+    const correoUsuario = selectedRequestData.Correo;
+    
+    if (!correoUsuario || !correoUsuario.includes('@')) {
+        openModal("", "La solicitud no tiene un correo electrónico válido para enviar el archivo.", "");
+        return;
+    }
+    
+    if(!confirm("¿Enviar el arte de " + selectedRequestId + " por correo electrónico a " + correoUsuario + "?")) return;
+    
+    // Obtener el botón y guardar su estado original
+    const btnCorreo = document.getElementById('btnEnviarCorreo');
+    const textoOriginal = btnCorreo.innerHTML;
+    
+    // Agregar animación de carga al botón
+    btnCorreo.disabled = true;
+    btnCorreo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    btnCorreo.style.background = 'linear-gradient(to right, #ffa500, #ff8c00)';
+    
+    try {
+        const params = new URLSearchParams();
+        params.append("action", "sendEmailArte");
+        params.append("id", selectedRequestId);
+        params.append("correo", correoUsuario);
+        params.append("username", userCredentials.username);
+        
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: params });
+        const data = await res.json();
+        
+        if(data.success) {
+            showToast(` Correo enviado a ${correoUsuario}`, "success", 3000);
+            
+            // Mantener el botón bloqueado y mostrar "Archivo enviado"
+            btnCorreo.innerHTML = '📧 Archivo enviado';
+            btnCorreo.style.background = 'linear-gradient(to right, #2d6a4f, #1a5435)';
+            btnCorreo.title = `Arte enviado a ${correoUsuario}`;
+            
+            // No restaurar el botón - permanece bloqueado
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (e) {
+        showToast("", "error", 5000);
+        
+        // Solo restaurar el botón si hubo error
+        btnCorreo.disabled = false;
+        btnCorreo.innerHTML = textoOriginal;
+        btnCorreo.style.background = '';
+    }
+}
+
 function panelEliminar() {
     if (!isAdmin || !selectedRequestId) return;
     deleteReq(selectedRequestId);
@@ -5852,14 +5944,18 @@ document.getElementById('loadMainTxt').innerText = "Eliminando solicitudes final
 const deleteResponse = await fetch(SCRIPT_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-body: `action=deleteFinalizadas&username=${encodeURIComponent(userCredentials.username)}&password=${encodeURIComponent(userCredentials.password)}`
+body: `action=deleteFinalizedRequests&username=${encodeURIComponent(userCredentials.username)}&password=${encodeURIComponent(userCredentials.password)}`
 });
 const deleteData = await deleteResponse.json();
 if (deleteData.success) {
-openModal("✅ Limpieza Completada",
+openModal(" Limpieza Completada",
 `Reporte generado y ${deleteData.count || 0} solicitudes finalizadas eliminadas correctamente.`,
-"📊");
+"");
 updateTable();
+// Marcar que el reporte ya fue generado este mes
+window.reportGeneratedThisMonth = true;
+// Actualizar estado del botón para deshabilitarlo
+updateReportButtonStatus();
 } else {
 throw new Error(deleteData.error || "Error al limpiar solicitudes");
 }
@@ -5868,105 +5964,155 @@ throw new Error(data.error || "Error al generar el reporte");
 }
 })
 .catch(err => {
-openModal("❌ Error", "Error: " + err.message, "💥");
+console.error("Error en reporte mensual:", err);
+openModal(" Error", "No se pudo generar el reporte mensual: " + err.message, "");
 })
 .finally(() => {
 document.getElementById('loadingOverlay').style.display = 'none';
 });
 }
 
-// ✅ FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE (HEADER Y PANEL)
+// FUNCIÓN PARA ACTUALIZAR EL ESTADO DEL BOTÓN DE REPORTE (PANEL)
 function updateReportButtonStatus() {
-const today = new Date();
-const currentDay = today.getDate();
-const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-const btnHeader = document.getElementById('reportBtn');
-const btnPanel = document.getElementById('btnReportPanel');
-const textHeader = document.getElementById('reportBtnText');
-const textPanel = document.getElementById('reportBtnTextPanel');
-const daysHeader = document.getElementById('reportBtnDays');
-const daysPanel = document.getElementById('reportBtnDaysPanel');
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentHour = today.getHours();
+    const currentMinute = today.getMinutes();
+    const currentSecond = today.getSeconds();
+    const totalDaysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const btnPanel = document.getElementById('btnReportPanel');
+    const textPanel = document.getElementById('reportBtnTextPanel');
+    const daysPanel = document.getElementById('reportBtnDaysPanel');
 
-// Calcular días restantes
-let daysRemaining;
-let isAvailable = currentDay === 1;
+    // Calcular tiempo restante hasta el 1° del próximo mes
+    let timeRemaining;
+    let isAvailable = currentDay === 1 && !window.reportGeneratedThisMonth;
 
-if (currentDay === 1) {
-daysRemaining = 0;
-} else {
-daysRemaining = totalDaysInMonth - currentDay + 1;
+    if (currentDay === 1) {
+        // Si es 1° de mes, el botón está disponible todo el día
+        if (currentHour < 23 || (currentHour === 23 && currentMinute < 59)) {
+            timeRemaining = { days: 0, hours: 23 - currentHour, minutes: 59 - currentMinute, seconds: 59 - currentSecond };
+        } else {
+            // Después de las 23:59, preparar para el próximo mes
+            timeRemaining = calculateTimeToNextMonth(today);
+            isAvailable = false;
+        }
+    } else {
+        timeRemaining = calculateTimeToNextMonth(today);
+    }
+
+    // Función auxiliar para actualizar un botón
+    function updateBtn(btn, text, daysBadge, isPanel) {
+        if (!btn) return;
+
+        if (isAvailable) {
+            if (currentDay === 1) {
+                daysBadge.textContent = 'Disponible hoy';
+                daysBadge.style.background = '#28a745';
+            } else {
+                daysBadge.textContent = 'Activo';
+                daysBadge.style.background = '#28a745';
+            }
+            daysBadge.classList.add('show');
+            btn.disabled = false;
+            btn.style.cursor = 'pointer';
+            text.style.opacity = '1';
+            btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
+        } else {
+            // Si el reporte ya fue generado este mes, mostrar mensaje específico
+            if (window.reportGeneratedThisMonth && currentDay === 1) {
+                daysBadge.textContent = 'Reporte generado';
+                daysBadge.style.background = '#ffc107';
+            } else {
+                // Formatear cuenta regresiva
+                let countdownText = '';
+                if (timeRemaining.days > 0) {
+                    countdownText = `${timeRemaining.days}d ${timeRemaining.hours}h ${timeRemaining.minutes}m`;
+                } else if (timeRemaining.hours > 0) {
+                    countdownText = `${timeRemaining.hours}h ${timeRemaining.minutes}m ${timeRemaining.seconds}s`;
+                } else if (timeRemaining.minutes > 0) {
+                    countdownText = `${timeRemaining.minutes}m ${timeRemaining.seconds}s`;
+                } else {
+                    countdownText = `${timeRemaining.seconds}s`;
+                }
+
+                daysBadge.textContent = countdownText;
+                daysBadge.style.background = '#dc3545';
+            }
+            daysBadge.classList.add('show');
+            btn.disabled = true;
+            btn.style.cursor = 'not-allowed';
+            text.style.opacity = '0.7';
+
+            // Calcular progreso del mes
+            const progress = (currentDay / totalDaysInMonth) * 100;
+            btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
+        }
+    }
+
+    // Actualizar botón del panel
+        updateBtn(btnPanel, textPanel, daysPanel, true);
 }
 
-// Función auxiliar para actualizar un botón
-function updateBtn(btn, text, daysBadge, isPanel) {
-if (!btn) return;
+// Función para calcular el tiempo exacto hasta el 1° del próximo mes
+function calculateTimeToNextMonth(currentDate) {
+    const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    nextMonth.setHours(0, 0, 0, 0);
 
-if (isAvailable) {
-daysBadge.textContent = 'Hoy';
-daysBadge.classList.add('show');
-btn.disabled = false;
-btn.style.cursor = 'pointer';
-text.style.opacity = '1';
-btn.style.background = 'linear-gradient(to right, #2d6a4f 100%, #1e4a35 100%)';
-} else {
-daysBadge.textContent = `${daysRemaining}d`;
-daysBadge.classList.add('show');
-btn.disabled = true;
-btn.style.cursor = 'not-allowed';
-text.style.opacity = '0.7';
+    const diff = nextMonth - currentDate;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-// Calcular progreso
-const progress = ((totalDaysInMonth - daysRemaining) / totalDaysInMonth) * 100;
-btn.style.background = `linear-gradient(to right, #2d6a4f ${progress}%, #1e4a35 ${progress}%)`;
-}
-}
-
-// Actualizar ambos botones (si existen)
-updateBtn(btnHeader, textHeader, daysHeader, false);
-updateBtn(btnPanel, textPanel, daysPanel, true);
+    return { days, hours, minutes, seconds };
 }
 
 function checkFirstDayOfMonth() {
-if (isAdmin) {
-// Mostrar/ocultar botón de header (legacy, ahora siempre oculto en header)
-const reportBtnHeader = document.getElementById('reportBtn');
-const reportBtnPanel = document.getElementById('btnReportPanel');
-const maintBtn = document.getElementById('maintBtn');
+    if (isAdmin) {
+        const reportBtnPanel = document.getElementById('btnReportPanel');
+        
+        // ✅ Resetear variable de control si es un nuevo mes
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        if (window.lastReportMonth !== currentMonth || window.lastReportYear !== currentYear) {
+            window.reportGeneratedThisMonth = false;
+            window.lastReportMonth = currentMonth;
+            window.lastReportYear = currentYear;
+        }
 
-// Ocultar botones del header
-if (reportBtnHeader) reportBtnHeader.classList.add('hidden');
-if (maintBtn) maintBtn.classList.add('hidden');
+        // Mostrar botón en panel
+        if (reportBtnPanel) reportBtnPanel.classList.remove('hidden');
 
-// Mostrar botón en panel
-if (reportBtnPanel) reportBtnPanel.classList.remove('hidden');
+        updateReportButtonStatus();
 
-updateReportButtonStatus();
-
-// Actualizar cada minuto
-if (window.reportInterval) clearInterval(window.reportInterval);
-window.reportInterval = setInterval(updateReportButtonStatus, 60000);
+        // Actualizar cada segundo para cuenta regresiva precisa
+        if (window.reportInterval) clearInterval(window.reportInterval);
+        window.reportInterval = setInterval(updateReportButtonStatus, 1000);
+    }
 }
-}
 
-// ✅ CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
+// CORRECCIÓN CRÍTICA: Manejo de fotos con atributo data-has-image
 function handleFile(input, imgId, btnId) {
-  if (modoObituario) {
-    input.value = "";
-    return;
-  }
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.getElementById(imgId);
-      img.src = e.target.result; // "image/jpeg;base64,..."
-      img.style.display = 'block';
-      document.getElementById(btnId).style.display = 'block';
-      // ✅ MARCADOR DE IMAGEN VÁLIDA
-      img.setAttribute('data-has-image', 'true');
-    };
-    reader.readAsDataURL(file);
-  }
+    if (modoObituario) {
+        input.value = "";
+        return;
+    }
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.getElementById(imgId);
+            img.src = e.target.result; // "image/jpeg;base64,..."
+            img.style.display = 'block';
+            document.getElementById(btnId).style.display = 'block';
+            // ✅ MARCADOR DE IMAGEN VÁLIDA
+            img.setAttribute('data-has-image', 'true');
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
 function clearFile(inputId, imgId, btnId) {
@@ -6040,6 +6186,10 @@ btn.innerText = getNombreRegionLimpio(regionKey);
 btn.onclick = () => selectRegion(regionKey);
 regionGrid.appendChild(btn);
 });
+
+// ✅ GENERAR BOTONES DE DISEÑADOR CON COLORES CORRECTOS
+generateDesignerButtons();
+
 updateTable();
 setupFieldErrorRemoval();
 
@@ -6072,6 +6222,9 @@ iniciarSincronizacionPanel();
 
 // ✅ INICIALIZAR CONTROLES DE PAGINACIÓN
 updatePaginationControls();
+
+// ✅ INICIALIZAR LA VERIFICACIÓN DEL BOTÓN DE REPORTE
+checkFirstDayOfMonth();
 
 // ✅ INICIALIZAR EVENTOS TOUCH DEL PANEL
 function initPanelTouchEvents() {
@@ -6505,14 +6658,23 @@ async function validateLogin() {
     btn.innerText = "Verificando...";
     
     if (!u || !p) {
-        openModal("❌ Error", "Complete ambos campos.", "🔐");
+        // Mostrar toast en lugar de modal para no cerrar el login
+        showToast("❌ Complete ambos campos para continuar", "error", 3000);
+        
+        // Enfocar en el campo vacío
+        if (!u) {
+            document.getElementById('adminUser').focus();
+        } else {
+            document.getElementById('adminPass').focus();
+        }
+        
         isLoggingIn = false;
         btn.disabled = false;
         btn.innerText = originalBtnText;
         return;
     }
     
-    // ✅ MOSTRAR BARRA DE PROGRESO EN EL MODAL (en lugar de loadingOverlay)
+    // MOSTRAR BARRA DE PROGRESO EN EL MODAL (en lugar de loadingOverlay)
     const progressBar = document.getElementById('loginProgressBar');
     const progressBarInner = document.getElementById('loginProgressBarInner');
     const progressPercent = document.getElementById('loginProgressPercent');
@@ -6587,6 +6749,11 @@ async function validateLogin() {
             isAdmin = data.data.isAdmin || false;
             isDesigner = data.data.isDesigner || false;
             
+            // ✅ Activar monitoreo del botón de reporte para administradores
+            if (isAdmin) {
+                checkFirstDayOfMonth();
+            }
+            
             // Esperar un momento para mostrar el 100% antes de cerrar
             setTimeout(() => {
                 // Actualizar UI
@@ -6637,7 +6804,16 @@ async function validateLogin() {
             progressText.style.color = '';
             progressStatus.style.color = '';
             
-            openModal("❌ Error", err.message || "Error de conexión al validar.", "💥");
+            // Ocultar barra de progreso
+            progressBar.style.display = 'none';
+            
+            // Mostrar toast de error en lugar de modal para no cerrar el login
+            showToast("❌ " + (err.message || "Error de conexión al validar"), "error", 4000);
+            
+            // Enfocar en el campo de usuario para reintento rápido
+            setTimeout(() => {
+                document.getElementById('adminUser').focus();
+            }, 500);
         }, 1500);
     } finally {
         isLoggingIn = false;
@@ -9509,7 +9685,7 @@ function updateDesignerPerformanceChart(data) {
 
     const labels = data.map(d => d.nombre);
     const values = data.map(d => d.finalizadas);
-    const colors = data.map(d => d.color);
+    const colors = data.map(d => designerColors[d.nombre] || d.color);
 
     if (statsCharts.designerPerformance) {
         statsCharts.designerPerformance.destroy();
@@ -9544,24 +9720,24 @@ if (!container) return;
 // Calcular el total correcto incluyendo todos los diseñadores
 const totalFinalizadas = data.reduce((sum, d) => sum + (d.finalizadas || 0), 0);
 
-container.innerHTML = data.map(d => {
-    const finalized = d.finalizadas || 0;
-    // Calcular porcentaje basado en el total de todos los diseñadores
-    const percentage = totalFinalizadas > 0 ? ((finalized / totalFinalizadas) * 100).toFixed(1) : 0;
-    
-    // Determinar inicial del diseñador
-    const getInitial = (name) => {
-        if (name === 'Bermina') return '👩';
-        if (name === 'Jorsy') return '👨';
-        if (name === 'María F.') return '👩';
-        if (name === 'Xamir') return '👨';
-        if (name === 'Fulan@') return '👤';
-        return '👤';
-    };
-    
-    return `
+    container.innerHTML = data.map(d => {
+        const finalized = d.finalizadas || 0;
+        // Calcular porcentaje basado en el total de todos los diseñadores
+        const percentage = totalFinalizadas > 0 ? ((finalized / totalFinalizadas) * 100).toFixed(1) : 0;
+        
+        // Determinar inicial del diseñador - USAR MISMOS ICONOS QUE BOTONES
+        const getInitial = (name) => {
+            if (name === 'Bermina') return '👵';
+            if (name === 'Jorsy') return '😎';
+            if (name === 'María F.') return '🤪';
+            if (name === 'Xamir') return '🐲';
+            if (name === 'Fulan@') return '👋';
+            return '👤';
+        };
+        
+        return `
 <div class="designer-card">
-    <div class="designer-avatar" style="background: ${d.color};">
+    <div class="designer-avatar" style="background: ${designerColors[d.nombre] || d.color};">
         ${getInitial(d.nombre)}
     </div>
     <div class="designer-info">
