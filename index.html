@@ -721,15 +721,16 @@ td.admin-actions-cell {
     vertical-align: middle;
 }
 
-/* ✅ CÍRCULO DE DISEÑADOR EN TABLA */
-.designer-circle {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 5px;
-    vertical-align: middle;
-    margin-top: 2px;
+/* ✅ PÍLDORA DE DISEÑADOR EN TABLA (ARRIBA DEL ESTATUS) */
+.designer-pill {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 4px;
+    width: fit-content;
+    min-width: 60px;
+    padding: 0 10px;
+    box-sizing: border-box;
 }
 
 /* ✅ STATUS PILL */
@@ -2496,6 +2497,94 @@ min-width: 100%;
         display: inline !important;
     }
 }
+
+/* ✅ ESTILOS PARA BOTÓN OBITUARIO */
+.obituario-btn {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+    color: white !important;
+    border-color: #0f3460 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.obituario-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: none;
+}
+
+.obituario-btn.selected::before {
+    animation: shimmer 3s infinite;
+}
+
+.obituario-btn.selected {
+    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%) !important;
+    box-shadow: 0 0 20px rgba(15, 52, 96, 0.5) !important;
+    border-color: #e94560 !important;
+    transform: scale(0.98);
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: -100%; }
+}
+
+/* Estilo para filas de obituario en la tabla */
+.row-obituario {
+    background-color: #000000 !important;
+    color: white !important;
+    border-left: 5px solid #ffffff !important;
+}
+
+.row-obituario td {
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.row-obituario *,
+.row-obituario td *,
+.row-obituario span,
+.row-obituario div,
+.row-obituario a,
+.row-obituario button,
+.row-obituario .status-badge,
+.row-obituario .priority-badge {
+    color: white !important;
+}
+
+.row-obituario a:hover {
+    color: #cccccc !important;
+}
+
+.row-obituario .badge-prioridad {
+    background: white !important;
+    color: black !important;
+    border: 1px solid white !important;
+}
+
+.row-obituario .status-badge {
+    color: white !important;
+}
+
+.badge-prioridad {
+    background: white;
+    color: black;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    margin-left: 8px;
+    display: inline-block;
+    border: 1px solid white;
+    animation: blink 2s infinite;
+}
+
 </style>
 </head>
 <body>
@@ -2802,6 +2891,10 @@ Verifica que el ID sea correcto o limpia la búsqueda para ver todas las solicit
 <div class="card-btn" onclick="selectCat(this, 'quirurgica')">Captación Quirúrgica</div>
 <div class="card-btn" onclick="selectCat(this, 'pediatrica')">Captación Quirúrgica Pediátrica</div>
 <div class="card-btn" onclick="selectCat(this, 'oftalmo')">Captación Quirúrgica Oftalmológica</div>
+<!-- ✅ NUEVO: Botón Obituario independiente -->
+<div class="card-btn obituario-btn" onclick="selectCat(this, 'obituario')" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; border-color: #0f3460;">
+    <span style="font-size: 1.2rem;">🕊️</span> Obituario
+</div>
 <div class="card-btn" onclick="selectCat(this, 'otros')">Otros</div>
 </div>
 <div id="sec-3" class="hidden">
@@ -4205,16 +4298,16 @@ function buildDataIndexes() {
 }
 
 
-// ✅ ACTUALIZAR VARIABLE GLOBAL DE DISEÑADORES (5 DISEÑADORES)
+// ACTUALIZAR VARIABLE GLOBAL DE DISEÑADORES (5 DISEÑADORES)
 const designerColors = {
 "Bermina": "#fb8500",
-"Jorsy": "#023047",
-"María F.": "#2d6a4f",
-"Xamir": "#ffb703",
-"Fulan@": "#9d0208"  // ✅ NUEVO 5TO DISEÑADOR
+"Jorsy": "#2908f1",
+"María F.": "#4caf50",
+"Xamir": "#572364",
+"Fulan@": "#9d0208"  // NUEVO 5TO DISEÑADOR
 };
 
-// ✅ NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
+// NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
 // VARIABLE ELIMINADA - Ya no se usa modal de diseñador, se usa el panel lateral
 // let requestIdForDesigner = null; // ELIMINADO
 
@@ -4839,15 +4932,15 @@ function createRowElement(s, idx) {
             : '<span class="badge-new">NEW</span>';
     }
     
-    let designerCircle = '';
+    let designerPill = '';
     if (s.Disenador) {
         const color = designerColors[s.Disenador] || '#6c757d';
-        designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+        designerPill = `<div class="designer-pill" style="background-color: ${color};" title="Diseñador: ${s.Disenador}"></div>`;
     }
     
     const icon = (s.Soportes && s.Soportes.includes("SÍ")) 
-        ? `📷 (${s.Soportes.match(/\d+/) || 1})` 
-        : "🙈";
+        ? ` (${s.Soportes.match(/\d+/) || 1})` 
+        : "";
     
     const fechaEventoFormat = extraerFecha(s.Fecha);
     const horaEvento = s.Hora && s.Hora.trim() !== '' ? s.Hora : 'Sin hora';
@@ -4870,7 +4963,7 @@ function createRowElement(s, idx) {
             <td>${jornadaLimpia}</td>
             <td align="center">${icon}</td>
             <td>
-                ${designerCircle}
+                ${designerPill}
                 <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
             </td>
         `;
@@ -4904,7 +4997,7 @@ function createRowElement(s, idx) {
         <td>${jornadaLimpia}</td>
         <td align="center">${icon}</td>
         <td>
-            ${designerCircle}
+            ${designerPill}
             <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
         </td>
         <!-- COLUMNA DE ACCIONES CON ICONO CONDICIONAL Y TEXTO ALINEADO -->
@@ -5082,10 +5175,10 @@ function renderLocalTable() {
       }
     }
     
-    let designerCircle = '';
+    let designerPill = '';
     if (s.Disenador) {
       const color = designerColors[s.Disenador] || '#6c757d';
-      designerCircle = `<span class="designer-circle" style="background-color: ${color};" title="${s.Disenador}"></span>`;
+      designerPill = `<div class="designer-pill" style="background-color: ${color};" title="Diseñador: ${s.Disenador}"></div>`;
     }
     
     let icon = '';
@@ -5122,7 +5215,7 @@ function renderLocalTable() {
         <td>${jornadaLimpia}</td>
         <td align="center">${icon}</td>
         <td>
-          ${designerCircle}
+          ${designerPill}
           <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
         </td>
         <td></td>
@@ -5151,7 +5244,7 @@ function renderLocalTable() {
         <td>${jornadaLimpia}</td>
         <td align="center">${icon}</td>
         <td>
-          ${designerCircle}
+          ${designerPill}
           <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
         </td>
         <td align="right" class="admin-actions-cell">
@@ -6066,75 +6159,30 @@ const clickedBtn = Array.from(document.querySelectorAll('#unidad-grid .card-btn'
 if (clickedBtn) clickedBtn.classList.add('selected');
 }
 
-// ✅ FUNCIÓN TOGGLE MODO OBITUARIO ACTUALIZADA
+// FUNCIÓN TOGGLE MODO OBITUARIO ACTUALIZADA
 function toggleObituario() {
-modoObituario = !modoObituario;
-const btn = document.getElementById('btn-obituario');
-const fechaInput = document.getElementById('fecha');
-const horaInput = document.getElementById('hora');
-const institucion = document.getElementById('institucion');
-const direccionExacta = document.getElementById('direccion-exacta');
-const observaciones = document.getElementById('observaciones');
-const descOtro = document.getElementById('desc-otro'); // ✅ Referencia al textarea
-const uploadBoxes = document.querySelectorAll('.upload-box');
-const labels = document.querySelectorAll('.upload-label');
-
-if (modoObituario) {
-btn.classList.add('obit-active');
-btn.innerText = "OBITUARIO";
-const hoy = new Date();
-const yyyy = hoy.getFullYear();
-const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-const dd = String(hoy.getDate()).padStart(2, '0');
-fechaInput.value = `${yyyy}-${mm}-${dd}`;
-fechaInput.disabled = true;
-horaInput.disabled = true;
-institucion.disabled = true;
-direccionExacta.disabled = true;
-observaciones.disabled = true;
-horaInput.classList.add('obit-disabled');
-institucion.classList.add('obit-disabled');
-direccionExacta.classList.add('obit-disabled');
-observaciones.classList.add('obit-disabled');
-uploadBoxes.forEach(box => box.classList.add('obit-upload-box'));
-labels.forEach(label => label.classList.add('obit-upload-label'));
-horaInput.value = '';
-institucion.value = '';
-direccionExacta.value = '';
-observaciones.value = '';
-
-// ✅ Placeholder corregido: sin "familiar"
-if (descOtro) {
-descOtro.placeholder = "Indique por favor nombre del fallecido, parentesco en caso de ser familiar de un trabajador del Ipasme y servicio o jurisdicción a la que pertenece el familiar o el fallecido.";
-}
-
-Array.from(document.querySelectorAll('.preview')).forEach(img => {
-img.src = '';
-img.style.display = 'none';
-img.removeAttribute('data-has-image'); // ✅ Limpiar marca de imagen válida
-});
-
-Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
-} else {
-btn.classList.remove('obit-active');
-btn.innerText = "OBITUARIO";
-fechaInput.disabled = false;
-horaInput.disabled = false;
-institucion.disabled = false;
-direccionExacta.disabled = false;
-observaciones.disabled = false;
-horaInput.classList.remove('obit-disabled');
-institucion.classList.remove('obit-disabled');
-direccionExacta.classList.remove('obit-disabled');
-observaciones.classList.remove('obit-disabled');
-uploadBoxes.forEach(box => box.classList.remove('obit-upload-box'));
-labels.forEach(label => label.classList.remove('obit-upload-label'));
-
-// ✅ Restaurar placeholder original
-if (descOtro) {
-descOtro.placeholder = "Detalle aquí su solicitud especial...";
-}
-}
+    // Esta función ahora es un toggle manual (por si se necesita en el futuro)
+    // Pero el flujo principal es automático al seleccionar la categoría
+    
+    modoObituario = !modoObituario;
+    
+    if (modoObituario) {
+        applyObituarioStyles();
+    } else {
+        removeObituarioStyles();
+    }
+    
+    // Actualizar visual del botón si existe (legacy)
+    const btn = document.getElementById('btn-obituario');
+    if (btn) {
+        if (modoObituario) {
+            btn.classList.add('obit-active');
+            btn.innerText = "OBITUARIO ACTIVO";
+        } else {
+            btn.classList.remove('obit-active');
+            btn.innerText = "OBITUARIO";
+        }
+    }
 }
 
 // === FUNCIONES DE SEGURIDAD Y LIMPIEZA ===
@@ -7262,96 +7310,182 @@ document.getElementById(val === 'a. m.' ? 'btn-am' : 'btn-pm').classList.add('ac
 document.getElementById('hora-box').classList.remove('field-error');
 }
 
-// MODIFICACIÓN EN selectCat: reiniciar modoObituario si cambia de categoría Y AGREGAR SOPORTE PARA PEDIÁTRICA
 function selectCat(btn, tipo) {
-if (modoObituario && tipo !== 'otros') {
-modoObituario = false;
-const obitBtn = document.getElementById('btn-obituario');
-if (obitBtn) {
-obitBtn.classList.remove('obit-active');
-obitBtn.innerText = "OBITUARIO";
-document.getElementById('fecha').disabled = false;
-document.getElementById('hora').disabled = false;
-document.getElementById('institucion').disabled = false;
-document.getElementById('direccion-exacta').disabled = false;
-document.getElementById('observaciones').disabled = false;
-document.getElementById('hora').classList.remove('obit-disabled');
-document.getElementById('institucion').classList.remove('obit-disabled');
-document.getElementById('direccion-exacta').classList.remove('obit-disabled');
-document.getElementById('observaciones').classList.remove('obit-disabled');
-document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
-document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+    // ✅ NUEVO: Si es obituario, activar modo obituario automáticamente
+    if (tipo === 'obituario') {
+        modoObituario = true;
+        // Aplicar estilos visuales de obituario inmediatamente
+        applyObituarioStyles();
+    } else if (modoObituario && tipo !== 'obituario') {
+        // Si cambia de categoría y estaba en obituario, desactivar
+        modoObituario = false;
+        removeObituarioStyles();
+    }
 
-// Limpiar marcas de imágenes
-Array.from(document.querySelectorAll('.preview')).forEach(img => {
-img.removeAttribute('data-has-image');
-});
+    // Limpiar selección anterior
+    document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected'));
+
+    // Seleccionar el botón actual
+    btn.classList.add('selected');
+
+    // Actualizar variables globales
+    catName = btn.innerText;
+    catType = tipo;
+
+    // Limpiar errores de campo
+    document.getElementById('cat-grid').classList.remove('field-error');
+
+    // Obtener elementos necesarios
+    const s3 = document.getElementById('sec-3');
+    const s4 = document.getElementById('sec-4');
+    const c3 = document.getElementById('cont-3');
+    const c4 = document.getElementById('cont-4');
+
+    // Mostrar sección 3
+    s3.classList.remove('hidden');
+
+    // Ocultar sección 4 por defecto
+    s4.classList.add('hidden');
+
+    // Limpiar contenido de secciones 3 y 4
+    c3.innerHTML = "";
+    c4.innerHTML = "";
+
+    // Renderizar contenido según tipo de categoría
+    if (['escuela', 'integral', 'conjunta'].includes(tipo)) {
+        document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *";
+        renderList(c3, DATA.especialidades);
+        s4.classList.remove('hidden');
+        renderList(c4, DATA.servicios);
+    } else if (tipo === 'vacuna') {
+        document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *";
+        renderList(c3, DATA.vacunas);
+    } else if (tipo === 'quirurgica') {
+        document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *";
+        renderList(c3, DATA.quirurgica);
+    } else if (tipo === 'pediatrica') {
+        document.getElementById('label-3').innerText = " 3. PATOLOGÍAS PEDIÁTRICAS *";
+        renderList(c3, DATA.pediatrica);
+    } else if (tipo === 'oftalmo') {
+        document.getElementById('label-3').innerText = " 3. PATOLOGÍAS OFTALMOLÓGICAS *";
+        renderList(c3, DATA.oftalmo);
+    } else if (tipo === 'obituario') {
+        document.getElementById('label-3').innerText = " 3. INFORMACIÓN DEL FALLECIDO *";
+        c3.innerHTML = `
+        <textarea id="desc-obituario" class="modern-input" rows="4" style="grid-column: 1 / -1;" 
+        placeholder="Indique por favor:&#10;- Nombre del fallecido&#10;- Parentesco (en caso de ser familiar de un trabajador del Ipasme)&#10;- Servicio o jurisdicción a la que pertenece el familiar o el fallecido&#10;- Fecha del deceso&#10;- Cualquier información adicional relevante"></textarea>
+        
+        <div style="grid-column: 1 / -1; background: #fff3e0; border: 2px solid #fb8500; border-radius: 12px; padding: 15px; margin-top: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 1.5rem;">⚠️</span>
+                <span style="font-weight: 800; color: #5d4600; font-size: 0.95rem;">SOLICITUD PRIORITARIA</span>
+            </div>
+            <p style="margin: 0; font-size: 0.85rem; color: #5d4600; line-height: 1.4;">
+                Esta solicitud se procesa de manera inmediata. La fecha está fijada al día actual y no requiere las 48 horas de anticipación habituales.
+            </p>
+        </div>
+        `;
+        
+        // Los servicios adicionales (sec-4) permanecen ocultos para obituario
+        s4.classList.add('hidden');
+        c4.innerHTML = "";
+        
+        // Aplicar estilos de obituario automáticamente
+        applyObituarioStyles();
+    } else {
+        document.getElementById('label-3').innerText = " 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
+        c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
+        // El botón Obituario ya no está aquí - ahora es una categoría independiente
+    }
 }
+
+// ✅ NUEVA FUNCIÓN: Aplicar estilos de modo Obituario
+function applyObituarioStyles() {
+    const fechaInput = document.getElementById('fecha');
+    const horaInput = document.getElementById('hora');
+    const institucion = document.getElementById('institucion');
+    const direccionExacta = document.getElementById('direccion-exacta');
+    const observaciones = document.getElementById('observaciones');
+    
+    // Fijar fecha a hoy
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    fechaInput.value = `${yyyy}-${mm}-${dd}`;
+    
+    // Deshabilitar campos
+    fechaInput.disabled = true;
+    horaInput.disabled = true;
+    institucion.disabled = true;
+    direccionExacta.disabled = true;
+    observaciones.disabled = true;
+    
+    // Aplicar clases de estilo
+    horaInput.classList.add('obit-disabled');
+    institucion.classList.add('obit-disabled');
+    direccionExacta.classList.add('obit-disabled');
+    observaciones.classList.add('obit-disabled');
+    
+    // Limpiar valores
+    horaInput.value = '';
+    institucion.value = '';
+    direccionExacta.value = '';
+    observaciones.value = '';
+    
+    // Deshabilitar uploads
+    document.querySelectorAll('.upload-box').forEach(box => box.classList.add('obit-upload-box'));
+    document.querySelectorAll('.upload-label').forEach(label => label.classList.add('obit-upload-label'));
+    
+    // Limpiar fotos
+    Array.from(document.querySelectorAll('.preview')).forEach(img => {
+        img.src = '';
+        img.style.display = 'none';
+        img.removeAttribute('data-has-image');
+    });
+    Array.from(document.querySelectorAll('.remove-btn')).forEach(btn => btn.style.display = 'none');
+    
+    console.log("🕊️ Modo Obituario activado - Fecha fijada a:", fechaInput.value);
 }
 
-document.querySelectorAll('#cat-grid .card-btn').forEach(b => b.classList.remove('selected'));
-btn.classList.add('selected');
-catName = btn.innerText;
-catType = tipo;
-document.getElementById('cat-grid').classList.remove('field-error');
-
-const s3 = document.getElementById('sec-3');
-const s4 = document.getElementById('sec-4');
-const c3 = document.getElementById('cont-3');
-const c4 = document.getElementById('cont-4');
-
-s3.classList.remove('hidden');
-s4.classList.add('hidden');
-c3.innerHTML = "";
-c4.innerHTML = "";
-
-if (['escuela', 'integral', 'conjunta'].includes(tipo)) {
-document.getElementById('label-3').innerText = "🩺 3. ESPECIALIDADES MÉDICAS *";
-renderList(c3, DATA.especialidades);
-s4.classList.remove('hidden');
-renderList(c4, DATA.servicios);
-} else if (tipo === 'vacuna') {
-document.getElementById('label-3').innerText = "💉 3. LISTA DE VACUNAS *";
-renderList(c3, DATA.vacunas);
-} else if (tipo === 'quirurgica') {
-document.getElementById('label-3').innerText = "🔪 3. PATOLOGÍAS QUIRÚRGICAS *";
-renderList(c3, DATA.quirurgica);
-} else if (tipo === 'pediatrica') {
-document.getElementById('label-3').innerText = "👶 3. PATOLOGÍAS PEDIÁTRICAS *";
-renderList(c3, DATA.pediatrica);
-} else if (tipo === 'oftalmo') {
-document.getElementById('label-3').innerText = "👁️ 3. PATOLOGÍAS OFTALMOLÓGICAS *";
-renderList(c3, DATA.oftalmo);
-} else {
-document.getElementById('label-3').innerText = "✨ 3. DESCRIPCIÓN DEL REQUERIMIENTO *";
-c3.innerHTML = '<textarea id="desc-otro" class="modern-input" rows="3" style="grid-column: 1 / -1;" placeholder="Detalle aquí su solicitud especial..."></textarea>';
-c3.innerHTML += `
-<div style="display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; grid-column: 1 / -1;">
-<button type="button" id="btn-obituario" class="btn-time" style="background: #f8f9fa; border-color: var(--gris); color: var(--azul-deep); width: 120px; padding: 8px;"
-onclick="toggleObituario()">
-OBITUARIO
-</button>
-<div style="flex: 1; min-width: 200px; background: #fff8e1; border: 1px solid #ffe082; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; color: #5d4600; font-weight: 600; line-height: 1.3;">
-⚠️ Activar este modo elimina el requerimiento de 48 horas.
-Úselo con moderación.
-</div>
-</div>`;
-}
+// ✅ NUEVA FUNCIÓN: Remover estilos de modo Obituario
+function removeObituarioStyles() {
+    const fechaInput = document.getElementById('fecha');
+    const horaInput = document.getElementById('hora');
+    const institucion = document.getElementById('institucion');
+    const direccionExacta = document.getElementById('direccion-exacta');
+    const observaciones = document.getElementById('observaciones');
+    
+    // Rehabilitar campos
+    fechaInput.disabled = false;
+    horaInput.disabled = false;
+    institucion.disabled = false;
+    direccionExacta.disabled = false;
+    observaciones.disabled = false;
+    
+    // Quitar clases de estilo
+    horaInput.classList.remove('obit-disabled');
+    institucion.classList.remove('obit-disabled');
+    direccionExacta.classList.remove('obit-disabled');
+    observaciones.classList.remove('obit-disabled');
+    
+    // Rehabilitar uploads
+    document.querySelectorAll('.upload-box').forEach(box => box.classList.remove('obit-upload-box'));
+    document.querySelectorAll('.upload-label').forEach(label => label.classList.remove('obit-upload-label'));
+    
+    console.log("🕊️ Modo Obituario desactivado");
 }
 
 function renderList(cont, list) {
-list.forEach(i => {
-const d = document.createElement('div');
-d.className = 'card-btn';
-d.innerText = i;
-d.onclick = () => {
-d.classList.toggle('selected');
-document.getElementById('sec-3').classList.remove('field-error');
-};
-cont.appendChild(d);
-});
+    list.forEach(i => {
+        const d = document.createElement('div');
+        d.className = 'card-btn';
+        d.innerText = i;
+        cont.appendChild(d);
+    });
 }
 
+// ✅ FUNCIÓN showPage - NO MODIFICADA
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -7557,6 +7691,8 @@ id: 'sec-3',
 isValid: () => {
 if (catType === 'otros') {
 return document.getElementById('desc-otro')?.value.trim() !== '';
+} else if (catType === 'obituario') {
+return document.getElementById('desc-obituario')?.value.trim() !== '';
 } else {
 return document.querySelectorAll('#cont-3 .card-btn.selected').length > 0;
 }
@@ -7798,11 +7934,19 @@ unidadFinal = "U.M.I. " + unidadFinal;
 
 params.append("Unidad", unidadFinal);
 
-// Aquí se envía "Obituario" si está activo
-params.append("Jornada", modoObituario ? "Obituario" : catName);
+// ✅ Manejo explícito del tipo de solicitud
+if (catType === 'obituario') {
+    params.append("Jornada", "Obituario");
+} else {
+    params.append("Jornada", catName);
+}
 
 let ops = Array.from(document.querySelectorAll('#cont-3 .card-btn.selected')).map(el=>el.innerText).join(", ");
 if(catType === 'otros') ops = document.getElementById('desc-otro').value;
+else if(catType === 'obituario') {
+    const descObituario = document.getElementById('desc-obituario');
+    ops = descObituario ? descObituario.value : '';
+}
 params.append("Opciones", ops);
 
 params.append("Servicios", Array.from(document.querySelectorAll('#cont-4 .card-btn.selected')).map(el=>el.innerText).join(", "));
