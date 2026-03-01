@@ -721,29 +721,53 @@ td.admin-actions-cell {
     vertical-align: middle;
 }
 
-/* ✅ PÍLDORA DE DISEÑADOR EN TABLA (ARRIBA DEL ESTATUS) */
-.designer-pill {
-    display: block;
-    height: 4px;
-    border-radius: 2px;
-    margin-bottom: 4px;
-    width: fit-content;
-    min-width: 60px;
-    padding: 0 10px;
-    box-sizing: border-box;
+/* ✅ CÍRCULOS DE ESTATUS Y DISEÑADOR EN LA TABLA */
+.status-circle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
-/* ✅ STATUS PILL */
-.status-pill {
-    padding: 3px 10px;
-    border-radius: 15px;
-    font-size: 0.6rem;
+.status-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
     font-weight: 800;
     text-transform: uppercase;
-    transition: 0.3s;
-    display: inline-block;
-    vertical-align: middle;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: help;
 }
+
+.status-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.designer-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: help;
+    transition: transform 0.2s ease;
+}
+
+.designer-circle:hover {
+    transform: scale(1.1);
+}
+
+/* Colores de estado (Mantenemos los que tenías) */
 .status-pendiente { background: var(--celeste); color: var(--azul-deep); }
 .status-procesando { background: var(--amarillo); color: var(--azul-deep); }
 .status-finalizada { background: var(--verde); color: white; }
@@ -2962,22 +2986,64 @@ line-height: 1.4;">
 <div class="stat-card st-proc"><span class="stat-label">En Proceso</span><span id="count-proc" class="stat-val">0</span></div>
 <div class="stat-card st-fin"><span class="stat-label">Finalizada</span><span id="count-fin" class="stat-val">0</span></div>
 </div>
+
+<!-- ✅ CONTADOR DE CORREOS (SOLO ADMIN) -->
+<div id="emailQuotaContainer" class="hidden" style="margin-bottom: 10px; padding: 8px 12px; background: linear-gradient(135deg, #fb8500 0%, #023e8a 100%); border-radius: 6px; color: white; box-shadow: 0 2px 8px rgba(251, 133, 0, 0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <!-- Sección izquierda: Información principal -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 1.3rem;">📧</span>
+      <div>
+        <div style="font-size: 0.75rem; opacity: 0.9; font-weight: 600;">CUOTA DE CORREOS DIARIOS</div>
+        <div style="font-size: 0.9rem; font-weight: 700;">
+          <span id="emailUsed">0</span> / <span id="emailLimit">100</span> enviados
+          (<span id="emailPercentage">0%</span>)
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección derecha: Métricas y botón -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <!-- Restantes -->
+      <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 85px;">
+        <div style="font-size: 0.7rem; opacity: 0.9; font-weight: 600;">RESTANTES</div>
+        <div style="font-size: 1.8rem; font-weight: 900; line-height: 1;" id="emailRemaining">100</div>
+      </div>
+      
+      <!-- Estado -->
+      <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 70px;">
+        <div style="font-size: 0.7rem; opacity: 0.9; font-weight: 600;">ESTADO</div>
+        <div style="font-size: 1.9rem; line-height: 1;" id="emailStatus">🟢</div>
+      </div>
+      
+      <!-- Botón -->
+      <button onclick="refreshEmailQuota()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">
+        🔄 Actualizar
+      </button>
+    </div>
+  </div>
+  <div style="margin-top: 6px; font-size: 0.65rem; opacity: 0.8;">
+    Fecha: <span id="emailDate">--</span> | Límite diario de Google Apps Script
+  </div>
+</div>
+
 <!-- ✅ BUSCADOR DE ID PARA DISEÑADOR -->
 <div id="designer-search-container" class="hidden">
-<div style="display: flex; align-items: center; gap: 10px;">
-<span style="font-size: 1.2rem; color: #fb8500;">🔍</span>
-<input 
-type="text" 
-id="searchIdInput" 
-class="modern-input" 
-placeholder="Buscar por ID de solicitud..."
-style="background: white; border-color: #ffb703; font-weight: 600;"
->
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 1.2rem; color: #fb8500;">🔍</span>
+    <input 
+    type="text" 
+    id="searchIdInput" 
+    class="modern-input" 
+    placeholder="Buscar por ID de solicitud..."
+    style="background: white; border-color: #ffb703; font-weight: 600;"
+    >
+  </div>
+  <p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #5d4600; font-weight: 500;">
+    ⚠️ Solo las solicitudes coincidentes estarán habilitadas para adjuntar archivos
+  </p>
 </div>
-<p style="margin: 8px 0 0 0; font-size: 0.8rem; color: #5d4600; font-weight: 500;">
-⚠️ Solo las solicitudes coincidentes estarán habilitadas para adjuntar archivos
-</p>
-</div>
+
 <div class="table-container">
 <table>
 <thead>
@@ -4300,19 +4366,29 @@ const designerColors = {
 "Fulan@": "#9d0208"  // NUEVO 5TO DISEÑADOR
 };
 
+// NUEVO: Emojis de diseñadores globales
+const designerIcons = {
+    "Bermina": "👵",
+    "Jorsy": "😎", 
+    "María F.": "🤪",
+    "Xamir": "🐲",
+    "Fulan@": "👋"
+};
+
+// NUEVO: Función para acortar el estado en los círculos
+function getShortStatus(status) {
+    if (!status) return "";
+    const s = status.toUpperCase().trim();
+    if (s === "PENDIENTE") return "PEN";
+    if (s === "PROCESANDO") return "PRO";
+    if (s === "FINALIZADA") return "FIN";
+    return s.substring(0, 3);
+}
+
 // FUNCIÓN PARA GENERAR BOTONES DE DISEÑADOR DINÁMICAMENTE
 function generateDesignerButtons() {
     const designerGrid = document.getElementById('designerGrid');
     if (!designerGrid) return;
-    
-    // Definir iconos para cada diseñador
-    const designerIcons = {
-        "Bermina": "👵",
-        "Jorsy": "😎", 
-        "María F.": "🤪",
-        "Xamir": "🐲",
-        "Fulan@": "👋"
-    };
     
     // Generar HTML para cada diseñador
     let buttonsHTML = '';
@@ -4593,8 +4669,11 @@ async function modStatus(id, st) {
     const oldClass = pill.className;
     const oldText = pill.innerText;
     const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
-    pill.className = `status-pill status-${newStatusClass}`;
-    pill.innerText = st;
+    
+    // ✅ Actualizamos a .status-circle y colocamos el texto acortado
+    pill.className = `status-circle status-${newStatusClass}`;
+    pill.innerText = getShortStatus(st);
+    pill.title = `Estado: ${st}`;
     
     try {
         // ✅ SI ES FINALIZADA Y NO HAY DISEÑADOR ASIGNADO, MOSTRAR ALERTA EN PANEL
@@ -4959,10 +5038,14 @@ function createRowElement(s, idx) {
     let designerPill = '';
     if (s.Disenador) {
         const color = designerColors[s.Disenador] || '#6c757d';
-        designerPill = `<div class="designer-pill" style="background-color: ${color};" title="Diseñador: ${s.Disenador}"></div>`;
+        const icon = designerIcons[s.Disenador] || '';
+        designerPill = `<div class="designer-circle" style="background-color: ${color};" title="Diseñador: ${s.Disenador}">${icon}</div>`;
     }
     
-    const icon = (s.Soportes && s.Soportes.includes("SÍ")) 
+    // Convertimos el estado largo a las 3 letras (PEN, PRO, FIN)
+    const statusShort = getShortStatus(s.Estatus);
+    
+    const soportesIcon = (s.Soportes && s.Soportes.includes("SÍ")) 
         ? ` (${s.Soportes.match(/\d+/) || 1})` 
         : "";
     
@@ -4985,10 +5068,10 @@ function createRowElement(s, idx) {
             </td>
             <td class="txt-bold">${unidadLimpia} ${badge}</td>
             <td>${jornadaLimpia}</td>
-            <td align="center">${icon}</td>
-            <td>
+            <td align="center">${soportesIcon}</td>
+            <td style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px;">
                 ${designerPill}
-                <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+                <span id="pill-${s.id}" class="status-circle status-${statusLimpio}" title="Estado: ${s.Estatus}">${getShortStatus(s.Estatus)}</span>
             </td>
         `;
     } else {
@@ -5019,10 +5102,12 @@ function createRowElement(s, idx) {
         </td>
         <td class="txt-bold">${unidadLimpia}</td>
         <td>${jornadaLimpia}</td>
-        <td align="center">${icon}</td>
+        <td align="center">${soportesIcon}</td>
         <td>
-            ${designerPill}
-            <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+            <div class="status-circle-container">
+                <span id="pill-${s.id}" class="status-circle status-${statusLimpio}" title="Estado: ${s.Estatus}">${statusShort}</span>
+                ${designerPill}
+            </div>
         </td>
         <!-- COLUMNA DE ACCIONES CON ICONO CONDICIONAL Y TEXTO ALINEADO -->
         <td align="right" class="admin-actions-cell">
@@ -5199,11 +5284,15 @@ function renderLocalTable() {
       }
     }
     
-    let designerPill = '';
+    let designerCircle = '';
     if (s.Disenador) {
       const color = designerColors[s.Disenador] || '#6c757d';
-      designerPill = `<div class="designer-pill" style="background-color: ${color};" title="Diseñador: ${s.Disenador}"></div>`;
+      const icon = designerIcons[s.Disenador] || '👤';
+      designerCircle = `<div class="designer-circle" style="background-color: ${color};" title="Diseñador: ${s.Disenador}">${icon}</div>`;
     }
+    
+    // Convertimos el estado largo a las 3 letras (PEN, PRO, FIN)
+    const statusShort = getShortStatus(s.Estatus);
     
     let icon = '';
     if (s.Soportes && s.Soportes.includes("SÍ")) {
@@ -5239,8 +5328,10 @@ function renderLocalTable() {
         <td>${jornadaLimpia}</td>
         <td align="center">${icon}</td>
         <td>
-          ${designerPill}
-          <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+          <div class="status-circle-container">
+            <span id="pill-${s.id}" class="status-circle status-${statusLimpio}" title="Estado: ${s.Estatus}">${statusShort}</span>
+            ${designerCircle}
+          </div>
         </td>
         <td></td>
       `;
@@ -5268,8 +5359,10 @@ function renderLocalTable() {
         <td>${jornadaLimpia}</td>
         <td align="center">${icon}</td>
         <td>
-          ${designerPill}
-          <span id="pill-${s.id}" class="status-pill status-${statusLimpio}">${s.Estatus}</span>
+          <div class="status-circle-container">
+            <span id="pill-${s.id}" class="status-circle status-${statusLimpio}" title="Estado: ${s.Estatus}">${statusShort}</span>
+            ${designerCircle}
+          </div>
         </td>
         <td align="right" class="admin-actions-cell">
           <div class="admin-actions-content">
@@ -6777,17 +6870,30 @@ async function validateLogin() {
                     document.getElementById('tab-stats').classList.remove('hidden');
                 }
                 
-                clearCredentials();
+                // ✅ MOSTRAR CONTADOR DE CORREOS PARA ADMIN
+                if (isAdmin) {
+                    document.getElementById('emailQuotaContainer').classList.remove('hidden');
+                    // Cargar cuota de correos inicial
+                    refreshEmailQuota();
+                    // Configurar auto-refresco cada 5 minutos (300,000 ms)
+                    if (window.emailQuotaInterval) {
+                        clearInterval(window.emailQuotaInterval);
+                    }
+                    window.emailQuotaInterval = setInterval(refreshEmailQuota, 300000);
+                }
                 
-                // Ocultar barra de progreso y cerrar modal
-                progressBar.style.display = 'none';
-                closeModal();
+                clearCredentials();
                 
                 // Cargar datos en segundo plano
                 DATA_CACHE.data = null;
                 updateTable(true).catch(err => {
                     console.warn("Login exitoso, pero fallo carga de datos:", err);
                 });
+                
+                // CERRAR MODAL DE LOGIN DESPUÉS DE UN SEGUNDO
+                setTimeout(() => {
+                    closeModal();
+                }, 1000);
             }, 800);
             
         } else {
@@ -6894,6 +7000,15 @@ function logout() {
     
     // 8. Ocultar tab de estadísticas
     document.getElementById('tab-stats').classList.add('hidden');
+    
+    // ✅ OCULTAR CONTADOR DE CORREOS
+    document.getElementById('emailQuotaContainer').classList.add('hidden');
+    
+    // ✅ LIMPIAR INTERVALO DE CUOTA DE CORREOS
+    if (window.emailQuotaInterval) {
+        clearInterval(window.emailQuotaInterval);
+        window.emailQuotaInterval = null;
+    }
     
     // 9. Detener monitoreo de velocidad
     stopSpeedMonitoring();
@@ -7713,6 +7828,16 @@ function renderList(cont, list) {
         const d = document.createElement('div');
         d.className = 'card-btn';
         d.innerText = i;
+        // ✅ AGREGAR EVENTO CLICK PARA QUE SEAN SELECCIONABLES
+        d.onclick = function() {
+            // Toggle selección
+            this.classList.toggle('selected');
+            
+            // Remover error del campo
+            document.getElementById('sec-3').classList.remove('field-error');
+            
+            console.log('Especialidad seleccionada:', i);
+        };
         cont.appendChild(d);
     });
 }
@@ -8734,6 +8859,80 @@ async function fetchStatsData(period) {
     }
     
     return data.data;
+}
+
+// ✅ FUNCIÓN PARA OBTENER CUOTA DE CORREOS
+async function fetchEmailQuota() {
+    try {
+        const params = new URLSearchParams();
+        params.append('action', 'getEmailQuota');
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al obtener cuota de correos');
+        }
+        
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Error desconocido');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error en fetchEmailQuota:', error);
+        return null;
+    }
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR CONTADOR DE CORREOS
+async function refreshEmailQuota() {
+    if (!isAdmin) {
+        console.log('Usuario no es admin, no se muestra cuota de correos');
+        return;
+    }
+    
+    try {
+        const data = await fetchEmailQuota();
+        if (!data) {
+            console.error('No se pudieron obtener los datos de cuota de correos');
+            return;
+        }
+        
+        // ✅ LOS DATOS VIENEN ANIDADOS EN data.data
+        const quotaData = data.data || data;
+        
+        console.log('📊 Datos de cuota recibidos:', quotaData);
+        
+        // Actualizar elementos del DOM
+        document.getElementById('emailUsed').textContent = quotaData.recipientsUsed || 0;
+        document.getElementById('emailLimit').textContent = quotaData.limit || 100;
+        document.getElementById('emailPercentage').textContent = (quotaData.percentage || 0) + '%';
+        document.getElementById('emailRemaining').textContent = quotaData.remaining || 100;
+        document.getElementById('emailStatus').textContent = quotaData.status || '🟢';
+        document.getElementById('emailDate').textContent = quotaData.date || '--';
+        
+        // Cambiar colores según porcentaje
+        const container = document.getElementById('emailQuotaContainer');
+        const percentage = quotaData.percentage || 0;
+        if (percentage >= 95) {
+            container.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+        } else if (percentage >= 80) {
+            container.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+        } else {
+            container.style.background = 'linear-gradient(135deg, #fb8500 0%, #023e8a 100%)';
+        }
+        
+        console.log('✅ Cuota de correos actualizada correctamente:', quotaData);
+        
+    } catch (error) {
+        console.error('Error actualizando cuota de correos:', error);
+        showToast('Error actualizando cuota de correos', 'error', 3000);
+    }
 }
 
 // Actualizar contadores universales
