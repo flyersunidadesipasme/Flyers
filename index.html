@@ -1516,45 +1516,120 @@ animation: badgePulse 2s infinite;
 
 /* Asignación de diseñador */
 .designer-assign-section {
-    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-    border-radius: 16px;
-    padding: 18px;
-    border: 2px solid var(--naranja);
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    border: none;
 }
 
 .designer-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-top: 12px;
 }
 
-.designer-btn {
-    padding: 12px 8px;
-    border: 2px solid transparent;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    background: white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+.admin-grid-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Dos columnas exactamente iguales */
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.designer-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+.btn-admin-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 10px;
+  border-radius: 8px; /* Bordes menos curvos, estilo Telegram */
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100% !important; /* Para que rellenen su celda de la grilla */
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 44px !important; /* Altura mínima fija para igualar tamaños */
+  height: 44px !important; /* Altura fija para consistencia total */
 }
 
-.designer-btn.selected {
-    border-color: var(--naranja);
-    background: var(--amarillo);
-    box-shadow: 0 0 0 3px rgba(251, 133, 0, 0.25), 0 4px 12px rgba(251, 133, 0, 0.3);
-    transform: scale(1.02);
+.btn-admin-action:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+.btn-admin-action:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* ✅ ESTADO SELECCIONADO PARA DISEÑADOR ASIGNADO */
+.btn-admin-action.selected {
+  border: 4px solid #FFD700 !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important;
+  transform: scale(1.08) !important;
+  font-weight: 700 !important;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-admin-action.selected::before {
+  content: '✓';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #FFD700;
+  color: #000;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  z-index: 11;
+}
+
+/* Colores específicos para acciones */
+.btn-telegram { background-color: #0088cc; }
+.btn-email { background-color: #ea4335; }
+.btn-view { background-color: var(--color-bondi); }
+.btn-attach { background-color: var(--azul-deep); }
+
+.btn-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  color: white;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.btn-pill:hover:not(:disabled) {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-pill:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.4;
+  transform: none !important;
 }
 
 .designer-avatar {
@@ -2684,25 +2759,27 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <div class="designer-assign-section hidden" id="designerAssignSection">
 <div class="panel-section-title">👨‍🎨 Asignar Diseñador</div>
 <!-- ACTUALIZAR designer-grid EN EL PANEL LATERAL -->
-<div class="designer-grid" id="designerGrid">
+<div class="admin-grid-buttons" id="designerGrid">
 </div>
 </div>
 
 <!-- Acciones de Archivo -->
 <div class="panel-actions" id="fileActions">
-<div class="panel-section-title">📁 Acciones de Archivo</div>
-<button class="panel-btn panel-btn-info" id="btnAdjuntar" onclick="panelAdjuntarArte()" disabled>
-📤 Adjuntar Arte
-</button>
-<button class="panel-btn panel-btn-secondary" id="btnVerArte" onclick="panelVerArte()" disabled>
-👁️ Ver Arte
-</button>
-<button class="panel-btn panel-btn-primary" id="btnEnviarTG" onclick="panelEnviarTelegram()" disabled>
-✈️ Enviar a Telegram
-</button>
-<button class="panel-btn panel-btn-success" id="btnEnviarCorreo" onclick="panelEnviarCorreo()" disabled>
-📧 Enviar por Correo
-</button>
+<div class="panel-section-title">📁 ACCIONES</div>
+<div class="admin-grid-buttons">
+    <button id="admin-attach-btn" class="btn-admin-action btn-attach" onclick="panelAdjuntarArte()" disabled>
+        <span>📎</span> Adjuntar
+    </button>
+    <button id="admin-view-btn" class="btn-admin-action btn-view" onclick="panelVerArte()" disabled>
+        <span>👁️</span> Ver
+    </button>
+    <button id="admin-telegram-btn" class="btn-admin-action btn-telegram" onclick="panelEnviarTelegram()" disabled>
+        <span>✈️</span> Telegram
+    </button>
+    <button id="admin-email-btn" class="btn-admin-action btn-email" onclick="panelEnviarCorreo()" disabled>
+        <span>📧</span> Correo
+    </button>
+</div>
 </div>
 
 <!-- Acciones Especiales (Solo Admin) -->
@@ -4387,23 +4464,27 @@ function getShortStatus(status) {
 
 // FUNCIÓN PARA GENERAR BOTONES DE DISEÑADOR DINÁMICAMENTE
 function generateDesignerButtons() {
-    const designerGrid = document.getElementById('designerGrid');
-    if (!designerGrid) return;
-    
-    // Generar HTML para cada diseñador
-    let buttonsHTML = '';
-    for (const [designer, color] of Object.entries(designerColors)) {
-        const icon = designerIcons[designer] || "";
-        const textColor = (designer === "Jorsy" || designer === "Fulan@") ? "white" : "white";
-        
-        buttonsHTML += `
-<button class="designer-btn" onclick="assignDesigner('${designer}')" disabled>
-<span class="designer-avatar" style="background: ${color}; color: ${textColor};">${icon}</span>
-<span>${designer}</span>
-</button>`;
-    }
-    
-    designerGrid.innerHTML = buttonsHTML;
+  const container = document.getElementById('designerGrid');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'admin-grid-buttons';
+
+  const icons = {
+    "Bermina": "👵", "Jorsy": "😎", "María F.": "🤪", "Xamir": "🐲", "Fulan@": "👋"
+  };
+
+  for (const [name, color] of Object.entries(designerColors)) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-admin-action'; 
+    btn.style.backgroundColor = color;
+    btn.innerHTML = `<span>${icons[name] || '👤'}</span> <span>${name}</span>`;
+    btn.onclick = () => assignDesigner(name);
+    btn.disabled = true; 
+    grid.appendChild(btn);
+  }
+  container.appendChild(grid);
 }
 
 // NUEVA VARIABLE GLOBAL PARA ID DE SOLICITUD EN MODAL DE DISEÑADOR
@@ -5593,16 +5674,17 @@ function updatePanelContent() {
         if(btnReportPanel) btnReportPanel.style.display = 'flex';
 
         // Habilitar botones de asignación y eliminación
-        document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = false);
+        document.querySelectorAll('.btn-admin-action').forEach(btn => btn.disabled = false);
         document.getElementById('btnEliminar').disabled = false;
 
         // Marcar diseñador seleccionado visualmente
         if (selectedRequestData?.Disenador) {
-            document.querySelectorAll('.designer-btn').forEach(btn => {
-                btn.classList.toggle('selected', btn.textContent.includes(selectedRequestData.Disenador));
+            const designerNameOnly = selectedRequestData.Disenador.split("|")[0].trim();
+            document.querySelectorAll('.btn-admin-action').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent.includes(designerNameOnly));
             });
         } else {
-            document.querySelectorAll('.designer-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.btn-admin-action').forEach(btn => btn.classList.remove('selected'));
         }
 
     } else if (isDesigner) {
@@ -5634,9 +5716,9 @@ function updatePanelContent() {
     // ✅ HABILITAR ACCIONES DE ARCHIVO (Común para Admin y Diseñador)
     // (Nota: enablePanelButtons ya habilita estos botones, pero esto asegura el estado de Telegram/Ver)
     const hasArt = !!selectedRequestData?.ArteFinal;
-    document.getElementById('btnAdjuntar').disabled = !(isAdmin || isDesigner);
-    document.getElementById('btnVerArte').disabled = !hasArt;
-    document.getElementById('btnEnviarTG').disabled = !hasArt;
+    document.getElementById('admin-attach-btn').disabled = !(isAdmin || isDesigner);
+    document.getElementById('admin-view-btn').disabled = !hasArt;
+    document.getElementById('admin-telegram-btn').disabled = !hasArt;
     
     // ✅ VERIFICAR SI EL CORREO YA TIENE ASTERISCO (ARTE ENVIADO) - PRIMERA VALIDACIÓN
     const correo = selectedRequestData?.Correo;
@@ -5644,16 +5726,16 @@ function updatePanelContent() {
     
     // Si el arte ya fue enviado por correo, mantener el botón desactivado y mostrar "Archivo enviado"
     if (correoEnviado) {
-        const btnCorreo = document.getElementById('btnEnviarCorreo');
+        const btnCorreo = document.getElementById('admin-email-btn');
         btnCorreo.disabled = true;
         btnCorreo.innerHTML = '📧 Archivo enviado';
         btnCorreo.style.background = 'linear-gradient(to right, #2d6a4f, #1a5435)';
         btnCorreo.title = `Arte ya enviado a ${correo.replace(" (*)", "")}`;
     } else {
         // Habilitar normalmente si no se ha enviado (verificar arte y correo)
-        document.getElementById('btnEnviarCorreo').disabled = !hasArt || !selectedRequestData?.Correo;
+        document.getElementById('admin-email-btn').disabled = !hasArt || !selectedRequestData?.Correo;
         // Restaurar texto original si estaba en estado "enviado"
-        const btnCorreo = document.getElementById('btnEnviarCorreo');
+        const btnCorreo = document.getElementById('admin-email-btn');
         if (btnCorreo.innerHTML.includes('Archivo enviado')) {
             btnCorreo.innerHTML = '📧 Enviar por Correo';
             btnCorreo.style.background = '';
@@ -5674,9 +5756,9 @@ function updateFilePreview(arteUrl) {
         </div>
         `;
         info.innerHTML = '';
-        document.getElementById('btnVerArte').disabled = true;
-        document.getElementById('btnEnviarTG').disabled = true;
-        document.getElementById('btnEnviarCorreo').disabled = true;
+        document.getElementById('admin-view-btn').disabled = true;
+        document.getElementById('admin-telegram-btn').disabled = true;
+        document.getElementById('admin-email-btn').disabled = true;
         return;
     }
     
@@ -5689,7 +5771,7 @@ function updateFilePreview(arteUrl) {
         <div>No se puede previsualizar</div>
         </div>
         `;
-        document.getElementById('btnEnviarCorreo').disabled = true;
+        document.getElementById('admin-email-btn').disabled = true;
         return;
     }
     
@@ -5723,8 +5805,8 @@ function updateFilePreview(arteUrl) {
     
     info.innerHTML = '💾 Archivo adjunto disponible';
     
-    document.getElementById('btnVerArte').disabled = false;
-    document.getElementById('btnEnviarTG').disabled = false;
+    document.getElementById('admin-view-btn').disabled = false;
+    document.getElementById('admin-telegram-btn').disabled = false;
     
     // El botón de correo se maneja en updatePanelContent() para validar el asterisco
 }
@@ -5736,79 +5818,49 @@ function enablePanelButtons() {
     document.getElementById('btnStatusFin').disabled = false;
     
     // Botones de archivo
-    document.getElementById('btnAdjuntar').disabled = false;
-    document.getElementById('btnVerArte').disabled = !selectedRequestData?.ArteFinal;
-    document.getElementById('btnEnviarTG').disabled = !selectedRequestData?.ArteFinal;
+    document.getElementById('admin-attach-btn').disabled = false;
+    document.getElementById('admin-view-btn').disabled = !selectedRequestData?.ArteFinal;
+    document.getElementById('admin-telegram-btn').disabled = !selectedRequestData?.ArteFinal;
     
     // ✅ El botón de correo se maneja en updatePanelContent() para validar el asterisco
     
     // Botones especiales de Admin
     if (isAdmin) {
         document.getElementById('btnEliminar').disabled = false;
-        document.querySelectorAll('.designer-btn').forEach(btn => btn.disabled = false);
-    }
-}
-
-// ✅ ACCIONES DEL PANEL
-async function changeStatus(newStatus) {
-    if (!selectedRequestId) return;
-    
-    // Si es finalizada y no hay diseñador asignado (solo admin), mostrar alerta
-    if (newStatus === 'FINALIZADA' && isAdmin && !selectedRequestData?.Disenador) {
-        openModal("⚠️ Atención", "Debes asignar un diseñador antes de finalizar la solicitud.", "👨‍🎨");
-        return;
-    }
-    
-    document.getElementById('loadMainTxt').innerText = "Actualizando estado...";
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    
-    try {
-        // === REEMPLAZAR EL FETCH POR ===
-        const result = await batchRequest('updateStatus', {
-            id: selectedRequestId,
-            status: newStatus,
-            username: userCredentials.username,
-            password: userCredentials.password
-        });
-        
-        const data = result;
-        
-        if (data.success) {
-            // Actualizar datos locales
-            const item = localData.find(x => x.id == selectedRequestId);
-            if (item) {
-                item.Estatus = newStatus;
-                selectedRequestData = item;
-            }
-            
-            // Actualizar panel y tabla
-            updatePanelContent();
-            renderLocalTable();
-            updatePaginationControls();
-            
-            showToast(`🔄 Estado cambiado a ${newStatus}`, "success", 2000);
-        } else {
-            throw new Error(data.error || "Error al actualizar estado");
-        }
-    } catch (e) {
-        console.error("Error completo:", e);
-        openModal("❌ Error", e.message, "💥");
-    } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
+        document.querySelectorAll('.btn-admin-action').forEach(btn => btn.disabled = false);
     }
 }
 
 async function assignDesigner(designerName) {
     if (!isAdmin || !selectedRequestId) return;
     
-    document.getElementById('loadMainTxt').innerText = "Asignando diseñador...";
+    // Verificar si ya hay un diseñador asignado
+    const currentDesigner = selectedRequestData?.Disenador;
+    const designerNameOnly = currentDesigner ? currentDesigner.split("|")[0].trim() : "";
+    
+    // Si el mismo diseñador está asignado, desasignarlo
+    if (designerNameOnly === designerName && designerNameOnly !== "") {
+        if (!confirm(`¿Desasignar a ${designerName} de esta solicitud?`)) {
+            return;
+        }
+        document.getElementById('loadMainTxt').innerText = "Desasignando diseñador...";
+    } else {
+        document.getElementById('loadMainTxt').innerText = "Asignando diseñador...";
+    }
+    
     document.getElementById('loadingOverlay').style.display = 'flex';
     
     try {
         const params = new URLSearchParams();
         params.append("action", "assignDesigner");
         params.append("id", selectedRequestId);
-        params.append("disenador", designerName);
+        if (designerNameOnly !== designerName) {
+            // Asignar nuevo diseñador
+            params.append("disenador", designerName);
+        } else {
+            // Desasignar - enviar vacío para limpiar
+            params.append("disenador", "");
+        }
         params.append("username", userCredentials.username);
         params.append("password", userCredentials.password);
         
@@ -5818,7 +5870,7 @@ async function assignDesigner(designerName) {
             body: params.toString()
         });
         
-        // ✅ VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
+        // VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
         const text = await response.text();
         let data;
         try {
@@ -5832,29 +5884,37 @@ async function assignDesigner(designerName) {
             // Actualizar datos locales
             const item = localData.find(x => x.id == selectedRequestId);
             if (item) {
-                item.Disenador = designerName;
-                selectedRequestData = item;
+                if (designerNameOnly === designerName) {
+                    // Desasignar: limpiar el campo
+                    item.Disenador = "";
+                    selectedRequestData = item;
+                    showToast(` ${designerName} desasignado`, "info", 2000);
+                } else {
+                    // Asignar: establecer el diseñador
+                    item.Disenador = designerName;
+                    selectedRequestData = item;
+                    showToast(` ${designerName} asignado`, "success", 2000);
+                }
             }
             
             // Actualizar UI
-            document.querySelectorAll('.designer-btn').forEach(btn => {
+            document.querySelectorAll('.btn-admin-action').forEach(btn => {
                 btn.classList.remove('selected');
-                if (btn.textContent.includes(designerName)) {
+                if (selectedRequestData?.Disenador && btn.textContent.includes(selectedRequestData.Disenador.split("|")[0].trim())) {
                     btn.classList.add('selected');
                 }
             });
             
-            // ✅ ACTUALIZAR CONTENIDO DEL PANEL PARA REFLEJAR CAMBIOS
+            // ACTUALIZAR CONTENIDO DEL PANEL PARA REFLEJAR CAMBIOS
             updatePanelContent();
             renderLocalTable();
             updatePaginationControls();
-            showToast(`👨‍🎨 ${designerName} asignado`, "success", 2000);
         } else {
             throw new Error(data.error || "Error al asignar diseñador");
         }
     } catch (e) {
         console.error("Error completo:", e);
-        openModal("❌ Error", e.message, "💥");
+        openModal(" Error", e.message, "");
     } finally {
         document.getElementById('loadingOverlay').style.display = 'none';
     }
@@ -5912,7 +5972,7 @@ async function panelEnviarCorreo() {
     if(!confirm("¿Enviar el arte de " + selectedRequestId + " por correo electrónico a " + correoUsuario + "?")) return;
     
     // Obtener el botón y guardar su estado original
-    const btnCorreo = document.getElementById('btnEnviarCorreo');
+    const btnCorreo = document.getElementById('admin-email-btn');
     const textoOriginal = btnCorreo.innerHTML;
     
     // Agregar animación de carga al botón
