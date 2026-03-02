@@ -2607,15 +2607,15 @@ onclick="showLogin()">🔓 ACCESO ADMINISTRADOR</button>
 <!-- Acciones de Estado -->
 <div class="panel-actions" id="statusActions">
 <div class="panel-section-title">🔄 Cambiar Estado</div>
-<button class="panel-btn panel-btn-pendiente" id="btnStatusPend" onclick="changeStatus('PENDIENTE')" disabled>
+<button class="panel-btn panel-btn-pendiente" id="btnStatusPend" onclick="modStatus(selectedRequestId, 'PENDIENTE')" disabled>
 ⏳ Pendiente
 <span class="btn-status-indicator" id="indPend"></span>
 </button>
-<button class="panel-btn panel-btn-procesando" id="btnStatusProc" onclick="changeStatus('PROCESANDO')" disabled>
+<button class="panel-btn panel-btn-procesando" id="btnStatusProc" onclick="modStatus(selectedRequestId, 'PROCESANDO')" disabled>
 ⚙️ Procesando
 <span class="btn-status-indicator" id="indProc"></span>
 </button>
-<button class="panel-btn panel-btn-finalizada" id="btnStatusFin" onclick="changeStatus('FINALIZADA')" disabled>
+<button class="panel-btn panel-btn-finalizada" id="btnStatusFin" onclick="modStatus(selectedRequestId, 'FINALIZADA')" disabled>
 ✅ Finalizada
 <span class="btn-status-indicator" id="indFin"></span>
 </button>
@@ -4469,19 +4469,48 @@ function updateSearchVisibility() {
 }
 // ✅ MODIFICAR FUNCIÓN modStatus PARA DETECTAR FINALIZADA Y USAR PANEL
 async function modStatus(id, st) {
+    console.log("🔄 === INICIANDO CAMBIO DE ESTADO ===");
+    console.log("  - ID:", id);
+    console.log("  - Nuevo estado:", st);
+    console.log("  - selectedRequestId:", selectedRequestId);
+    console.log("  - userCredentials:", !!userCredentials ? "✅ Disponibles" : "❌ No disponibles");
+    
+    if (!id || !st) {
+        console.error("❌ ID o estado inválido");
+        return;
+    }
+    
     const pill = document.getElementById('pill-' + id);
+    if (!pill) {
+        console.error("❌ No se encontró el pill para ID:", id);
+        return;
+    }
+    
     const oldClass = pill.className;
     const oldText = pill.innerText;
     const newStatusClass = st.toLowerCase().replace(/\s+/g, '');
+    
+    console.log("🎯 Elemento pill encontrado:", !!pill);
+    console.log("📝 Estado actual:", oldText);
+    console.log("🎨 Clase nueva:", `status-${newStatusClass}`);
+    
     // ✅ Actualizamos a .status-circle y colocamos el texto acortado
     pill.className = `status-circle status-${newStatusClass}`;
     pill.innerText = getShortStatus(st);
     pill.title = `Estado: ${st}`;
+    
+    console.log("✅ UI actualizada localmente");
+    
     try {
         // ✅ SI ES FINALIZADA Y NO HAY DISEÑADOR ASIGNADO, MOSTRAR ALERTA EN PANEL
         if (st === "FINALIZADA") {
             const item = localData.find(x => x.id == id);
+            console.log("🔍 Verificando diseñador para FINALIZADA:");
+            console.log("  - Item encontrado:", !!item);
+            console.log("  - Diseñador:", item?.Disenador);
+            
             if (!item?.Disenador) {
+                console.log("⚠️ No hay diseñador asignado, mostrando alerta");
                 // Abrir panel y mostrar mensaje
                 selectRequest(id);
                 openModal("⚠️ Atención", "Debes asignar un diseñador antes de finalizar la solicitud. Usa el panel lateral.", "👨‍🎨");
@@ -4491,32 +4520,80 @@ async function modStatus(id, st) {
                 return;
             }
         }
+        
+        console.log("📤 Enviando solicitud al backend...");
         const params = new URLSearchParams();
         params.append("action", "updateStatus");
         params.append("id", id);
         params.append("status", st);
         params.append("username", userCredentials.username);
         params.append("password", userCredentials.password);
+        
+        console.log("🔗 Parámetros enviados: [OCULTOS POR SEGURIDAD]");
+        
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
         });
+        
+        console.log("📥 Respuesta recibida");
+        
         // ✅ VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
         const text = await response.text();
+        console.log("📄 Texto de respuesta:", text);
+        
         let data;
         try {
             data = JSON.parse(text);
+            console.log("✅ JSON parseado correctamente:", data);
         } catch (e) {
+            console.error("❌ Error parseando JSON:", e);
             console.error("Respuesta no válida del servidor:", text);
             throw new Error("Respuesta inválida del servidor");
         }
+        
         if (data.success) {
+            console.log("✅ Cambio de estado exitoso");
             const item = localData.find(x => x.id == id);
-            if(item) item.Estatus = st;
+            if(item) {
+                item.Estatus = st;
+                console.log("📊 Datos locales actualizados");
+            }
+            
+            // ✅ CORRECCIÓN: Invalidar caché HTML de la página actual para forzar regeneración
+            invalidateCurrentPageCache("cambio de estado");
+            
             renderLocalTable();
-    updatePaginationControls();
+            updatePaginationControls();
+            
+            // ✅ MOSTRAR TOAST DE ÉXITO SEGÚN EL ESTADO
+            let toastMessage = "";
+            let toastType = "success";
+            
+            switch(st.toUpperCase()) {
+                case "PENDIENTE":
+                    toastMessage = "⏳ Estado cambiado a PENDIENTE";
+                    toastType = "info";  // Azul para pendiente
+                    break;
+                case "PROCESANDO":
+                    toastMessage = "⚙️ Estado cambiado a PROCESANDO";
+                    toastType = "warning";  // Naranja para procesando
+                    break;
+                case "FINALIZADA":
+                    toastMessage = "✅ Estado cambiado a FINALIZADA";
+                    toastType = "success";  // Verde para finalizada
+                    break;
+                default:
+                    toastMessage = `🔄 Estado cambiado a ${st}`;
+                    toastType = "success";
+            }
+            
+            showToast(toastMessage, toastType, 2000);
+            console.log("🎉 Toast mostrado:", toastMessage);
+            console.log("🔄 === FIN DE CAMBIO DE ESTADO ===");
         } else {
+            console.error("❌ Error del servidor:", data.error);
             throw new Error(data.error || "Error al actualizar estatus");
         }
     } catch (e) {
@@ -5062,6 +5139,9 @@ function renderLocalTable() {
   const body = document.getElementById('solicitudes-body');
   const currentPage = PAGINATION.currentPage;
 
+  // ✅ DECLARACIÓN TEMPRANA DE VARIABLES PARA EVITAR ERRORES
+  const isRegularUser = !isAdmin && !isDesigner;
+
   // ✅ CORRECCIÓN: Usar PAGINATION.totalRecords que viene del servidor
   const totalRecords = PAGINATION.totalRecords || localData.length;
   const totalPages = Math.ceil(totalRecords / PAGINATION.limit) || 1;
@@ -5076,6 +5156,10 @@ function renderLocalTable() {
     console.log(`⚡ Renderizando página ${currentPage} desde caché HTML (INSTANTÁNEO)`);
     body.innerHTML = cachedHtml;
     updateTableHeaders();
+    // ✅ IMPORTANTE: Configurar clics incluso cuando se usa caché
+    if (!isRegularUser) {
+      setupTableClickDelegation();
+    }
     return;
   }
 
@@ -5083,7 +5167,6 @@ function renderLocalTable() {
 
   // ✅ OPTIMIZACIÓN 2: Usar DocumentFragment para minimizar reflows
   const fragment = document.createDocumentFragment();
-  const isRegularUser = !isAdmin && !isDesigner;
 
   // ✅ OPTIMIZACIÓN 3: Pre-calcular valores comunes fuera del bucle
   const rowClassCache = new Map();
@@ -5165,6 +5248,7 @@ function renderLocalTable() {
         <td align="center">${icon}</td>
         <td><div class="status-circle-container"><span id="pill-${s.id}" class="status-circle status-${statusLimpio}" title="Estado: ${s.Estatus}">${statusShort}</span>${designerCircle}</div></td>
         <td align="right" class="admin-actions-cell"><div class="admin-actions-content">${actionIcon}${actionText}</div></td>
+        <td></td>
       </tr>`;
       htmlString += rowHtml;
     }
@@ -5180,6 +5264,9 @@ function renderLocalTable() {
   if (!isRegularUser) {
     setupTableClickDelegation();
   }
+
+  // ✅ ACTUALIZAR HEADERS DESPUÉS DE RENDERIZAR
+  updateTableHeaders();
 }
 
 // ✅ NUEVA FUNCIÓN: Delegación de eventos para clics en filas
@@ -5187,21 +5274,49 @@ function setupTableClickDelegation() {
   const body = document.getElementById('solicitudes-body');
   if (body.dataset.clickHandlerAttached) return; // Ya está configurado
 
+  console.log("🖱️ Configurando delegación de clics en tabla...");
+  console.log("  - isAdmin:", isAdmin);
+  console.log("  - isDesigner:", isDesigner);
+  console.log("  - body encontrado:", !!body);
+
   body.addEventListener('click', function(e) {
-    if (!isAdmin && !isDesigner) return;
+    console.log("🖱️ Click detectado en tabla");
+    console.log("  - target:", e.target);
+    console.log("  - isAdmin:", isAdmin);
+    console.log("  - isDesigner:", isDesigner);
+    
+    if (!isAdmin && !isDesigner) {
+      console.log("⛔ Usuario no tiene permisos para seleccionar");
+      return;
+    }
+    
     const tr = e.target.closest('tr[data-id]');
+    console.log("  - tr encontrado:", !!tr);
+    console.log("  - tr data-id:", tr ? tr.dataset.id : 'N/A');
+    
     if (!tr) return;
-    if (e.target.closest('button') || e.target.closest('a')) return;
+    
+    if (e.target.closest('button') || e.target.closest('a')) {
+      console.log("⛔ Click en botón/enlace, ignorando");
+      return;
+    }
+    
     const id = tr.dataset.id;
-    if (id) selectRequest(id);
+    console.log("🎯 Seleccionando solicitud:", id);
+    
+    if (id) {
+      selectRequest(id);
+    }
   });
 
   body.dataset.clickHandlerAttached = 'true';
+  console.log("✅ Delegación de clics configurada correctamente");
 }
 // ✅ NUEVA FUNCIÓN: Actualizar headers de tabla (llamada después de renderizar)
 function updateTableHeaders() {
   const isRegularUser = !isAdmin && !isDesigner;
-  const thActions = isAdmin ? document.getElementById('th-admin') : document.getElementById('th-designer');
+  const thAdmin = document.getElementById('th-admin');
+  const thDesigner = document.getElementById('th-designer');
   const thId = document.querySelector('thead th:nth-child(1)');
   const thFechaEvento = document.querySelector('thead th:nth-child(2)');
   const thUnidad = document.querySelector('thead th:nth-child(3)');
@@ -5212,21 +5327,26 @@ function updateTableHeaders() {
     if(thFechaEvento) thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
     if(thUnidad) thUnidad.innerHTML = '🏥 UNIDAD';
     if(thJornada) thJornada.innerHTML = '📋 TIPO SOLICITUD';
-    document.getElementById('th-admin').classList.add('hidden');
-    document.getElementById('th-designer').classList.add('hidden');
+    if(thAdmin) thAdmin.classList.add('hidden');
+    if(thDesigner) thDesigner.classList.add('hidden');
   } else {
     if(thId) thId.innerHTML = 'ID SOLICITUD';
     if(thFechaEvento) thFechaEvento.innerHTML = '🗓️ FECHA EVENTO';
     if(thUnidad) thUnidad.innerHTML = 'UNIDAD SOLICITANTE';
     if(thJornada) thJornada.innerHTML = 'TIPO SOLICITUD';
+    
     if (isAdmin) {
-      if(thActions) thActions.innerHTML = 'ACCIONES ADMIN';
-      thActions.classList.remove('hidden');
-      document.getElementById('th-designer').classList.add('hidden');
+      if(thAdmin) {
+        thAdmin.innerHTML = 'ACCIONES ADMIN';
+        thAdmin.classList.remove('hidden');
+      }
+      if(thDesigner) thDesigner.classList.add('hidden');
     } else if (isDesigner) {
-      if(thActions) thActions.innerHTML = 'ACCIONES DISEÑO';
-      thActions.classList.remove('hidden');
-      document.getElementById('th-admin').classList.add('hidden');
+      if(thDesigner) {
+        thDesigner.innerHTML = 'ACCIONES DISEÑO';
+        thDesigner.classList.remove('hidden');
+      }
+      if(thAdmin) thAdmin.classList.add('hidden');
     }
   }
   updateSearchVisibility();
@@ -5486,6 +5606,33 @@ function updateFilePreview(arteUrl) {
     document.getElementById('admin-telegram-btn').disabled = false;
     // El botón de correo se maneja en updatePanelContent() para validar el asterisco
 }
+// ✅ FUNCIÓN PARA DESHABILITAR TODOS LOS BOTONES DEL PANEL
+function disableAllPanelButtons() {
+    // Botones de estado
+    const btnStatusPend = document.getElementById('btnStatusPend');
+    const btnStatusProc = document.getElementById('btnStatusProc');
+    const btnStatusFin = document.getElementById('btnStatusFin');
+    if (btnStatusPend) btnStatusPend.disabled = true;
+    if (btnStatusProc) btnStatusProc.disabled = true;
+    if (btnStatusFin) btnStatusFin.disabled = true;
+    
+    // Botones de archivo
+    const btnAttach = document.getElementById('admin-attach-btn');
+    const btnView = document.getElementById('admin-view-btn');
+    const btnTelegram = document.getElementById('admin-telegram-btn');
+    const btnEmail = document.getElementById('admin-email-btn');
+    if (btnAttach) btnAttach.disabled = true;
+    if (btnView) btnView.disabled = true;
+    if (btnTelegram) btnTelegram.disabled = true;
+    if (btnEmail) btnEmail.disabled = true;
+    
+    // Botones especiales de Admin
+    const btnEliminar = document.getElementById('btnEliminar');
+    if (btnEliminar) btnEliminar.disabled = true;
+    
+    // Botones de diseñador
+    document.querySelectorAll('.btn-admin-action').forEach(btn => btn.disabled = true);
+}
 function enablePanelButtons() {
     // Botones de estado (Admin y Diseñador pueden cambiar estado)
     document.getElementById('btnStatusPend').disabled = false;
@@ -5503,48 +5650,86 @@ function enablePanelButtons() {
     }
 }
 async function assignDesigner(designerName) {
-    if (!isAdmin || !selectedRequestId) return;
+    console.log("👨‍🎨 === INICIANDO ASIGNACIÓN DE DISEÑADOR ===");
+    console.log("  - DesignerName:", designerName);
+    console.log("  - isAdmin:", isAdmin);
+    console.log("  - selectedRequestId:", selectedRequestId);
+    console.log("  - selectedRequestData:", !!selectedRequestData);
+    
+    if (!isAdmin || !selectedRequestId) {
+        console.error("❌ Sin permisos o sin solicitud seleccionada");
+        return;
+    }
+    
     // Verificar si ya hay un diseñador asignado
     const currentDesigner = selectedRequestData?.Disenador;
     const designerNameOnly = currentDesigner ? currentDesigner.split("|")[0].trim() : "";
+    
+    console.log("🔍 Diseñador actual:");
+    console.log("  - currentDesigner:", currentDesigner);
+    console.log("  - designerNameOnly:", designerNameOnly);
+    
     // Si el mismo diseñador está asignado, desasignarlo
     if (designerNameOnly === designerName && designerNameOnly !== "") {
+        console.log("🗑️ Desasignando diseñador...");
         if (!confirm(`¿Desasignar a ${designerName} de esta solicitud?`)) {
+            console.log("❌ Usuario canceló desasignación");
             return;
         }
         document.getElementById('loadMainTxt').innerText = "Desasignando diseñador...";
     } else {
+        console.log("✍️ Asignando nuevo diseñador...");
         document.getElementById('loadMainTxt').innerText = "Asignando diseñador...";
     }
+    
     document.getElementById('loadingOverlay').style.display = 'flex';
+    
     try {
+        console.log("📤 Enviando solicitud al backend...");
         const params = new URLSearchParams();
         params.append("action", "assignDesigner");
         params.append("id", selectedRequestId);
+        
         if (designerNameOnly !== designerName) {
             // Asignar nuevo diseñador
             params.append("disenador", designerName);
+            console.log("📝 Parámetro disenador:", designerName);
         } else {
             // Desasignar - enviar vacío para limpiar
             params.append("disenador", "");
+            console.log("🗑️ Parámetro disenador: (vacío para desasignar)");
         }
+        
         params.append("username", userCredentials.username);
         params.append("password", userCredentials.password);
+        
+        console.log("🔗 Parámetros completos: [OCULTOS POR SEGURIDAD]");
+        
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
         });
+        
+        console.log("📥 Respuesta recibida del backend");
+        
         // VERIFICAR SI LA RESPUESTA ES JSON VÁLIDO
         const text = await response.text();
+        console.log("📄 Texto de respuesta:", text);
+        
         let data;
         try {
             data = JSON.parse(text);
+            console.log("✅ JSON parseado:", data);
         } catch (e) {
+            console.error("❌ Error parseando JSON:", e);
             console.error("Respuesta no válida del servidor:", text);
             throw new Error("Respuesta inválida del servidor");
         }
+        
         if (data.success) {
+            console.log("✅ Operación exitosa en backend");
+            
             // Actualizar datos locales
             const item = localData.find(x => x.id == selectedRequestId);
             if (item) {
@@ -5552,26 +5737,40 @@ async function assignDesigner(designerName) {
                     // Desasignar: limpiar el campo
                     item.Disenador = "";
                     selectedRequestData = item;
-                    showToast(` ${designerName} desasignado`, "info", 2000);
+                    console.log("🗑️ Diseñador desasignado localmente");
+                    showToast(`👨‍🎨 ${designerName} desasignado`, "info", 2000);
                 } else {
                     // Asignar: establecer el diseñador
                     item.Disenador = designerName;
                     selectedRequestData = item;
-                    showToast(` ${designerName} asignado`, "success", 2000);
+                    console.log("✍️ Diseñador asignado localmente");
+                    showToast(`👨‍🎨 ${designerName} asignado`, "success", 2000);
                 }
             }
+            
             // Actualizar UI
+            console.log("🎨 Actualizando UI de botones...");
             document.querySelectorAll('.btn-admin-action').forEach(btn => {
                 btn.classList.remove('selected');
                 if (selectedRequestData?.Disenador && btn.textContent.includes(selectedRequestData.Disenador.split("|")[0].trim())) {
                     btn.classList.add('selected');
+                    console.log("✅ Botón resaltado para:", selectedRequestData.Disenador.split("|")[0].trim());
                 }
             });
+            
             // ACTUALIZAR CONTENIDO DEL PANEL PARA REFLEJAR CAMBIOS
+            console.log("📱 Actualizando contenido del panel...");
             updatePanelContent();
+            
+            // ✅ CORRECCIÓN: Invalidar caché HTML de la página actual para forzar regeneración
+            invalidateCurrentPageCache("asignación de diseñador");
+            
             renderLocalTable();
             updatePaginationControls();
+            
+            console.log("👨‍🎨 === FIN DE ASIGNACIÓN DE DISEÑADOR ===");
         } else {
+            console.error("❌ Error del backend:", data.error);
             throw new Error(data.error || "Error al asignar diseñador");
         }
     } catch (e) {
@@ -6419,6 +6618,10 @@ async function validateLogin() {
             };
             isAdmin = data.data.isAdmin || false;
             isDesigner = data.data.isDesigner || false;
+            // ✅ ACTUALIZAR INTERFAZ INMEDIATAMENTE CON NUEVOS PERMISOS
+            updateTableHeaders();
+            // ✅ LIMPIAR CACHÉ DE PÁGINAS PARA REGENERAR CON NUEVOS PERMISOS
+            PAGE_CACHE.clear();
             // ✅ Activar monitoreo del botón de reporte para administradores
             if (isAdmin) {
                 checkFirstDayOfMonth();
@@ -6508,6 +6711,8 @@ function logout() {
         role: "", 
         designerName: "" 
     };
+    // ✅ LIMPIAR CACHÉ DE PÁGINAS AL HACER LOGOUT
+    PAGE_CACHE.clear();
     // 3. Cerrar panel si está abierto
     if (isPanelOpen) {
         closeSidePanel();
@@ -6983,16 +7188,28 @@ function completeDeleteAnimation(success, id, errorMessage = '') {
         progressText.style.color = 'var(--verde)';
         progressStatus.innerText = 'La solicitud ha sido eliminada permanentemente';
         progressStatus.style.color = 'var(--verde)';
-        // Actualizar datos locales
+        
+        // ✅ CAPTURAR DATOS ANTES DE ELIMINAR PARA EL LOG
+        const deletedRequestData = localData.find(x => x.id == id);
+        
+        // Actualizar datos locales y UI inmediatamente
         localData = localData.filter(x => x.id != id);
+        
+        // ✅ CORRECCIÓN: Invalidar caché HTML de la página actual para forzar regeneración
+        invalidateCurrentPageCache("eliminación de solicitud");
+        
+        // ✅ LOG FRONEND DE ELIMINACIÓN
+        logFrontendDeletion(id, deletedRequestData);
+        
+        renderLocalTable();
+        updatePaginationControls();
+        
         // Si la eliminada es la seleccionada, cerrar panel
         if (selectedRequestId === id) {
             closeSidePanel();
             selectedRequestId = null;
             selectedRequestData = null;
         }
-        renderLocalTable();
-        updatePaginationControls();
         // Cambiar botón a "Aceptar"
         setTimeout(() => {
             mainBtn.innerText = "ENTENDIDO";
@@ -7934,6 +8151,98 @@ function invalidatePageCache() {
   // También invalidar caché principal para forzar recarga
   DATA_CACHE.data = null;
   DATA_CACHE.timestamp = 0;
+}
+
+// ✅ FUNCIÓN PARA INVALIDAR CACHÉ HTML DE PÁGINA ACTUAL (más eficiente)
+function invalidateCurrentPageCache(reason = "datos actualizados") {
+  const currentPage = PAGINATION.currentPage;
+  PAGE_CACHE.htmlCache.delete(currentPage);
+  console.log(`🗑️ Caché HTML de página ${currentPage} invalidado: ${reason}`);
+}
+
+// ✅ FUNCIÓN DE LOG FRONEND PARA ELIMINACIÓN DE SOLICITUDES
+function logFrontendDeletion(deletedRequestId, deletedRequestData = null) {
+  const timestamp = new Date().toLocaleString('es-VE', { 
+    timeZone: 'America/Caracas',
+    year: 'numeric',
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  
+  const userInfo = {
+    username: userCredentials?.username || 'desconocido',
+    displayName: userCredentials?.displayName || 'Usuario no identificado',
+    role: isAdmin ? 'Administrador' : (isDesigner ? 'Diseñador' : 'Usuario regular')
+  };
+  
+  console.group(`🗑️ ELIMINACIÓN DE SOLICITUD [FRONTEND] - ${timestamp}`);
+  console.log(`📋 ID Solicitud Eliminada: ${deletedRequestId}`);
+  console.log(`👤 Usuario que eliminó:`, userInfo);
+  console.log(`🌐 Navegador: ${navigator.userAgent.split(' ').slice(-2).join(' ')}`);
+  console.log(`📱 Dispositivo: ${detectDevice()}`);
+  console.log(`📊 Total solicitudes antes: ${localData.length + 1}`);
+  console.log(`📊 Total solicitudes después: ${localData.length}`);
+  console.log(`📄 Página actual: ${PAGINATION.currentPage}/${PAGINATION.totalPages}`);
+  
+  if (deletedRequestData) {
+    console.log(`📋 Detalles de la solicitud eliminada:`);
+    console.log(`  • Unidad: ${deletedRequestData.Unidad || 'N/A'}`);
+    console.log(`  • Jornada: ${deletedRequestData.Jornada || 'N/A'}`);
+    console.log(`  • Estado: ${deletedRequestData.Estatus || 'N/A'}`);
+    console.log(`  • Diseñador: ${deletedRequestData.Disenador || 'Sin asignar'}`);
+    console.log(`  • Fecha evento: ${deletedRequestData.Fecha || 'N/A'}`);
+    console.log(`  • Hora evento: ${deletedRequestData.Hora || 'N/A'}`);
+    console.log(`  • Solicitante: ${deletedRequestData.Solicitante || 'N/A'}`);
+    console.log(`  • Correo: ${deletedRequestData.Correo || 'N/A'}`);
+    console.log(`  • Teléfono: ${deletedRequestData.Tlf || 'N/A'}`);
+    console.log(`  • Con arte final: ${deletedRequestData.ArteFinal ? 'Sí' : 'No'}`);
+    console.log(`  • Soportes: ${deletedRequestData.Soportes || 'No'}`);
+    console.log(`  • Timestamp creación: ${deletedRequestData.Timestamp || 'N/A'}`);
+  } else {
+    console.log(`⚠️ No se encontraron detalles de la solicitud en el caché local`);
+  }
+  
+  console.log(`✅ Confirmación: La solicitud ${deletedRequestId} fue eliminada exitosamente del frontend`);
+  console.log(`🔄 Acciones ejecutadas:`);
+  console.log(`  • Datos locales filtrados y actualizados`);
+  console.log(`  • Caché HTML invalidado`);
+  console.log(`  • Tabla renderizada con datos actualizados`);
+  console.log(`  • Controles de paginación actualizados`);
+  
+  if (selectedRequestId === deletedRequestId) {
+    console.log(`  • Panel lateral cerrado (la solicitud eliminada estaba seleccionada)`);
+  }
+  
+  console.groupEnd();
+  
+  // También guardar en localStorage para persistencia temporal (opcional)
+  try {
+    const deletionLog = {
+      timestamp,
+      requestId: deletedRequestId,
+      userInfo,
+      device: detectDevice(),
+      page: PAGINATION.currentPage,
+      totalBefore: localData.length + 1,
+      totalAfter: localData.length
+    };
+    
+    let logs = JSON.parse(localStorage.getItem('sira_deletion_logs') || '[]');
+    logs.unshift(deletionLog);
+    
+    // Mantener solo los últimos 50 logs para no saturar localStorage
+    if (logs.length > 50) {
+      logs = logs.slice(0, 50);
+    }
+    
+    localStorage.setItem('sira_deletion_logs', JSON.stringify(logs));
+    console.log(`💾 Log guardado en localStorage (${logs.length} registros totales)`);
+  } catch (error) {
+    console.warn(`⚠️ No se pudo guardar el log en localStorage:`, error.message);
+  }
 }
 // ✅ ACTUALIZAR DISPLAY DE VELOCIDAD DE SUBIDA
 function updateUploadSpeedDisplay() {
@@ -9984,5 +10293,9 @@ document.getElementById('idNotFoundModal').style.display = 'none';
 updateStatsTabVisibility();  // ✅ AGREGAR
 }
 </script>
+
+<!-- 🧪 Script de prueba para depuración de admin/diseñador -->
+<script src="test_admin_designer.js"></script>
+
 </body>
 </html>
